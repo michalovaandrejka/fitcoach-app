@@ -11,7 +11,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { Card } from "@/components/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getClients } from "@/lib/storage";
+import { apiGetUsers, apiGetBookings } from "@/lib/api";
 import { Client } from "@/types";
 
 export default function ClientsScreen() {
@@ -26,8 +26,20 @@ export default function ClientsScreen() {
   const [showSearch, setShowSearch] = useState(false);
 
   const loadData = async () => {
-    const data = await getClients();
-    setClients(data);
+    const [usersData, allBookings] = await Promise.all([apiGetUsers(), apiGetBookings()]);
+    const clientUsers = usersData.filter(u => u.role === "CLIENT");
+    const clientsWithStats: Client[] = clientUsers.map(user => {
+      const userBookings = allBookings.filter((b: any) => b.userId === user.id);
+      const sortedBookings = userBookings.sort((a: any, b: any) => b.date.localeCompare(a.date));
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        bookingsCount: userBookings.length,
+        lastTrainingDate: sortedBookings[0]?.date || undefined,
+      };
+    });
+    setClients(clientsWithStats);
   };
 
   useFocusEffect(

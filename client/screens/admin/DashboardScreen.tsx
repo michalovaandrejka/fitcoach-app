@@ -13,8 +13,7 @@ import { Onboarding } from "@/components/Onboarding";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getUsers, getBookings, getAvailabilityBlocks, getAvailableStartTimes } from "@/lib/storage";
-import { Booking, AvailabilityBlock } from "@/types";
+import { apiGetDashboardStats } from "@/lib/api";
 
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
@@ -32,28 +31,12 @@ export default function DashboardScreen() {
   const [showTutorial, setShowTutorial] = useState(false);
 
   const loadData = async () => {
-    const [users, bookings, blocks] = await Promise.all([
-      getUsers(),
-      getBookings(),
-      getAvailabilityBlocks(),
-    ]);
-    
-    const clientUsers = users.filter(u => u.role === "CLIENT");
-    const today = new Date().toISOString().split("T")[0];
-    const todayBookings = bookings.filter((b: Booking) => b.date === today);
-    
-    const futureDates = [...new Set(blocks.filter((b: AvailabilityBlock) => b.date >= today).map(b => b.date))];
-    let totalAvailableSlots = 0;
-    for (const date of futureDates) {
-      const slots = await getAvailableStartTimes(date);
-      totalAvailableSlots += slots.length;
+    try {
+      const dashboardStats = await apiGetDashboardStats();
+      setStats(dashboardStats);
+    } catch (error) {
+      console.error("Failed to load dashboard stats:", error);
     }
-    
-    setStats({
-      clientsCount: clientUsers.length,
-      todayBookings: todayBookings.length,
-      availableSlots: totalAvailableSlots,
-    });
   };
 
   useFocusEffect(

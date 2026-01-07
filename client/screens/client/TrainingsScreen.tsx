@@ -12,7 +12,7 @@ import { Card } from "@/components/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getFutureBookings, cancelBooking } from "@/lib/storage";
+import { apiGetBookings, apiDeleteBooking } from "@/lib/api";
 import { Booking, TRAINING_DURATION } from "@/types";
 
 export default function TrainingsScreen() {
@@ -26,8 +26,12 @@ export default function TrainingsScreen() {
 
   const loadData = async () => {
     if (user) {
-      const bookingsData = await getFutureBookings(user.id);
-      setBookings(bookingsData);
+      const bookingsData = await apiGetBookings();
+      const today = new Date().toISOString().split("T")[0];
+      const futureBookings = bookingsData
+        .filter((b: Booking) => b.date >= today)
+        .sort((a: Booking, b: Booking) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
+      setBookings(futureBookings);
     }
   };
 
@@ -53,7 +57,7 @@ export default function TrainingsScreen() {
           text: "Ano, zrušit",
           style: "destructive",
           onPress: async () => {
-            await cancelBooking(booking.id);
+            await apiDeleteBooking(booking.id);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             loadData();
           },

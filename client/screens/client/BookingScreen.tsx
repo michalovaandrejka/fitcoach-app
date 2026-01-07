@@ -13,7 +13,7 @@ import { Card } from "@/components/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getLocations, getAvailableDatesForLocation, getAvailableStartTimesForLocation, createBooking } from "@/lib/storage";
+import { apiGetLocations, apiGetAvailableDates, apiGetAvailableSlots, apiCreateBooking } from "@/lib/api";
 import { Location, AvailableSlot, TRAINING_DURATION } from "@/types";
 
 export default function BookingScreen() {
@@ -52,21 +52,21 @@ export default function BookingScreen() {
 
   const loadLocations = async () => {
     setIsLoading(true);
-    const locs = await getLocations();
+    const locs = await apiGetLocations();
     setLocations(locs.filter(l => l.isActive));
     setIsLoading(false);
   };
 
   const loadDatesForLocation = async (branchId: string) => {
     setIsLoadingDates(true);
-    const dates = await getAvailableDatesForLocation(branchId);
+    const dates = await apiGetAvailableDates(branchId);
     setAvailableDates(dates);
     setIsLoadingDates(false);
   };
 
   const loadSlotsForDate = async (date: string, branchId: string) => {
     setIsLoadingSlots(true);
-    const slots = await getAvailableStartTimesForLocation(date, branchId);
+    const slots = await apiGetAvailableSlots(date, branchId);
     setAvailableSlots(slots);
     setIsLoadingSlots(false);
   };
@@ -116,12 +116,11 @@ export default function BookingScreen() {
 
     setIsSubmitting(true);
     try {
-      await createBooking(
-        user.id,
-        user.name,
+      await apiCreateBooking(
         selectedDate,
         selectedSlot.startTime,
-        selectedLocation.id
+        selectedLocation.id,
+        selectedLocation.name
       );
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert("Úspěch", "Trénink byl úspěšně rezervován", [
