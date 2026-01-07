@@ -1,0 +1,115 @@
+Uprav autentizaci, onboarding a práci s uživateli podle následujících
+požadavků. Cílem je korektní a bezpečné chování aplikace.
+
+====================================
+1) AUTENTIZACE – SKUTEČNÉ PŘIHLÁŠENÍ
+====================================
+
+PROBLÉM:
+Aplikace aktuálně umožňuje přihlášení komukoliv bez ověření údajů.
+
+ŘEŠENÍ:
+Implementuj plnohodnotnou autentizaci:
+- uživatel se může přihlásit POUZE pokud:
+ - existuje v databázi
+ - heslo je správné
+- hesla ukládej bezpečně (hash)
+- žádné anonymní přihlášení
+
+====================================
+2) JEDNOTNÉ PŘIHLÁŠENÍ – EMAIL VS ADMIN
+====================================
+
+PŘIHLAŠOVACÍ FORMULÁŘ:
+- pole:
+ - email (nebo login pro admina)
+ - heslo
+- žádná volba role na UI
+
+PRAVIDLA:
+- všichni CLIENT uživatelé se přihlašují pomocí EMAILU
+- email musí být unikátní
+- ADMIN má výjimku:
+
+ADMIN ÚČET:
+- login: Andrea
+- heslo: Andrea
+- role: ADMIN
+- admin se nepřihlašuje přes email, ale přes pevný login
+
+CHOVÁNÍ:
+- backend rozpozná:
+ - pokud je přihlašovací údaj email → CLIENT
+ - pokud je login "Andrea" → ADMIN
+- po přihlášení:
+ - ADMIN → admin rozhraní
+ - CLIENT → klientská část
+- klient NESMÍ vstoupit do admin části ani ručně
+
+====================================
+3) ONBOARDING – PRO VŠECHNY NOVÉ UŽIVATELE
+====================================
+
+ZÁSADNÍ POŽADAVEK:
+Onboarding se musí automaticky spustit PŘI PRVNÍM PŘIHLÁŠENÍ
+KAŽDÉHO NOVÉHO UŽIVATELE.
+
+DATA:
+Každý uživatel má:
+- onboarding_completed (boolean, default false)
+
+AUTOMATICKÉ SPUŠTĚNÍ:
+- při přihlášení:
+ - pokud onboarding_completed == false
+→ onboarding se automaticky spustí
+
+PLATÍ PRO:
+- ADMIN (trenérka)
+- CLIENT (klienti)
+
+====================================
+4) ROZDÍLNÝ OBSAH ONBOARDINGU PODLE ROLE
+====================================
+
+ADMIN ONBOARDING:
+- dashboard
+- kalendář
+- přidání dostupných časů
+- klienti
+- jídelníčky
+- kde spustit onboarding znovu
+
+CLIENT ONBOARDING:
+- jak rezervovat trénink
+- jak vyplnit jídelníček
+- kde vidí tréninky
+- kde vidí jídelníček od trenérky
+
+====================================
+5) RUČNÍ SPUŠTĚNÍ ONBOARDINGU (ADMIN)
+====================================
+
+ADMIN MUSÍ MÍT:
+- tlačítko „Spustit tutoriál“
+- umístění:
+ - admin dashboard (viditelné vždy)
+
+CHOVÁNÍ:
+- ruční spuštění:
+ - NESMÍ změnit onboarding_completed
+ - slouží pouze jako nápověda
+
+onboarding_completed:
+- se nastaví na true pouze po dokončení
+ AUTOMATICKÉHO onboardingu
+
+====================================
+6) CÍL
+====================================
+
+- bezpečné přihlášení
+- žádné falešné loginy
+- email pro klienty
+- pevný admin účet
+- onboarding při prvním přihlášení každého uživatele
+- profesionální chování aplikace
