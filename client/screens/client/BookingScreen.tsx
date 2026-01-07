@@ -13,8 +13,8 @@ import { Card } from "@/components/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getAvailableStartTimes, getAvailabilityBlocks, createBooking } from "@/lib/storage";
-import { AvailableSlot, TRAINING_DURATION } from "@/types";
+import { getLocations, getAvailableDatesForLocation, getAvailableStartTimesForLocation, createBooking } from "@/lib/storage";
+import { Location, AvailableSlot, TRAINING_DURATION } from "@/types";
 
 export default function BookingScreen() {
   const insets = useSafeAreaInsets();
@@ -23,36 +23,50 @@ export default function BookingScreen() {
   const { theme } = useTheme();
   const { user } = useAuth();
   
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<AvailableSlot | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingDates, setIsLoadingDates] = useState(false);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    loadAvailableDates();
+    loadLocations();
   }, []);
 
   useEffect(() => {
-    if (selectedDate) {
-      loadSlotsForDate(selectedDate);
+    if (selectedLocation) {
+      loadDatesForLocation(selectedLocation.id);
     }
-  }, [selectedDate]);
+  }, [selectedLocation]);
 
-  const loadAvailableDates = async () => {
+  useEffect(() => {
+    if (selectedDate && selectedLocation) {
+      loadSlotsForDate(selectedDate, selectedLocation.id);
+    }
+  }, [selectedDate, selectedLocation]);
+
+  const loadLocations = async () => {
     setIsLoading(true);
-    const blocks = await getAvailabilityBlocks();
-    const today = new Date().toISOString().split("T")[0];
-    const futureDates = [...new Set(blocks.filter(b => b.date >= today).map(b => b.date))].sort();
-    setAvailableDates(futureDates);
+    const locs = await getLocations();
+    setLocations(locs.filter(l => l.isActive));
     setIsLoading(false);
   };
 
-  const loadSlotsForDate = async (date: string) => {
+  const loadDatesForLocation = async (branchId: string) => {
+    setIsLoadingDates(true);
+    const dates = await getAvailableDatesForLocation(branchId);
+    setAvailableDates(dates);
+    setIsLoadingDates(false);
+  };
+
+  const loadSlotsForDate = async (date: string, branchId: string) => {
     setIsLoadingSlots(true);
-    const slots = await getAvailableStartTimes(date);
+    const slots = await getAvailableStartTimesForLocation(date, branchId);
     setAvailableSlots(slots);
     setIsLoadingSlots(false);
   };
@@ -74,6 +88,15 @@ export default function BookingScreen() {
     return `${days[date.getDay()]} ${date.getDate()}. ${months[date.getMonth()]}`;
   };
 
+  const handleSelectLocation = (location: Location) => {
+    setSelectedLocation(location);
+    setSelectedDate(null);
+    setSelectedSlot(null);
+    setAvailableDates([]);
+    setAvailableSlots([]);
+    Haptics.selectionAsync();
+  };
+
   const handleSelectDate = (date: string) => {
     setSelectedDate(date);
     setSelectedSlot(null);
@@ -86,8 +109,8 @@ export default function BookingScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!selectedSlot || !selectedDate || !user) {
-      Alert.alert("Chyba", "Vyberte prosim datum a cas treninku");
+    if (!selectedSlot || !selectedDate || !user || !selectedLocation) {
+      Alert.alert("Chyba", "Vyberte prosim fitko, datum a cas treninku");
       return;
     }
 
@@ -98,7 +121,7 @@ export default function BookingScreen() {
         user.name,
         selectedDate,
         selectedSlot.startTime,
-        selectedSlot.branchId
+        selectedLocation.id
       );
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert("Uspech", "Trenink byl uspesne rezervovan", [
@@ -119,17 +142,6 @@ export default function BookingScreen() {
     );
   }
 
-  const groupedSlots = availableSlots.reduce((acc, slot) => {
-    const key = slot.startTime;
-    if (!acc[key]) {
-      acc[key] = [];
-    }
-    acc[key].push(slot);
-    return acc;
-  }, {} as Record<string, AvailableSlot[]>);
-
-  const sortedTimes = Object.keys(groupedSlots).sort();
-
   return (
     <ThemedView style={styles.container}>
       <ScrollView
@@ -140,58 +152,119 @@ export default function BookingScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.section}>
-          <ThemedText type="h4" style={styles.sectionTitle}>1. Vyberte datum</ThemedText>
-          {availableDates.length > 0 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.datesScroll}>
-              {availableDates.map(date => {
-                const { day, date: dayNum, month } = formatDate(date);
-                const isSelected = selectedDate === date;
+          <ThemedText type="h4" style={styles.sectionTitle}>1. Vyberte fitko</ThemedText>
+          {locations.length > 0 ? (
+            <View style={styles.locationsGrid}>
+              {locations.map(location => {
+                const isSelected = selectedLocation?.id === location.id;
                 
                 return (
                   <Pressable
-                    key={date}
-                    onPress={() => handleSelectDate(date)}
+                    key={location.id}
+                    onPress={() => handleSelectLocation(location)}
                     style={[
-                      styles.dateCard,
-                      { backgroundColor: isSelected ? theme.primary : theme.backgroundSecondary },
+                      styles.locationCard,
+                      {
+                        backgroundColor: isSelected ? theme.primary + "15" : theme.backgroundSecondary,
+                        borderColor: isSelected ? theme.primary : theme.border,
+                      },
                     ]}
                   >
+                    <View style={styles.locationIcon}>
+                      <Feather 
+                        name="map-pin" 
+                        size={24} 
+                        color={isSelected ? theme.primary : theme.textSecondary} 
+                      />
+                    </View>
+                    <ThemedText
+                      type="h4"
+                      style={{ color: isSelected ? theme.primary : theme.text, marginBottom: Spacing.xs }}
+                    >
+                      {location.name}
+                    </ThemedText>
                     <ThemedText
                       type="small"
-                      style={{ color: isSelected ? "#FFFFFF" : theme.textSecondary }}
+                      style={{ color: theme.textSecondary, textAlign: "center" }}
                     >
-                      {day}
+                      {location.address}
                     </ThemedText>
-                    <ThemedText
-                      type="h3"
-                      style={{ color: isSelected ? "#FFFFFF" : theme.text }}
-                    >
-                      {dayNum}
-                    </ThemedText>
-                    <ThemedText
-                      type="small"
-                      style={{ color: isSelected ? "#FFFFFF" : theme.textSecondary }}
-                    >
-                      {month}.
-                    </ThemedText>
+                    {isSelected ? (
+                      <View style={[styles.selectedBadge, { backgroundColor: theme.primary }]}>
+                        <Feather name="check" size={12} color="#FFFFFF" />
+                      </View>
+                    ) : null}
                   </Pressable>
                 );
               })}
-            </ScrollView>
+            </View>
           ) : (
             <Card elevation={1} style={styles.emptyCard}>
-              <Feather name="calendar" size={32} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
+              <Feather name="map-pin" size={32} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
               <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
-                Zadne volne terminy
+                Zadna aktivni fitka
               </ThemedText>
             </Card>
           )}
         </View>
 
-        {selectedDate ? (
+        {selectedLocation ? (
+          <View style={styles.section}>
+            <ThemedText type="h4" style={styles.sectionTitle}>2. Vyberte datum</ThemedText>
+            {isLoadingDates ? (
+              <ActivityIndicator color={theme.primary} style={{ marginVertical: Spacing.xl }} />
+            ) : availableDates.length > 0 ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.datesScroll}>
+                {availableDates.map(date => {
+                  const { day, date: dayNum, month } = formatDate(date);
+                  const isSelected = selectedDate === date;
+                  
+                  return (
+                    <Pressable
+                      key={date}
+                      onPress={() => handleSelectDate(date)}
+                      style={[
+                        styles.dateCard,
+                        { backgroundColor: isSelected ? theme.primary : theme.backgroundSecondary },
+                      ]}
+                    >
+                      <ThemedText
+                        type="small"
+                        style={{ color: isSelected ? "#FFFFFF" : theme.textSecondary }}
+                      >
+                        {day}
+                      </ThemedText>
+                      <ThemedText
+                        type="h3"
+                        style={{ color: isSelected ? "#FFFFFF" : theme.text }}
+                      >
+                        {dayNum}
+                      </ThemedText>
+                      <ThemedText
+                        type="small"
+                        style={{ color: isSelected ? "#FFFFFF" : theme.textSecondary }}
+                      >
+                        {month}.
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            ) : (
+              <Card elevation={1} style={styles.emptyCard}>
+                <Feather name="calendar" size={32} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
+                <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
+                  Zadne volne terminy v {selectedLocation.name}
+                </ThemedText>
+              </Card>
+            )}
+          </View>
+        ) : null}
+
+        {selectedDate && selectedLocation ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <ThemedText type="h4">2. Vyberte cas treninku</ThemedText>
+              <ThemedText type="h4">3. Vyberte cas treninku</ThemedText>
               <View style={[styles.durationBadge, { backgroundColor: theme.primary + "20" }]}>
                 <Feather name="clock" size={12} color={theme.primary} />
                 <ThemedText type="small" style={{ color: theme.primary, marginLeft: 4 }}>
@@ -205,55 +278,44 @@ export default function BookingScreen() {
             
             {isLoadingSlots ? (
               <ActivityIndicator color={theme.primary} style={{ marginVertical: Spacing.xl }} />
-            ) : sortedTimes.length > 0 ? (
+            ) : availableSlots.length > 0 ? (
               <View style={styles.timesGrid}>
-                {sortedTimes.map(time => {
-                  const slotsAtTime = groupedSlots[time];
+                {availableSlots.map(slot => {
+                  const isSelected = selectedSlot?.startTime === slot.startTime;
                   
-                  return slotsAtTime.map(slot => {
-                    const isSelected = selectedSlot?.startTime === slot.startTime && 
-                                      selectedSlot?.branchId === slot.branchId;
-                    
-                    return (
-                      <Pressable
-                        key={`${slot.startTime}_${slot.branchId}`}
-                        onPress={() => handleSelectSlot(slot)}
-                        style={[
-                          styles.timeSlot,
-                          {
-                            backgroundColor: isSelected ? theme.primary + "15" : theme.backgroundSecondary,
-                            borderColor: isSelected ? theme.primary : theme.border,
-                          },
-                        ]}
-                      >
-                        <View style={styles.slotTimeRow}>
-                          <ThemedText
-                            type="h4"
-                            style={{ color: isSelected ? theme.primary : theme.text }}
-                          >
-                            {slot.startTime}
-                          </ThemedText>
-                          <ThemedText
-                            type="small"
-                            style={{ color: theme.textSecondary }}
-                          >
-                            - {slot.endTime}
-                          </ThemedText>
+                  return (
+                    <Pressable
+                      key={`${slot.startTime}`}
+                      onPress={() => handleSelectSlot(slot)}
+                      style={[
+                        styles.timeSlot,
+                        {
+                          backgroundColor: isSelected ? theme.primary + "15" : theme.backgroundSecondary,
+                          borderColor: isSelected ? theme.primary : theme.border,
+                        },
+                      ]}
+                    >
+                      <View style={styles.slotTimeRow}>
+                        <ThemedText
+                          type="h4"
+                          style={{ color: isSelected ? theme.primary : theme.text }}
+                        >
+                          {slot.startTime}
+                        </ThemedText>
+                        <ThemedText
+                          type="small"
+                          style={{ color: theme.textSecondary }}
+                        >
+                          - {slot.endTime}
+                        </ThemedText>
+                      </View>
+                      {isSelected ? (
+                        <View style={[styles.selectedBadge, { backgroundColor: theme.primary }]}>
+                          <Feather name="check" size={12} color="#FFFFFF" />
                         </View>
-                        <View style={styles.slotLocationRow}>
-                          <Feather name="map-pin" size={12} color={isSelected ? theme.primary : theme.textSecondary} />
-                          <ThemedText type="small" style={{ color: isSelected ? theme.primary : theme.textSecondary, marginLeft: 4 }}>
-                            {slot.branchName}
-                          </ThemedText>
-                        </View>
-                        {isSelected ? (
-                          <View style={[styles.selectedBadge, { backgroundColor: theme.primary }]}>
-                            <Feather name="check" size={12} color="#FFFFFF" />
-                          </View>
-                        ) : null}
-                      </Pressable>
-                    );
-                  });
+                      ) : null}
+                    </Pressable>
+                  );
                 })}
               </View>
             ) : (
@@ -267,10 +329,16 @@ export default function BookingScreen() {
           </View>
         ) : null}
 
-        {selectedSlot && selectedDate ? (
+        {selectedSlot && selectedDate && selectedLocation ? (
           <View style={styles.summarySection}>
             <Card elevation={2} style={styles.summaryCard}>
               <ThemedText type="h4" style={styles.summaryTitle}>Shrnutí rezervace</ThemedText>
+              <View style={styles.summaryRow}>
+                <Feather name="map-pin" size={18} color={theme.primary} />
+                <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
+                  {selectedLocation.name}
+                </ThemedText>
+              </View>
               <View style={styles.summaryRow}>
                 <Feather name="calendar" size={18} color={theme.primary} />
                 <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
@@ -283,12 +351,6 @@ export default function BookingScreen() {
                   {selectedSlot.startTime} - {selectedSlot.endTime} ({TRAINING_DURATION} min)
                 </ThemedText>
               </View>
-              <View style={styles.summaryRow}>
-                <Feather name="map-pin" size={18} color={theme.primary} />
-                <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
-                  {selectedSlot.branchName}
-                </ThemedText>
-              </View>
             </Card>
           </View>
         ) : null}
@@ -296,7 +358,7 @@ export default function BookingScreen() {
         <View style={styles.submitSection}>
           <Button
             onPress={handleSubmit}
-            disabled={!selectedSlot || !selectedDate || isSubmitting}
+            disabled={!selectedSlot || !selectedDate || !selectedLocation || isSubmitting}
             style={{ backgroundColor: theme.primary }}
           >
             {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : "Rezervovat trenink"}
@@ -337,6 +399,19 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.xs,
   },
+  locationsGrid: {
+    gap: Spacing.md,
+  },
+  locationCard: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    alignItems: "center",
+    position: "relative",
+  },
+  locationIcon: {
+    marginBottom: Spacing.md,
+  },
   datesScroll: {
     marginHorizontal: -Spacing.xl,
     paddingHorizontal: Spacing.xl,
@@ -361,11 +436,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "baseline",
     gap: Spacing.xs,
-  },
-  slotLocationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: Spacing.xs,
   },
   selectedBadge: {
     position: "absolute",

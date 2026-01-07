@@ -301,6 +301,60 @@ function minutesToTime(minutes: number): string {
   return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
 }
 
+export async function getAvailableDatesForLocation(branchId: string): Promise<string[]> {
+  const blocks = await getAvailabilityBlocks();
+  const today = new Date().toISOString().split("T")[0];
+  
+  const dates = blocks
+    .filter(b => b.branchId === branchId && b.date >= today)
+    .map(b => b.date);
+  
+  return [...new Set(dates)].sort();
+}
+
+export async function getAvailableStartTimesForLocation(date: string, branchId: string): Promise<AvailableSlot[]> {
+  const blocks = await getAvailabilityBlocks();
+  const bookings = await getBookings();
+  const locations = await getLocations();
+  
+  const location = locations.find(l => l.id === branchId);
+  if (!location || !location.isActive) return [];
+  
+  const dayBlocks = blocks.filter(b => b.date === date && b.branchId === branchId);
+  const dayBookings = bookings.filter(b => b.date === date);
+  
+  const availableSlots: AvailableSlot[] = [];
+  
+  for (const block of dayBlocks) {
+    const blockStart = timeToMinutes(block.startTime);
+    const blockEnd = timeToMinutes(block.endTime);
+    
+    for (let start = blockStart; start + TRAINING_DURATION <= blockEnd; start += 15) {
+      const end = start + TRAINING_DURATION;
+      
+      const hasCollision = dayBookings.some(b => {
+        const bStart = timeToMinutes(b.startTime);
+        const bEnd = timeToMinutes(b.endTime);
+        return start < bEnd && end > bStart;
+      });
+      
+      if (!hasCollision) {
+        availableSlots.push({
+          startTime: minutesToTime(start),
+          endTime: minutesToTime(end),
+          branchId: block.branchId,
+          branchName: location.name,
+          blockId: block.id,
+        });
+      }
+    }
+  }
+  
+  availableSlots.sort((a, b) => a.startTime.localeCompare(b.startTime));
+  
+  return availableSlots;
+}
+
 export async function getAvailableStartTimes(date: string): Promise<AvailableSlot[]> {
   const blocks = await getAvailabilityBlocks();
   const bookings = await getBookings();
