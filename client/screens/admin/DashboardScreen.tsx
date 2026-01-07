@@ -136,14 +136,14 @@ export default function DashboardScreen() {
           />
         </View>
 
-        <Pressable
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            navigation.navigate("ClientsStack");
-          }}
-          style={styles.clientsLink}
-        >
-          <Card elevation={1} style={styles.clientsCard}>
+        <View style={styles.clientsLink}>
+          <Card
+            elevation={1}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              navigation.navigate("ClientsStack");
+            }}
+          >
             <View style={styles.clientsCardContent}>
               <View style={[styles.clientsIcon, { backgroundColor: theme.primary + "20" }]}>
                 <Feather name="users" size={24} color={theme.primary} />
@@ -157,16 +157,16 @@ export default function DashboardScreen() {
               <Feather name="chevron-right" size={24} color={theme.textSecondary} />
             </View>
           </Card>
-        </Pressable>
+        </View>
 
-        <Pressable
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            setShowTutorial(true);
-          }}
-          style={styles.tutorialLink}
-        >
-          <Card elevation={1} style={styles.tutorialCard}>
+        <View style={styles.tutorialLink}>
+          <Card
+            elevation={1}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setShowTutorial(true);
+            }}
+          >
             <View style={styles.tutorialCardContent}>
               <View style={[styles.tutorialIcon, { backgroundColor: theme.secondary + "20" }]}>
                 <Feather name="help-circle" size={24} color={theme.secondary} />
@@ -180,7 +180,7 @@ export default function DashboardScreen() {
               <Feather name="play" size={24} color={theme.secondary} />
             </View>
           </Card>
-        </Pressable>
+        </View>
       </ScrollView>
 
       {showTutorial ? (
@@ -250,7 +250,6 @@ const styles = StyleSheet.create({
   clientsLink: {
     marginBottom: Spacing.lg,
   },
-  clientsCard: {},
   clientsCardContent: {
     flexDirection: "row",
     alignItems: "center",
@@ -269,7 +268,6 @@ const styles = StyleSheet.create({
   tutorialLink: {
     marginBottom: Spacing.lg,
   },
-  tutorialCard: {},
   tutorialCardContent: {
     flexDirection: "row",
     alignItems: "center",
