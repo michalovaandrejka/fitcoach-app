@@ -483,3 +483,45 @@ export async function getFutureBookings(userId: string): Promise<Booking[]> {
     return a.date.localeCompare(b.date);
   });
 }
+
+export async function createManualBooking(slotId: string, clientName: string): Promise<void> {
+  const slots = await getAvailability();
+  const slot = slots.find(s => s.id === slotId);
+  
+  if (!slot) {
+    throw new Error("Casovy slot neexistuje");
+  }
+  
+  if (slot.isBooked) {
+    throw new Error("Tento cas je jiz rezervovan");
+  }
+  
+  await updateAvailability(slotId, {
+    isBooked: true,
+    bookingType: "manual",
+    manualClientName: clientName,
+  });
+}
+
+export async function releaseManualBooking(slotId: string): Promise<void> {
+  const slots = await getAvailability();
+  const slot = slots.find(s => s.id === slotId);
+  
+  if (!slot) {
+    throw new Error("Casovy slot neexistuje");
+  }
+  
+  if (!slot.isBooked) {
+    throw new Error("Tento cas neni rezervovan");
+  }
+  
+  if (slot.bookingType !== "manual") {
+    throw new Error("Nelze uvolnit rezervaci z aplikace. Pouzijte zruseni rezervace.");
+  }
+  
+  await updateAvailability(slotId, {
+    isBooked: false,
+    bookingType: undefined,
+    manualClientName: undefined,
+  });
+}

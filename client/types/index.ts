@@ -5,12 +5,16 @@ export interface Location {
   isActive: boolean;
 }
 
+export type BookingType = "app" | "manual";
+
 export interface Availability {
   id: string;
   date: string;
   time: string;
   allowedLocationIds: string[];
   isBooked: boolean;
+  bookingType?: BookingType;
+  manualClientName?: string;
 }
 
 export interface Booking {

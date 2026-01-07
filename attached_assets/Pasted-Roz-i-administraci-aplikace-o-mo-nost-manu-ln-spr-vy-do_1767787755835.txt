@@ -1,0 +1,112 @@
+Rozšiř administraci aplikace o možnost
+manuální správy dostupnosti tréninkových termínů.
+
+====================================
+1) SOUČASNÝ STAV
+====================================
+
+V administraci trenérky existuje sekce „Dostupnost“,
+kde jsou zobrazeny tréninkové termíny.
+
+Každý termín má stav:
+- VOLNO (zelený)
+- OBSAZENO
+
+====================================
+2) NOVÝ POŽADAVEK – MANUÁLNÍ PŘEPÍNÁNÍ
+====================================
+
+ADMIN (trenérka) MUSÍ MÍT MOŽNOST:
+- kliknout na termín označený jako „VOLNO“
+- ručně jej přepnout na „OBSAZENO“
+- i bez toho, aby rezervace vznikla z aplikace
+
+====================================
+3) MODÁLNÍ OKNO – JMÉNO KLIENTA
+====================================
+
+PŘI PŘEPÍNÁNÍ Z „VOLNO“ NA „OBSAZENO“:
+
+- zobraz modální okno s textem:
+  „Zadejte jméno klienta“
+
+- vstupní pole:
+  - jméno klienta (text)
+  - např. „Klient z WhatsAppu“
+
+- tlačítka:
+  - „Potvrdit“
+  - „Zrušit“
+
+====================================
+4) CHOVÁNÍ PO POTVRZENÍ
+====================================
+
+PO POTVRZENÍ:
+- termín se:
+  - označí jako OBSAZENO
+  - zablokuje pro ostatní klienty
+- k termínu se uloží:
+  - manuální_jmeno_klienta
+  - typ_rezervace = „manual“
+
+DŮLEŽITÉ:
+- tato rezervace:
+  - NENÍ navázaná na uživatelský účet
+  - NENÍ viditelná v klientské aplikaci
+- slouží pouze jako blokace času
+
+====================================
+5) ZOBRAZENÍ V ADMINISTRACI
+====================================
+
+V administraci u obsazeného termínu zobraz:
+- stav: „OBSAZENO“
+- text:
+  „Rezervováno: {jméno klienta} (manuálně)“
+
+====================================
+6) ZPĚTNÉ UVOLNĚNÍ TERMÍNU
+====================================
+
+ADMIN MUSÍ MÍT MOŽNOST:
+- kliknout na obsazený termín
+- zvolit:
+  „Uvolnit termín“
+
+PO UVOLNĚNÍ:
+- termín se vrátí do stavu VOLNO
+- manuální jméno klienta se odstraní
+
+====================================
+7) PRAVIDLA A OMEZENÍ
+====================================
+
+- klient v aplikaci:
+  - NEMŮŽE rezervovat manuálně obsazený termín
+- manuální rezervace:
+  - nemá uživatelský účet
+  - nemá notifikace
+- admin:
+  - má plnou kontrolu nad změnou stavu
+
+====================================
+8) DATOVÝ MODEL (NÁVRH)
+====================================
+
+Booking / Slot:
+- id
+- datetime
+- branch
+- status (free / booked)
+- booking_type (app / manual)
+- manual_client_name (nullable)
+
+====================================
+9) UX CÍL
+====================================
+
+- trenérka může rychle blokovat termíny
+- není nucena vytvářet falešné účty
+- může pracovat s klienty z WhatsAppu / Messengeru
+- kalendář zůstává konzistentní a přehledný
