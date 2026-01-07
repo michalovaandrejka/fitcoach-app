@@ -1,0 +1,122 @@
+Rozšiř aplikaci o správu klientských účtů
+a rušení tréninků podle následujících pravidel.
+
+====================================
+1) ADMIN – MAZÁNÍ KLIENTSKÉHO ÚČTU
+====================================
+
+V ADMIN SEKCI → MENU „Klienti“:
+
+ADMIN (trenérka) MUSÍ MÍT MOŽNOST:
+- smazat klientský účet
+
+UMÍSTĚNÍ:
+- v DETAILU KLIENTA
+- tlačítko:
+  „Smazat klienta“
+
+CHOVÁNÍ:
+- před smazáním zobraz CONFIRM dialog:
+  „Opravdu chcete smazat tohoto klienta?
+   Tato akce je nevratná.“
+
+PO SMAZÁNÍ:
+- klient je odstraněn z databáze
+- smažou se:
+  - uživatelský účet
+  - jeho jídelníčky
+  - jeho stravovací preference
+- jeho tréninky:
+  - se zruší (nebo označí jako zrušené)
+- uvolní se termíny v kalendáři
+
+ADMIN:
+- po smazání je přesměrována zpět na seznam klientů
+
+====================================
+2) ADMIN – RUŠENÍ TRÉNINKŮ KLIENTŮ
+====================================
+
+V DETAILU KLIENTA:
+
+ADMIN MUSÍ VIDĚT:
+- seznam budoucích tréninků klienta
+  - datum
+  - čas
+  - pobočka
+
+ADMIN MUSÍ MÍT MOŽNOST:
+- zrušit konkrétní trénink klienta
+- tlačítko:
+  „Zrušit trénink“
+
+CHOVÁNÍ:
+- po zrušení:
+  - trénink se označí jako zrušený
+  - termín se znovu objeví jako volný
+- volitelně:
+  - odeslat klientovi push notifikaci:
+    „Váš trénink byl zrušen trenérkou.“
+
+====================================
+3) KLIENT – SMAZÁNÍ VLASTNÍHO ÚČTU
+====================================
+
+V KLIENTSKÉ SEKCI:
+
+KLIENT MUSÍ MÍT:
+- v Nastavení / Profilu
+- tlačítko:
+  „Smazat účet“
+
+CHOVÁNÍ:
+- zobraz CONFIRM dialog:
+  „Opravdu chcete smazat svůj účet?
+   Tato akce je nevratná.“
+
+PO SMAZÁNÍ:
+- klientský účet je odstraněn
+- smažou se:
+  - jídelníčky
+  - preference
+- jeho budoucí tréninky:
+  - se automaticky zruší
+- klient je:
+  - odhlášen
+  - přesměrován na úvodní obrazovku
+
+====================================
+4) BEZPEČNOSTNÍ PRAVIDLA
+====================================
+
+- CLIENT:
+  - NESMÍ mazat jiné klienty
+  - NESMÍ rušit cizí tréninky
+- ADMIN:
+  - NESMÍ smazat vlastní účet
+- všechny mazací akce:
+  - jsou nevratné
+  - vyžadují potvrzení
+
+====================================
+5) DATOVÁ LOGIKA (NÁVRH)
+====================================
+
+Při mazání klienta:
+- smaž User
+- smaž MealPreferences
+- smaž TrainerMealPlan
+- zruš Bookings (status = cancelled)
+
+Tréninky:
+- nemaž fyzicky, pouze:
+  status = cancelled
+
+====================================
+6) UX CÍL
+====================================
+
+- trenérka má plnou kontrolu nad klienty
+- klient má kontrolu nad svým účtem
+- žádná nechtěná akce bez potvrzení
+- systém je bezpečný a přehledný

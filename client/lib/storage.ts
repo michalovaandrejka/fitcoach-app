@@ -437,3 +437,49 @@ export async function getBookedClientsForFilter(
 export async function clearAllData(): Promise<void> {
   await AsyncStorage.multiRemove(Object.values(KEYS));
 }
+
+export async function deleteClient(clientId: string): Promise<void> {
+  const users = await getUsers();
+  const updatedUsers = users.filter(u => u.id !== clientId);
+  await AsyncStorage.setItem(KEYS.USERS, JSON.stringify(updatedUsers));
+
+  const clients = await getClients();
+  const updatedClients = clients.filter(c => c.id !== clientId);
+  await AsyncStorage.setItem(KEYS.CLIENTS, JSON.stringify(updatedClients));
+
+  const mealPrefsData = await AsyncStorage.getItem(KEYS.MEAL_PREFERENCES);
+  const mealPrefs: MealPreference[] = mealPrefsData ? JSON.parse(mealPrefsData) : [];
+  const updatedMealPrefs = mealPrefs.filter(p => p.userId !== clientId);
+  await AsyncStorage.setItem(KEYS.MEAL_PREFERENCES, JSON.stringify(updatedMealPrefs));
+
+  const mealPlansData = await AsyncStorage.getItem(KEYS.TRAINER_MEAL_PLANS);
+  const mealPlans: TrainerMealPlan[] = mealPlansData ? JSON.parse(mealPlansData) : [];
+  const updatedMealPlans = mealPlans.filter(p => p.userId !== clientId);
+  await AsyncStorage.setItem(KEYS.TRAINER_MEAL_PLANS, JSON.stringify(updatedMealPlans));
+
+  const notesData = await AsyncStorage.getItem(KEYS.ADMIN_NOTES);
+  const notes: AdminNote[] = notesData ? JSON.parse(notesData) : [];
+  const updatedNotes = notes.filter(n => n.userId !== clientId);
+  await AsyncStorage.setItem(KEYS.ADMIN_NOTES, JSON.stringify(updatedNotes));
+
+  const bookings = await getBookings();
+  const clientBookings = bookings.filter(b => b.userId === clientId);
+  
+  for (const booking of clientBookings) {
+    await updateAvailability(booking.availabilityId, { isBooked: false });
+  }
+  
+  const updatedBookings = bookings.filter(b => b.userId !== clientId);
+  await AsyncStorage.setItem(KEYS.BOOKINGS, JSON.stringify(updatedBookings));
+}
+
+export async function getFutureBookings(userId: string): Promise<Booking[]> {
+  const bookings = await getBookings(userId);
+  const today = new Date().toISOString().split("T")[0];
+  return bookings.filter(b => b.date >= today).sort((a, b) => {
+    if (a.date === b.date) {
+      return a.time.localeCompare(b.time);
+    }
+    return a.date.localeCompare(b.date);
+  });
+}

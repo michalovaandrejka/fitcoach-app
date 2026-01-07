@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { StyleSheet, View, TextInput, Pressable, ActivityIndicator, Alert } from "react-native";
-import { useFocusEffect, useRoute } from "@react-navigation/native";
+import { useFocusEffect, useRoute, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -11,7 +11,7 @@ import { Card } from "@/components/Card";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getBookings, getMealPreference, getAdminNote, saveAdminNote, getLocations, getTrainerMealPlan, saveTrainerMealPlan } from "@/lib/storage";
+import { getBookings, getMealPreference, getAdminNote, saveAdminNote, getLocations, getTrainerMealPlan, saveTrainerMealPlan, getFutureBookings, cancelBooking, deleteClient } from "@/lib/storage";
 import { Client, Booking, MealPreference, AdminNote, Location, TrainerMealPlan } from "@/types";
 
 type TabType = "bookings" | "meal" | "notes";
@@ -24,6 +24,7 @@ const GOALS_MAP: Record<string, string> = {
 
 export default function ClientDetailScreen() {
   const route = useRoute<any>();
+  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const client: Client = route.params?.client;
@@ -38,6 +39,7 @@ export default function ClientDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingMealPlan, setIsSavingMealPlan] = useState(false);
+  const [futureBookings, setFutureBookings] = useState<Booking[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -47,14 +49,16 @@ export default function ClientDetailScreen() {
 
   const loadData = async () => {
     setIsLoading(true);
-    const [bookingsData, mealData, noteData, locsData, mealPlanData] = await Promise.all([
+    const [bookingsData, mealData, noteData, locsData, mealPlanData, futureData] = await Promise.all([
       getBookings(client.id),
       getMealPreference(client.id),
       getAdminNote(client.id),
       getLocations(),
       getTrainerMealPlan(client.id),
+      getFutureBookings(client.id),
     ]);
     setBookings(bookingsData);
+    setFutureBookings(futureData);
     setMealPref(mealData);
     setAdminNote(noteData?.note || "");
     setLocations(locsData);
@@ -90,6 +94,53 @@ export default function ClientDetailScreen() {
     setIsSavingMealPlan(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     Alert.alert("Ulozeno", "Jidelnicek byl ulozen");
+  };
+
+  const handleCancelBooking = (booking: Booking) => {
+    Alert.alert(
+      "Zrusit trenink",
+      `Opravdu chcete zrusit trenink ${formatDate(booking.date)} v ${booking.time}?`,
+      [
+        { text: "Ne", style: "cancel" },
+        {
+          text: "Ano, zrusit",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await cancelBooking(booking.id);
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              Alert.alert("Zruseno", "Trenink byl zrusen a termin je znovu volny.");
+              loadData();
+            } catch (error) {
+              Alert.alert("Chyba", "Nepodarilo se zrusit trenink");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteClient = () => {
+    Alert.alert(
+      "Smazat klienta",
+      "Opravdu chcete smazat tohoto klienta? Tato akce je nevratna.",
+      [
+        { text: "Ne", style: "cancel" },
+        {
+          text: "Ano, smazat",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteClient(client.id);
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              navigation.goBack();
+            } catch (error) {
+              Alert.alert("Chyba", "Nepodarilo se smazat klienta");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const formatDate = (dateStr: string) => {
@@ -158,31 +209,67 @@ export default function ClientDetailScreen() {
 
         {activeTab === "bookings" ? (
           <View style={styles.tabContent}>
-            {bookings.length > 0 ? (
-              bookings.map(booking => (
-                <Card key={booking.id} elevation={1} style={styles.bookingCard}>
-                  <View style={styles.bookingRow}>
-                    <View style={[styles.bookingIcon, { backgroundColor: theme.primary + "20" }]}>
-                      <Feather name="calendar" size={16} color={theme.primary} />
+            {futureBookings.length > 0 ? (
+              <>
+                <ThemedText type="h4" style={styles.sectionTitle}>Nadchazejici treninky</ThemedText>
+                {futureBookings.map(booking => (
+                  <Card key={booking.id} elevation={1} style={styles.bookingCard}>
+                    <View style={styles.bookingRow}>
+                      <View style={[styles.bookingIcon, { backgroundColor: theme.primary + "20" }]}>
+                        <Feather name="calendar" size={16} color={theme.primary} />
+                      </View>
+                      <View style={styles.bookingInfo}>
+                        <ThemedText type="body" style={{ fontWeight: "600" }}>
+                          {formatDate(booking.date)} v {booking.time}
+                        </ThemedText>
+                        <ThemedText type="small" style={{ color: theme.textSecondary }}>
+                          {getLocationName(booking.locationId)}
+                        </ThemedText>
+                      </View>
+                      <Pressable
+                        onPress={() => handleCancelBooking(booking)}
+                        style={[styles.cancelButton, { backgroundColor: theme.error + "20" }]}
+                      >
+                        <Feather name="x" size={16} color={theme.error} />
+                        <ThemedText type="small" style={{ color: theme.error, marginLeft: Spacing.xs }}>
+                          Zrusit
+                        </ThemedText>
+                      </Pressable>
                     </View>
-                    <View style={styles.bookingInfo}>
-                      <ThemedText type="body" style={{ fontWeight: "600" }}>
-                        {formatDate(booking.date)} v {booking.time}
-                      </ThemedText>
-                      <ThemedText type="small" style={{ color: theme.textSecondary }}>
-                        {getLocationName(booking.locationId)}
-                      </ThemedText>
-                    </View>
-                  </View>
-                </Card>
-              ))
+                  </Card>
+                ))}
+              </>
             ) : (
               <Card elevation={1}>
                 <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
-                  Klient nema zadne rezervace
+                  Klient nema zadne nadchazejici treninky
                 </ThemedText>
               </Card>
             )}
+
+            {bookings.length > futureBookings.length ? (
+              <>
+                <View style={styles.divider} />
+                <ThemedText type="h4" style={styles.sectionTitle}>Historie rezervaci</ThemedText>
+                {bookings.filter(b => !futureBookings.find(fb => fb.id === b.id)).map(booking => (
+                  <Card key={booking.id} elevation={1} style={styles.bookingCard}>
+                    <View style={styles.bookingRow}>
+                      <View style={[styles.bookingIcon, { backgroundColor: theme.textSecondary + "20" }]}>
+                        <Feather name="check" size={16} color={theme.textSecondary} />
+                      </View>
+                      <View style={styles.bookingInfo}>
+                        <ThemedText type="body" style={{ fontWeight: "600", color: theme.textSecondary }}>
+                          {formatDate(booking.date)} v {booking.time}
+                        </ThemedText>
+                        <ThemedText type="small" style={{ color: theme.textSecondary }}>
+                          {getLocationName(booking.locationId)}
+                        </ThemedText>
+                      </View>
+                    </View>
+                  </Card>
+                ))}
+              </>
+            ) : null}
           </View>
         ) : null}
 
@@ -337,6 +424,19 @@ export default function ClientDetailScreen() {
             </Card>
           </View>
         ) : null}
+
+        <View style={styles.dangerZone}>
+          <ThemedText type="h4" style={[styles.sectionTitle, { color: theme.error }]}>Nebezpecna zona</ThemedText>
+          <Pressable
+            onPress={handleDeleteClient}
+            style={[styles.deleteButton, { borderColor: theme.error }]}
+          >
+            <Feather name="trash-2" size={18} color={theme.error} />
+            <ThemedText type="body" style={{ color: theme.error, marginLeft: Spacing.sm }}>
+              Smazat klienta
+            </ThemedText>
+          </Pressable>
+        </View>
       </KeyboardAwareScrollViewCompat>
     </ThemedView>
   );
@@ -452,5 +552,26 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: Spacing.md,
     borderRadius: BorderRadius.sm,
+  },
+  cancelButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.xs,
+  },
+  dangerZone: {
+    marginTop: Spacing["3xl"],
+    paddingTop: Spacing.xl,
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0E0",
+  },
+  deleteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
   },
 });
