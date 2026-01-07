@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { StyleSheet, View, ScrollView, Pressable, RefreshControl, Alert, Modal, Platform } from "react-native";
+import { StyleSheet, View, ScrollView, Pressable, RefreshControl, Alert, Modal } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -11,8 +11,8 @@ import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getAvailability, getLocations, setSlotAvailability, addTimeSlot } from "@/lib/storage";
-import { TimeSlot, Location } from "@/types";
+import { getAvailability, getLocations, addAvailability, deleteAvailability } from "@/lib/storage";
+import { Availability, Location } from "@/types";
 
 const TIME_OPTIONS = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"];
 
@@ -20,13 +20,13 @@ export default function AvailabilityScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   
-  const [slots, setSlots] = useState<TimeSlot[]>([]);
+  const [slots, setSlots] = useState<Availability[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [refreshing, setRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newSlotTime, setNewSlotTime] = useState("09:00");
-  const [newSlotLocation, setNewSlotLocation] = useState("");
+  const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
 
   const loadData = async () => {
     const [slotsData, locsData] = await Promise.all([
@@ -35,8 +35,8 @@ export default function AvailabilityScreen() {
     ]);
     setSlots(slotsData);
     setLocations(locsData);
-    if (locsData.length > 0 && !newSlotLocation) {
-      setNewSlotLocation(locsData[0].id);
+    if (locsData.length > 0 && selectedLocationIds.length === 0) {
+      setSelectedLocationIds(locsData.map(l => l.id));
     }
   };
 
@@ -65,7 +65,7 @@ export default function AvailabilityScreen() {
 
   const formatDateShort = (dateStr: string) => {
     const date = new Date(dateStr);
-    const days = ["Ne", "Po", "Út", "St", "Čt", "Pá", "So"];
+    const days = ["Ne", "Po", "Ut", "St", "Ct", "Pa", "So"];
     return {
       day: days[date.getDay()],
       date: date.getDate(),
@@ -78,37 +78,73 @@ export default function AvailabilityScreen() {
       .sort((a, b) => a.time.localeCompare(b.time));
   };
 
-  const getLocationName = (locationId: string) => {
-    return locations.find(l => l.id === locationId)?.name || "Pobočka";
+  const getLocationNames = (locationIds: string[]) => {
+    return locationIds
+      .map(id => locations.find(l => l.id === id)?.name)
+      .filter(Boolean)
+      .join(", ");
   };
 
-  const handleToggleSlot = async (slot: TimeSlot) => {
-    await setSlotAvailability(slot.id, !slot.isAvailable);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    loadData();
+  const handleToggleLocation = (locationId: string) => {
+    setSelectedLocationIds(prev => {
+      if (prev.includes(locationId)) {
+        if (prev.length === 1) {
+          return prev;
+        }
+        return prev.filter(id => id !== locationId);
+      }
+      return [...prev, locationId];
+    });
+    Haptics.selectionAsync();
+  };
+
+  const handleSelectAll = () => {
+    setSelectedLocationIds(locations.map(l => l.id));
+    Haptics.selectionAsync();
   };
 
   const handleAddSlot = async () => {
-    const existingSlot = slots.find(
-      s => s.date === selectedDate && s.time === newSlotTime && s.locationId === newSlotLocation
-    );
-    
-    if (existingSlot) {
-      Alert.alert("Chyba", "Tento termín již existuje");
+    if (selectedLocationIds.length === 0) {
+      Alert.alert("Chyba", "Vyberte alespon jednu pobocku");
       return;
     }
 
-    await addTimeSlot({
-      id: `slot_${selectedDate}_${newSlotTime}_${newSlotLocation}`,
-      date: selectedDate,
-      time: newSlotTime,
-      locationId: newSlotLocation,
-      isAvailable: true,
-    });
-    
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setShowAddModal(false);
-    loadData();
+    try {
+      await addAvailability(selectedDate, newSlotTime, selectedLocationIds);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setShowAddModal(false);
+      loadData();
+    } catch (error) {
+      Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodarilo se pridat termin");
+    }
+  };
+
+  const handleDeleteSlot = async (slot: Availability) => {
+    if (slot.isBooked) {
+      Alert.alert("Nelze smazat", "Tento termin je jiz rezervovan");
+      return;
+    }
+
+    Alert.alert(
+      "Smazat termin",
+      `Opravdu chcete smazat termin ${slot.time}?`,
+      [
+        { text: "Zrusit", style: "cancel" },
+        {
+          text: "Smazat",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteAvailability(slot.id);
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              loadData();
+            } catch (error) {
+              Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodarilo se smazat termin");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const daySlots = getSlotsForDate();
@@ -166,7 +202,7 @@ export default function AvailabilityScreen() {
         </ScrollView>
 
         <View style={styles.headerRow}>
-          <ThemedText type="h4">Termíny</ThemedText>
+          <ThemedText type="h4">Terminy</ThemedText>
           <Pressable
             onPress={() => setShowAddModal(true)}
             style={[styles.addButton, { backgroundColor: theme.primary }]}
@@ -183,38 +219,47 @@ export default function AvailabilityScreen() {
                   <ThemedText type="h4">{slot.time}</ThemedText>
                   <View style={styles.locationRow}>
                     <Feather name="map-pin" size={14} color={theme.textSecondary} />
-                    <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
-                      {getLocationName(slot.locationId)}
+                    <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs, flex: 1 }}>
+                      {getLocationNames(slot.allowedLocationIds)}
                     </ThemedText>
                   </View>
                 </View>
-                <Pressable
-                  onPress={() => handleToggleSlot(slot)}
-                  style={[
-                    styles.toggleButton,
-                    { backgroundColor: slot.isAvailable ? theme.success + "20" : theme.error + "20" },
-                  ]}
-                >
+                <View style={styles.slotActions}>
                   <View
                     style={[
-                      styles.toggleDot,
-                      { backgroundColor: slot.isAvailable ? theme.success : theme.error },
+                      styles.statusBadge,
+                      { backgroundColor: slot.isBooked ? theme.error + "20" : theme.success + "20" },
                     ]}
-                  />
-                  <ThemedText
-                    type="small"
-                    style={{ color: slot.isAvailable ? theme.success : theme.error, fontWeight: "600" }}
                   >
-                    {slot.isAvailable ? "Volný" : "Obsazeno"}
-                  </ThemedText>
-                </Pressable>
+                    <View
+                      style={[
+                        styles.statusDot,
+                        { backgroundColor: slot.isBooked ? theme.error : theme.success },
+                      ]}
+                    />
+                    <ThemedText
+                      type="small"
+                      style={{ color: slot.isBooked ? theme.error : theme.success, fontWeight: "600" }}
+                    >
+                      {slot.isBooked ? "Obsazeno" : "Volny"}
+                    </ThemedText>
+                  </View>
+                  {!slot.isBooked ? (
+                    <Pressable
+                      onPress={() => handleDeleteSlot(slot)}
+                      style={[styles.deleteButton, { backgroundColor: theme.error + "20" }]}
+                    >
+                      <Feather name="trash-2" size={16} color={theme.error} />
+                    </Pressable>
+                  ) : null}
+                </View>
               </View>
             </Card>
           ))
         ) : (
           <Card elevation={1} style={styles.emptyCard}>
             <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
-              Na tento den nejsou nastaveny žádné termíny
+              Na tento den nejsou nastaveny zadne terminy
             </ThemedText>
           </Card>
         )}
@@ -224,13 +269,13 @@ export default function AvailabilityScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]}>
             <View style={styles.modalHeader}>
-              <ThemedText type="h3">Přidat termín</ThemedText>
+              <ThemedText type="h3">Pridat termin</ThemedText>
               <Pressable onPress={() => setShowAddModal(false)}>
                 <Feather name="x" size={24} color={theme.text} />
               </Pressable>
             </View>
 
-            <ThemedText type="h4" style={styles.modalLabel}>Čas</ThemedText>
+            <ThemedText type="h4" style={styles.modalLabel}>Cas</ThemedText>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeScroll}>
               {TIME_OPTIONS.map(time => (
                 <Pressable
@@ -254,30 +299,44 @@ export default function AvailabilityScreen() {
               ))}
             </ScrollView>
 
-            <ThemedText type="h4" style={styles.modalLabel}>Pobočka</ThemedText>
+            <View style={styles.locationHeader}>
+              <ThemedText type="h4">Pobocky</ThemedText>
+              <Pressable onPress={handleSelectAll}>
+                <ThemedText type="small" style={{ color: theme.primary }}>
+                  Vybrat vse
+                </ThemedText>
+              </Pressable>
+            </View>
             <View style={styles.locationsContainer}>
-              {locations.map(loc => (
-                <Pressable
-                  key={loc.id}
-                  onPress={() => {
-                    setNewSlotLocation(loc.id);
-                    Haptics.selectionAsync();
-                  }}
-                  style={[
-                    styles.locationOption,
-                    {
-                      backgroundColor: newSlotLocation === loc.id ? theme.primary + "20" : theme.backgroundSecondary,
-                      borderColor: newSlotLocation === loc.id ? theme.primary : theme.border,
-                    },
-                  ]}
-                >
-                  <ThemedText type="body">{loc.name}</ThemedText>
-                </Pressable>
-              ))}
+              {locations.map(loc => {
+                const isSelected = selectedLocationIds.includes(loc.id);
+                return (
+                  <Pressable
+                    key={loc.id}
+                    onPress={() => handleToggleLocation(loc.id)}
+                    style={[
+                      styles.locationOption,
+                      {
+                        backgroundColor: isSelected ? theme.primary + "20" : theme.backgroundSecondary,
+                        borderColor: isSelected ? theme.primary : theme.border,
+                      },
+                    ]}
+                  >
+                    <View style={[styles.checkbox, { borderColor: isSelected ? theme.primary : theme.border }]}>
+                      {isSelected ? (
+                        <Feather name="check" size={14} color={theme.primary} />
+                      ) : null}
+                    </View>
+                    <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
+                      {loc.name}
+                    </ThemedText>
+                  </Pressable>
+                );
+              })}
             </View>
 
             <Button onPress={handleAddSlot} style={{ backgroundColor: theme.primary, marginTop: Spacing.xl }}>
-              Přidat termín
+              Pridat termin
             </Button>
           </View>
         </View>
@@ -336,18 +395,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: Spacing.xs,
   },
-  toggleButton: {
+  slotActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+  },
+  statusBadge: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.xs,
   },
-  toggleDot: {
+  statusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     marginRight: Spacing.xs,
+  },
+  deleteButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyCard: {
     padding: Spacing.xl,
@@ -383,12 +454,28 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.xs,
     marginRight: Spacing.sm,
   },
+  locationHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.md,
+  },
   locationsContainer: {
     gap: Spacing.sm,
   },
   locationOption: {
+    flexDirection: "row",
+    alignItems: "center",
     padding: Spacing.md,
     borderRadius: BorderRadius.xs,
     borderWidth: 1,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

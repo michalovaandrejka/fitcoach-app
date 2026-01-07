@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Booking, MealPreference, TimeSlot, Location, Client, AdminNote } from "@/types";
+import { Booking, MealPreference, Availability, Location, Client, AdminNote } from "@/types";
 
 const KEYS = {
   BOOKINGS: "@fitcoach_bookings",
@@ -8,7 +8,7 @@ const KEYS = {
   LOCATIONS: "@fitcoach_locations",
   CLIENTS: "@fitcoach_clients",
   ADMIN_NOTES: "@fitcoach_admin_notes",
-  DATA_INITIALIZED: "@fitcoach_initialized",
+  DATA_INITIALIZED: "@fitcoach_initialized_v2",
 };
 
 const DEFAULT_LOCATIONS: Location[] = [
@@ -16,8 +16,8 @@ const DEFAULT_LOCATIONS: Location[] = [
   { id: "loc_2", name: "FitZone Vinohrady", address: "Vinohradska 456, Praha 2", isActive: true },
 ];
 
-const generateMockAvailability = (): TimeSlot[] => {
-  const slots: TimeSlot[] = [];
+const generateMockAvailability = (): Availability[] => {
+  const slots: Availability[] = [];
   const today = new Date();
   
   for (let d = 0; d < 14; d++) {
@@ -27,13 +27,18 @@ const generateMockAvailability = (): TimeSlot[] => {
     
     const times = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
     times.forEach((time, idx) => {
-      const locationId = idx % 2 === 0 ? "loc_1" : "loc_2";
+      const allowedLocationIds = idx % 3 === 0 
+        ? ["loc_1", "loc_2"] 
+        : idx % 3 === 1 
+          ? ["loc_1"] 
+          : ["loc_2"];
+      
       slots.push({
-        id: `slot_${dateStr}_${time}_${locationId}`,
+        id: `avail_${dateStr}_${time}`,
         date: dateStr,
         time,
-        locationId,
-        isAvailable: Math.random() > 0.3,
+        allowedLocationIds,
+        isBooked: false,
       });
     });
   }
@@ -53,20 +58,10 @@ export async function initializeData(): Promise<boolean> {
     return false;
   }
   
-  const locations = await AsyncStorage.getItem(KEYS.LOCATIONS);
-  if (!locations) {
-    await AsyncStorage.setItem(KEYS.LOCATIONS, JSON.stringify(DEFAULT_LOCATIONS));
-  }
-  
-  const availability = await AsyncStorage.getItem(KEYS.AVAILABILITY);
-  if (!availability) {
-    await AsyncStorage.setItem(KEYS.AVAILABILITY, JSON.stringify(generateMockAvailability()));
-  }
-  
-  const clients = await AsyncStorage.getItem(KEYS.CLIENTS);
-  if (!clients) {
-    await AsyncStorage.setItem(KEYS.CLIENTS, JSON.stringify(MOCK_CLIENTS));
-  }
+  await AsyncStorage.setItem(KEYS.LOCATIONS, JSON.stringify(DEFAULT_LOCATIONS));
+  await AsyncStorage.setItem(KEYS.AVAILABILITY, JSON.stringify(generateMockAvailability()));
+  await AsyncStorage.setItem(KEYS.CLIENTS, JSON.stringify(MOCK_CLIENTS));
+  await AsyncStorage.setItem(KEYS.BOOKINGS, JSON.stringify([]));
   
   await AsyncStorage.setItem(KEYS.DATA_INITIALIZED, "true");
   return true;
@@ -98,21 +93,53 @@ export async function addLocation(name: string, address: string): Promise<Locati
   return newLocation;
 }
 
-export async function getAvailability(): Promise<TimeSlot[]> {
+export async function getAvailability(): Promise<Availability[]> {
   const data = await AsyncStorage.getItem(KEYS.AVAILABILITY);
   return data ? JSON.parse(data) : [];
 }
 
-export async function setSlotAvailability(slotId: string, isAvailable: boolean): Promise<void> {
+export async function getAvailableSlots(): Promise<Availability[]> {
   const slots = await getAvailability();
-  const updated = slots.map(s => s.id === slotId ? { ...s, isAvailable } : s);
+  return slots.filter(s => !s.isBooked);
+}
+
+export async function addAvailability(date: string, time: string, allowedLocationIds: string[]): Promise<Availability> {
+  const slots = await getAvailability();
+  
+  const existing = slots.find(s => s.date === date && s.time === time);
+  if (existing) {
+    throw new Error("Tento cas je jiz v kalendari");
+  }
+  
+  const newSlot: Availability = {
+    id: `avail_${date}_${time}`,
+    date,
+    time,
+    allowedLocationIds,
+    isBooked: false,
+  };
+  
+  slots.push(newSlot);
+  await AsyncStorage.setItem(KEYS.AVAILABILITY, JSON.stringify(slots));
+  return newSlot;
+}
+
+export async function updateAvailability(slotId: string, updates: Partial<Omit<Availability, "id">>): Promise<void> {
+  const slots = await getAvailability();
+  const updated = slots.map(s => s.id === slotId ? { ...s, ...updates } : s);
   await AsyncStorage.setItem(KEYS.AVAILABILITY, JSON.stringify(updated));
 }
 
-export async function addTimeSlot(slot: TimeSlot): Promise<void> {
+export async function deleteAvailability(slotId: string): Promise<void> {
   const slots = await getAvailability();
-  slots.push(slot);
-  await AsyncStorage.setItem(KEYS.AVAILABILITY, JSON.stringify(slots));
+  const slot = slots.find(s => s.id === slotId);
+  
+  if (slot?.isBooked) {
+    throw new Error("Nelze smazat rezervovany cas");
+  }
+  
+  const updated = slots.filter(s => s.id !== slotId);
+  await AsyncStorage.setItem(KEYS.AVAILABILITY, JSON.stringify(updated));
 }
 
 export async function getBookings(userId?: string): Promise<Booking[]> {
@@ -124,21 +151,49 @@ export async function getBookings(userId?: string): Promise<Booking[]> {
   return bookings;
 }
 
-export async function createBooking(booking: Omit<Booking, "id" | "createdAt">): Promise<Booking> {
+export async function createBooking(
+  userId: string,
+  availabilityId: string,
+  locationId: string
+): Promise<Booking> {
+  const slots = await getAvailability();
+  const slot = slots.find(s => s.id === availabilityId);
+  
+  if (!slot) {
+    throw new Error("Casovy slot neexistuje");
+  }
+  
+  if (slot.isBooked) {
+    throw new Error("Tento cas je jiz rezervovan");
+  }
+  
+  if (!slot.allowedLocationIds.includes(locationId)) {
+    throw new Error("Tato pobocka neni dostupna pro tento cas");
+  }
+  
+  const locations = await getLocations();
+  const location = locations.find(l => l.id === locationId);
+  
+  if (!location) {
+    throw new Error("Pobocka neexistuje");
+  }
+  
   const bookings = await getBookings();
   const newBooking: Booking = {
-    ...booking,
     id: `booking_${Date.now()}`,
+    userId,
+    availabilityId,
+    locationId,
+    locationName: location.name,
+    date: slot.date,
+    time: slot.time,
     createdAt: new Date().toISOString(),
   };
+  
   bookings.push(newBooking);
   await AsyncStorage.setItem(KEYS.BOOKINGS, JSON.stringify(bookings));
   
-  const slots = await getAvailability();
-  const slotId = slots.find(s => s.date === booking.date && s.time === booking.time && s.locationId === booking.locationId)?.id;
-  if (slotId) {
-    await setSlotAvailability(slotId, false);
-  }
+  await updateAvailability(availabilityId, { isBooked: true });
   
   return newBooking;
 }
@@ -146,16 +201,15 @@ export async function createBooking(booking: Omit<Booking, "id" | "createdAt">):
 export async function cancelBooking(bookingId: string): Promise<void> {
   const bookings = await getBookings();
   const booking = bookings.find(b => b.id === bookingId);
+  
+  if (!booking) {
+    throw new Error("Rezervace neexistuje");
+  }
+  
   const updated = bookings.filter(b => b.id !== bookingId);
   await AsyncStorage.setItem(KEYS.BOOKINGS, JSON.stringify(updated));
   
-  if (booking) {
-    const slots = await getAvailability();
-    const slotId = slots.find(s => s.date === booking.date && s.time === booking.time && s.locationId === booking.locationId)?.id;
-    if (slotId) {
-      await setSlotAvailability(slotId, true);
-    }
-  }
+  await updateAvailability(booking.availabilityId, { isBooked: false });
 }
 
 export async function getMealPreference(userId: string): Promise<MealPreference | null> {

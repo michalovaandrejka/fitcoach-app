@@ -5,21 +5,22 @@ export interface Location {
   isActive: boolean;
 }
 
-export interface TimeSlot {
+export interface Availability {
   id: string;
   date: string;
   time: string;
-  locationId: string;
-  isAvailable: boolean;
+  allowedLocationIds: string[];
+  isBooked: boolean;
 }
 
 export interface Booking {
   id: string;
   userId: string;
-  date: string;
-  time: string;
+  availabilityId: string;
   locationId: string;
   locationName: string;
+  date: string;
+  time: string;
   createdAt: string;
 }
 
