@@ -125,19 +125,19 @@ export default function DashboardScreen() {
           <QuickAction
             icon="plus"
             label="Přidat dostupnost"
-            onPress={() => navigation.navigate("AdminAvailability")}
+            onPress={() => navigation.navigate("AvailabilityStack")}
           />
           <QuickAction
             icon="calendar"
             label="Zobrazit kalendář"
-            onPress={() => navigation.navigate("AdminCalendar")}
+            onPress={() => navigation.navigate("CalendarStack")}
           />
         </View>
 
         <Pressable
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            navigation.navigate("AdminClients");
+            navigation.navigate("ClientsStack");
           }}
           style={styles.clientsLink}
         >

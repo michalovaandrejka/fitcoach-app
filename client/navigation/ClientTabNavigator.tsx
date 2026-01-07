@@ -7,7 +7,6 @@ import { useNavigation } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
 
 import { useTheme } from "@/hooks/useTheme";
-import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { Spacing, BorderRadius } from "@/constants/theme";
 
 import TrainingsScreen from "@/screens/client/TrainingsScreen";
@@ -30,7 +29,6 @@ function BookingPlaceholder() {
 export default function ClientTabNavigator() {
   const { theme, isDark } = useTheme();
   const navigation = useNavigation<any>();
-  const screenOptions = useScreenOptions();
 
   return (
     <Tab.Navigator
@@ -55,7 +53,11 @@ export default function ClientTabNavigator() {
               style={StyleSheet.absoluteFill}
             />
           ) : null,
-        ...screenOptions,
+        headerTitleAlign: "center",
+        headerStyle: {
+          backgroundColor: theme.backgroundRoot,
+        },
+        headerTintColor: theme.text,
       }}
     >
       <Tab.Screen
@@ -74,8 +76,11 @@ export default function ClientTabNavigator() {
         component={BookingPlaceholder}
         options={{
           title: "Rezervace",
-          tabBarIcon: ({ color, size }) => (
+          tabBarButton: (props) => (
             <Pressable
+              {...props}
+              accessibilityLabel="Rezervovat trénink"
+              accessibilityRole="button"
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 navigation.navigate("BookingModal");
@@ -85,14 +90,6 @@ export default function ClientTabNavigator() {
               <Feather name="plus" size={24} color="#FFFFFF" />
             </Pressable>
           ),
-          tabBarLabel: () => null,
-        }}
-        listeners={{
-          tabPress: (e) => {
-            e.preventDefault();
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            navigation.navigate("BookingModal");
-          },
         }}
       />
       <Tab.Screen
