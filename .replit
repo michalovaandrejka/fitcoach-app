@@ -59,4 +59,3 @@ ensurePreviewReachable = "/status"
 [userenv]
 
 [userenv.shared]
-GIT_URL = "https://oauth2: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@github.com/michalovaandrejka/fitcoach-app.git"
