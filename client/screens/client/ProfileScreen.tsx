@@ -11,6 +11,7 @@ import { Card } from "@/components/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
+import { deleteClient } from "@/lib/storage";
 
 const AVATARS = [
   { id: 1, icon: "user" as const, color: "#FF6B35" },
@@ -38,6 +39,31 @@ export default function ProfileScreen() {
           onPress: async () => {
             await logout();
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Smazat ucet",
+      "Opravdu chcete smazat svuj ucet? Tato akce je nevratna a vse bude smazano.",
+      [
+        { text: "Ne", style: "cancel" },
+        {
+          text: "Ano, smazat",
+          style: "destructive",
+          onPress: async () => {
+            if (user?.id) {
+              try {
+                await deleteClient(user.id);
+                await logout();
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              } catch (error) {
+                Alert.alert("Chyba", "Nepodarilo se smazat ucet");
+              }
+            }
           },
         },
       ]
@@ -118,13 +144,28 @@ export default function ProfileScreen() {
 
         <Pressable
           onPress={handleLogout}
-          style={[styles.logoutButton, { borderColor: theme.error }]}
+          style={[styles.logoutButton, { borderColor: theme.textSecondary }]}
         >
-          <Feather name="log-out" size={20} color={theme.error} />
-          <ThemedText type="body" style={{ color: theme.error, marginLeft: Spacing.sm }}>
+          <Feather name="log-out" size={20} color={theme.textSecondary} />
+          <ThemedText type="body" style={{ color: theme.textSecondary, marginLeft: Spacing.sm }}>
             Odhlásit se
           </ThemedText>
         </Pressable>
+
+        <View style={styles.dangerZone}>
+          <ThemedText type="small" style={{ color: theme.error, marginBottom: Spacing.md, textAlign: "center" }}>
+            Nebezpecna zona
+          </ThemedText>
+          <Pressable
+            onPress={handleDeleteAccount}
+            style={[styles.deleteButton, { borderColor: theme.error }]}
+          >
+            <Feather name="trash-2" size={20} color={theme.error} />
+            <ThemedText type="body" style={{ color: theme.error, marginLeft: Spacing.sm }}>
+              Smazat ucet
+            </ThemedText>
+          </Pressable>
+        </View>
       </ScrollView>
     </ThemedView>
   );
@@ -209,5 +250,19 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
     marginTop: Spacing.lg,
+  },
+  dangerZone: {
+    marginTop: Spacing["2xl"],
+    paddingTop: Spacing.xl,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.05)",
+  },
+  deleteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
   },
 });
