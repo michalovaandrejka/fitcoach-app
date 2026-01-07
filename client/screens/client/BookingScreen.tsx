@@ -110,7 +110,7 @@ export default function BookingScreen() {
 
   const handleSubmit = async () => {
     if (!selectedSlot || !selectedDate || !user || !selectedLocation) {
-      Alert.alert("Chyba", "Vyberte prosim fitko, datum a cas treninku");
+      Alert.alert("Chyba", "Vyberte prosím fitko, datum a čas tréninku");
       return;
     }
 
@@ -124,11 +124,11 @@ export default function BookingScreen() {
         selectedLocation.id
       );
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert("Uspech", "Trenink byl uspesne rezervovan", [
+      Alert.alert("Úspěch", "Trénink byl úspěšně rezervován", [
         { text: "OK", onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
-      Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodarilo se vytvorit rezervaci");
+      Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodařilo se vytvořit rezervaci");
     } finally {
       setIsSubmitting(false);
     }
@@ -202,7 +202,7 @@ export default function BookingScreen() {
             <Card elevation={1} style={styles.emptyCard}>
               <Feather name="map-pin" size={32} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
               <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
-                Zadna aktivni fitka
+                Žádná aktivní fitka
               </ThemedText>
             </Card>
           )}
@@ -254,7 +254,7 @@ export default function BookingScreen() {
               <Card elevation={1} style={styles.emptyCard}>
                 <Feather name="calendar" size={32} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
                 <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
-                  Zadne volne terminy v {selectedLocation.name}
+                  Žádné volné termíny v {selectedLocation.name}
                 </ThemedText>
               </Card>
             )}
@@ -264,7 +264,7 @@ export default function BookingScreen() {
         {selectedDate && selectedLocation ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <ThemedText type="h4">3. Vyberte cas treninku</ThemedText>
+              <ThemedText type="h4">3. Vyberte čas tréninku</ThemedText>
               <View style={[styles.durationBadge, { backgroundColor: theme.primary + "20" }]}>
                 <Feather name="clock" size={12} color={theme.primary} />
                 <ThemedText type="small" style={{ color: theme.primary, marginLeft: 4 }}>
@@ -322,7 +322,7 @@ export default function BookingScreen() {
               <Card elevation={1} style={styles.emptyCard}>
                 <Feather name="clock" size={32} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
                 <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
-                  Na tento den nejsou dostupne zadne volne casy
+                  Na tento den nejsou dostupné žádné volné časy
                 </ThemedText>
               </Card>
             )}
@@ -361,7 +361,7 @@ export default function BookingScreen() {
             disabled={!selectedSlot || !selectedDate || !selectedLocation || isSubmitting}
             style={{ backgroundColor: theme.primary }}
           >
-            {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : "Rezervovat trenink"}
+            {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : "Rezervovat trénink"}
           </Button>
         </View>
       </ScrollView>

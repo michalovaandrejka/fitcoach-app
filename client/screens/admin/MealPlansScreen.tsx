@@ -74,20 +74,20 @@ export default function MealPlansScreen() {
       return {
         icon: "check-circle" as const,
         color: theme.success,
-        text: `Aktualizovano ${formatDate(info.mealPlan.updatedAt)}`,
+        text: `Aktualizováno ${formatDate(info.mealPlan.updatedAt)}`,
       };
     }
     if (info.preferences) {
       return {
         icon: "alert-circle" as const,
         color: theme.warning,
-        text: "Preference vyplneny, ceka na jidelnicek",
+        text: "Preference vyplněny, čeká na jídelníček",
       };
     }
     return {
       icon: "x-circle" as const,
       color: theme.textSecondary,
-      text: "Bez preferencii a jidelnicku",
+      text: "Bez preferencí a jídelníčku",
     };
   };
 
@@ -146,7 +146,7 @@ export default function MealPlansScreen() {
                   {clientsWithPlan.length}
                 </ThemedText>
                 <ThemedText type="small" style={{ color: theme.success }}>
-                  s jidelnickem
+                  s jídelníčkem
                 </ThemedText>
               </View>
               <View style={[styles.statBadge, { backgroundColor: theme.warning + "20" }]}>
@@ -154,7 +154,7 @@ export default function MealPlansScreen() {
                   {clientsWaiting.length}
                 </ThemedText>
                 <ThemedText type="small" style={{ color: theme.warning }}>
-                  ceka na plan
+                  čeká na plán
                 </ThemedText>
               </View>
               <View style={[styles.statBadge, { backgroundColor: theme.textSecondary + "20" }]}>
@@ -172,7 +172,7 @@ export default function MealPlansScreen() {
           <View style={styles.emptyState}>
             <Feather name="clipboard" size={48} color={theme.textSecondary} />
             <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.lg }}>
-              Zatim zadni klienti
+              Zatím žádní klienti
             </ThemedText>
           </View>
         }

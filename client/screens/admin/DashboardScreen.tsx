@@ -13,7 +13,8 @@ import { Onboarding } from "@/components/Onboarding";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getClients, getBookings, getAvailability } from "@/lib/storage";
+import { getUsers, getBookings, getAvailabilityBlocks, getAvailableStartTimes } from "@/lib/storage";
+import { Booking, AvailabilityBlock } from "@/types";
 
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
@@ -31,20 +32,27 @@ export default function DashboardScreen() {
   const [showTutorial, setShowTutorial] = useState(false);
 
   const loadData = async () => {
-    const [clients, bookings, availability] = await Promise.all([
-      getClients(),
+    const [users, bookings, blocks] = await Promise.all([
+      getUsers(),
       getBookings(),
-      getAvailability(),
+      getAvailabilityBlocks(),
     ]);
     
+    const clientUsers = users.filter(u => u.role === "CLIENT");
     const today = new Date().toISOString().split("T")[0];
-    const todayBookings = bookings.filter(b => b.date === today);
-    const availableSlots = availability.filter(s => !s.isBooked).length;
+    const todayBookings = bookings.filter((b: Booking) => b.date === today);
+    
+    const futureDates = [...new Set(blocks.filter((b: AvailabilityBlock) => b.date >= today).map(b => b.date))];
+    let totalAvailableSlots = 0;
+    for (const date of futureDates) {
+      const slots = await getAvailableStartTimes(date);
+      totalAvailableSlots += slots.length;
+    }
     
     setStats({
-      clientsCount: clients.length,
+      clientsCount: clientUsers.length,
       todayBookings: todayBookings.length,
-      availableSlots,
+      availableSlots: totalAvailableSlots,
     });
   };
 
@@ -149,9 +157,9 @@ export default function DashboardScreen() {
                 <Feather name="users" size={24} color={theme.primary} />
               </View>
               <View style={styles.clientsText}>
-                <ThemedText type="h4">Zobrazit vsechny klienty</ThemedText>
+                <ThemedText type="h4">Zobrazit všechny klienty</ThemedText>
                 <ThemedText type="small" style={{ color: theme.textSecondary }}>
-                  Sprava klientu a jejich rezervaci
+                  Správa klientů a jejich rezervací
                 </ThemedText>
               </View>
               <Feather name="chevron-right" size={24} color={theme.textSecondary} />
@@ -172,9 +180,9 @@ export default function DashboardScreen() {
                 <Feather name="help-circle" size={24} color={theme.secondary} />
               </View>
               <View style={styles.tutorialText}>
-                <ThemedText type="h4">Spustit tutorial</ThemedText>
+                <ThemedText type="h4">Spustit tutoriál</ThemedText>
                 <ThemedText type="small" style={{ color: theme.textSecondary }}>
-                  Zobrazit pruvodce aplikaci
+                  Zobrazit průvodce aplikací
                 </ThemedText>
               </View>
               <Feather name="play" size={24} color={theme.secondary} />

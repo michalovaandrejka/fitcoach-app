@@ -79,13 +79,13 @@ export default function ClientsScreen() {
           <View style={styles.clientMeta}>
             <Feather name="calendar" size={12} color={theme.textSecondary} />
             <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
-              Posledni: {formatDate(item.lastTrainingDate)}
+              Poslední: {formatDate(item.lastTrainingDate)}
             </ThemedText>
           </View>
         </View>
         <View style={styles.bookingsCount}>
           <ThemedText type="h4" style={{ color: theme.primary }}>{item.bookingsCount}</ThemedText>
-          <ThemedText type="small" style={{ color: theme.textSecondary }}>treninku</ThemedText>
+          <ThemedText type="small" style={{ color: theme.textSecondary }}>tréninků</ThemedText>
         </View>
         <Feather name="chevron-right" size={20} color={theme.textSecondary} />
       </View>
@@ -139,7 +139,7 @@ export default function ClientsScreen() {
           <View style={styles.emptyState}>
             <Feather name="users" size={48} color={theme.textSecondary} />
             <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.lg }}>
-              {searchQuery ? "Zadni klienti nenalezeni" : "Zatim nemate zadne klienty"}
+              {searchQuery ? "Žádní klienti nenalezeni" : "Zatím nemáte žádné klienty"}
             </ThemedText>
           </View>
         }

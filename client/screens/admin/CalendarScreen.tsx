@@ -79,7 +79,7 @@ export default function CalendarScreen() {
 
   const getClientName = (booking: Booking) => {
     if (booking.bookingType === "manual") {
-      return booking.manualClientName || "Manualni klient";
+      return booking.manualClientName || "Manuální klient";
     }
     if (booking.userName) {
       return booking.userName;
@@ -90,12 +90,12 @@ export default function CalendarScreen() {
   const handleCancelBooking = (booking: Booking) => {
     const clientName = getClientName(booking);
     Alert.alert(
-      "Zrusit rezervaci",
-      `Opravdu chcete zrusit rezervaci?\n\nKlient: ${clientName}\nCas: ${booking.startTime} - ${booking.endTime}`,
+      "Zrušit rezervaci",
+      `Opravdu chcete zrušit rezervaci?\n\nKlient: ${clientName}\nČas: ${booking.startTime} - ${booking.endTime}`,
       [
         { text: "Ne", style: "cancel" },
         {
-          text: "Zrusit",
+          text: "Zrušit",
           style: "destructive",
           onPress: async () => {
             try {
@@ -103,7 +103,7 @@ export default function CalendarScreen() {
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               loadData();
             } catch (error) {
-              Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodarilo se zrusit rezervaci");
+              Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodařilo se zrušit rezervaci");
             }
           },
         },
@@ -204,7 +204,7 @@ export default function CalendarScreen() {
                     {booking.bookingType === "manual" ? (
                       <View style={[styles.manualBadge, { backgroundColor: theme.warning + "20" }]}>
                         <ThemedText type="small" style={{ color: theme.warning, fontWeight: "600" }}>
-                          Manualni
+                          Manuální
                         </ThemedText>
                       </View>
                     ) : null}
@@ -230,7 +230,7 @@ export default function CalendarScreen() {
             <View style={styles.emptyContent}>
               <Feather name="calendar" size={48} color={theme.textSecondary} />
               <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.lg, textAlign: "center" }}>
-                Na tento den nemate zadne rezervovane treninky
+                Na tento den nemáte žádné rezervované tréninky
               </ThemedText>
             </View>
           </Card>

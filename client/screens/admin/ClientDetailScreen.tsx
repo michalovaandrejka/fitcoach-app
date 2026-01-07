@@ -93,26 +93,26 @@ export default function ClientDetailScreen() {
     setTrainerMealPlan(plan);
     setIsSavingMealPlan(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert("Ulozeno", "Jidelnicek byl ulozen");
+    Alert.alert("Uloženo", "Jídelníček byl uložen");
   };
 
   const handleCancelBooking = (booking: Booking) => {
     Alert.alert(
-      "Zrusit trenink",
-      `Opravdu chcete zrusit trenink ${formatDate(booking.date)} v ${booking.time}?`,
+      "Zrušit trénink",
+      `Opravdu chcete zrušit trénink ${formatDate(booking.date)} v ${booking.time}?`,
       [
         { text: "Ne", style: "cancel" },
         {
-          text: "Ano, zrusit",
+          text: "Ano, zrušit",
           style: "destructive",
           onPress: async () => {
             try {
               await cancelBooking(booking.id);
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-              Alert.alert("Zruseno", "Trenink byl zrusen a termin je znovu volny.");
+              Alert.alert("Zrušeno", "Trénink byl zrušen a termín je znovu volný.");
               loadData();
             } catch (error) {
-              Alert.alert("Chyba", "Nepodarilo se zrusit trenink");
+              Alert.alert("Chyba", "Nepodařilo se zrušit trénink");
             }
           },
         },
@@ -123,7 +123,7 @@ export default function ClientDetailScreen() {
   const handleDeleteClient = () => {
     Alert.alert(
       "Smazat klienta",
-      "Opravdu chcete smazat tohoto klienta? Tato akce je nevratna.",
+      "Opravdu chcete smazat tohoto klienta? Tato akce je nevratná.",
       [
         { text: "Ne", style: "cancel" },
         {
@@ -135,7 +135,7 @@ export default function ClientDetailScreen() {
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               navigation.goBack();
             } catch (error) {
-              Alert.alert("Chyba", "Nepodarilo se smazat klienta");
+              Alert.alert("Chyba", "Nepodařilo se smazat klienta");
             }
           },
         },
@@ -149,7 +149,7 @@ export default function ClientDetailScreen() {
   };
 
   const getLocationName = (locationId: string) => {
-    return locations.find(l => l.id === locationId)?.name || "Pobocka";
+    return locations.find(l => l.id === locationId)?.name || "Pobočka";
   };
 
   const TabButton = ({ tab, label }: { tab: TabType; label: string }) => (
@@ -203,15 +203,15 @@ export default function ClientDetailScreen() {
 
         <View style={styles.tabs}>
           <TabButton tab="bookings" label="Rezervace" />
-          <TabButton tab="meal" label="Jidelnicek" />
-          <TabButton tab="notes" label="Poznamky" />
+          <TabButton tab="meal" label="Jídelníček" />
+          <TabButton tab="notes" label="Poznámky" />
         </View>
 
         {activeTab === "bookings" ? (
           <View style={styles.tabContent}>
             {futureBookings.length > 0 ? (
               <>
-                <ThemedText type="h4" style={styles.sectionTitle}>Nadchazejici treninky</ThemedText>
+                <ThemedText type="h4" style={styles.sectionTitle}>Nadcházející tréninky</ThemedText>
                 {futureBookings.map(booking => (
                   <Card key={booking.id} elevation={1} style={styles.bookingCard}>
                     <View style={styles.bookingRow}>
@@ -232,7 +232,7 @@ export default function ClientDetailScreen() {
                       >
                         <Feather name="x" size={16} color={theme.error} />
                         <ThemedText type="small" style={{ color: theme.error, marginLeft: Spacing.xs }}>
-                          Zrusit
+                          Zrušit
                         </ThemedText>
                       </Pressable>
                     </View>
@@ -242,7 +242,7 @@ export default function ClientDetailScreen() {
             ) : (
               <Card elevation={1}>
                 <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
-                  Klient nema zadne nadchazejici treninky
+                  Klient nemá žádné nadcházející tréninky
                 </ThemedText>
               </Card>
             )}
@@ -335,7 +335,7 @@ export default function ClientDetailScreen() {
                         <Feather name="message-circle" size={16} color={theme.secondary} />
                       </View>
                       <View style={styles.prefContent}>
-                        <ThemedText type="small" style={{ color: theme.textSecondary }}>Poznamky klienta</ThemedText>
+                        <ThemedText type="small" style={{ color: theme.textSecondary }}>Poznámky klienta</ThemedText>
                         <ThemedText type="body">{mealPref.notes}</ThemedText>
                       </View>
                     </View>
@@ -352,11 +352,11 @@ export default function ClientDetailScreen() {
 
             <View style={styles.divider} />
 
-            <ThemedText type="h4" style={styles.sectionTitle}>Jidelnicek od trenerky</ThemedText>
+            <ThemedText type="h4" style={styles.sectionTitle}>Jídelníček od trenérky</ThemedText>
             <Card elevation={1}>
               <TextInput
                 style={[styles.mealPlanInput, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
-                placeholder="Napiste jidelnicek pro klienta..."
+                placeholder="Napište jídelníček pro klienta..."
                 placeholderTextColor={theme.textSecondary}
                 value={mealPlanText}
                 onChangeText={setMealPlanText}
@@ -375,14 +375,14 @@ export default function ClientDetailScreen() {
                   <>
                     <Feather name="save" size={18} color="#FFFFFF" />
                     <ThemedText type="body" style={{ color: "#FFFFFF", marginLeft: Spacing.sm, fontWeight: "600" }}>
-                      Ulozit jidelnicek
+                      Uložit jídelníček
                     </ThemedText>
                   </>
                 )}
               </Pressable>
               {trainerMealPlan ? (
                 <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: Spacing.md, textAlign: "center" }}>
-                  Posledni uprava: {formatDate(trainerMealPlan.updatedAt)}
+                  Poslední úprava: {formatDate(trainerMealPlan.updatedAt)}
                 </ThemedText>
               ) : null}
             </Card>
@@ -393,11 +393,11 @@ export default function ClientDetailScreen() {
           <View style={styles.tabContent}>
             <Card elevation={1}>
               <ThemedText type="h4" style={styles.noteLabel}>
-                Interni poznamka (nevidi klient)
+                Interní poznámka (nevidí klient)
               </ThemedText>
               <TextInput
                 style={[styles.noteInput, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
-                placeholder="Vase poznamky ke klientovi..."
+                placeholder="Vaše poznámky ke klientovi..."
                 placeholderTextColor={theme.textSecondary}
                 value={adminNote}
                 onChangeText={setAdminNote}
@@ -416,7 +416,7 @@ export default function ClientDetailScreen() {
                   <>
                     <Feather name="save" size={18} color="#FFFFFF" />
                     <ThemedText type="body" style={{ color: "#FFFFFF", marginLeft: Spacing.sm, fontWeight: "600" }}>
-                      Ulozit poznamku
+                      Uložit poznámku
                     </ThemedText>
                   </>
                 )}
@@ -426,7 +426,7 @@ export default function ClientDetailScreen() {
         ) : null}
 
         <View style={styles.dangerZone}>
-          <ThemedText type="h4" style={[styles.sectionTitle, { color: theme.error }]}>Nebezpecna zona</ThemedText>
+          <ThemedText type="h4" style={[styles.sectionTitle, { color: theme.error }]}>Nebezpečná zóna</ThemedText>
           <Pressable
             onPress={handleDeleteClient}
             style={[styles.deleteButton, { borderColor: theme.error }]}

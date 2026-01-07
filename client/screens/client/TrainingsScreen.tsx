@@ -45,12 +45,12 @@ export default function TrainingsScreen() {
 
   const handleCancel = (booking: Booking) => {
     Alert.alert(
-      "Zrusit rezervaci",
-      `Opravdu chcete zrusit trenink ${formatDate(booking.date)} v ${booking.startTime}?`,
+      "Zrušit rezervaci",
+      `Opravdu chcete zrušit trénink ${formatDate(booking.date)} v ${booking.startTime}?`,
       [
         { text: "Ne", style: "cancel" },
         {
-          text: "Ano, zrusit",
+          text: "Ano, zrušit",
           style: "destructive",
           onPress: async () => {
             await cancelBooking(booking.id);
@@ -89,7 +89,7 @@ export default function TrainingsScreen() {
         <View style={styles.detailRow}>
           <Feather name="clock" size={14} color={theme.textSecondary} />
           <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
-            Delka: {TRAINING_DURATION} minut
+            Délka: {TRAINING_DURATION} minut
           </ThemedText>
         </View>
         <View style={styles.detailRow}>
@@ -104,7 +104,7 @@ export default function TrainingsScreen() {
         onPress={() => handleCancel(item)}
         style={[styles.cancelButton, { borderColor: theme.error }]}
       >
-        <ThemedText type="small" style={{ color: theme.error }}>Zrusit rezervaci</ThemedText>
+        <ThemedText type="small" style={{ color: theme.error }}>Zrušit rezervaci</ThemedText>
       </Pressable>
     </Card>
   );
@@ -114,9 +114,9 @@ export default function TrainingsScreen() {
       <View style={[styles.emptyIcon, { backgroundColor: theme.backgroundSecondary }]}>
         <Feather name="calendar" size={48} color={theme.textSecondary} />
       </View>
-      <ThemedText type="h3" style={styles.emptyTitle}>Zatim nemate zadne rezervace</ThemedText>
+      <ThemedText type="h3" style={styles.emptyTitle}>Zatím nemáte žádné rezervace</ThemedText>
       <ThemedText type="body" style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-        Rezervujte si trenink v zalozce Rezervace
+        Rezervujte si trénink v záložce Rezervace
       </ThemedText>
     </View>
   );
@@ -139,7 +139,7 @@ export default function TrainingsScreen() {
             <ThemedText type="body" style={{ color: theme.textSecondary }}>
               Ahoj, {user?.name}
             </ThemedText>
-            <ThemedText type="h2">Nadchazejici treninky</ThemedText>
+            <ThemedText type="h2">Nadcházející tréninky</ThemedText>
           </View>
         }
         ListEmptyComponent={EmptyState}

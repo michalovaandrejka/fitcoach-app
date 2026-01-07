@@ -32,7 +32,7 @@ const TIME_OPTIONS = [
 ];
 
 const WEEKDAY_NAMES = ["Po", "Ut", "St", "Ct", "Pa", "So", "Ne"];
-const MONTH_NAMES = ["Leden", "Unor", "Brezen", "Duben", "Kveten", "Cerven", "Cervenec", "Srpen", "Zari", "Rijen", "Listopad", "Prosinec"];
+const MONTH_NAMES = ["Leden", "Únor", "Březen", "Duben", "Květen", "Červen", "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"];
 
 export default function AvailabilityScreen() {
   const insets = useSafeAreaInsets();
@@ -134,7 +134,7 @@ export default function AvailabilityScreen() {
 
   const formatDateFull = (dateStr: string) => {
     const date = new Date(dateStr);
-    const days = ["Nedele", "Pondeli", "Utery", "Streda", "Ctvrtek", "Patek", "Sobota"];
+    const days = ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"];
     const months = ["ledna", "unora", "brezna", "dubna", "kvetna", "cervna", "cervence", "srpna", "zari", "rijna", "listopadu", "prosince"];
     return `${days[date.getDay()]} ${date.getDate()}. ${months[date.getMonth()]}`;
   };
@@ -159,7 +159,7 @@ export default function AvailabilityScreen() {
   };
 
   const getBranchName = (branchId: string) => {
-    return locations.find(l => l.id === branchId)?.name || "Neznama pobocka";
+    return locations.find(l => l.id === branchId)?.name || "Neznámá pobočka";
   };
 
   const handlePrevMonth = () => {
@@ -286,19 +286,19 @@ export default function AvailabilityScreen() {
 
   const handleAddBlocks = async () => {
     if (selectedDates.length === 0) {
-      Alert.alert("Chyba", "Vyberte alespon jeden den");
+      Alert.alert("Chyba", "Vyberte alespoň jeden den");
       return;
     }
     if (selectedBranchIds.length === 0) {
-      Alert.alert("Chyba", "Vyberte alespon jednu pobocku");
+      Alert.alert("Chyba", "Vyberte alespoň jednu pobočku");
       return;
     }
     if (timeToMinutes(endTime) <= timeToMinutes(startTime)) {
-      Alert.alert("Chyba", "Cas konce musi byt po casu zacatku");
+      Alert.alert("Chyba", "Čas konce musí být po čase začátku");
       return;
     }
     if (timeToMinutes(endTime) - timeToMinutes(startTime) < TRAINING_DURATION) {
-      Alert.alert("Chyba", `Blok musi byt alespon ${TRAINING_DURATION} minut`);
+      Alert.alert("Chyba", `Blok musí být alespoň ${TRAINING_DURATION} minut`);
       return;
     }
 
@@ -308,7 +308,7 @@ export default function AvailabilityScreen() {
       setShowAddModal(false);
       loadData();
     } catch (error) {
-      Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodarilo se pridat bloky");
+      Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodařilo se přidat bloky");
     }
   };
 
@@ -323,7 +323,7 @@ export default function AvailabilityScreen() {
       "Smazat blok",
       `Opravdu chcete smazat blok ${block.startTime} - ${block.endTime}?`,
       [
-        { text: "Zrusit", style: "cancel" },
+        { text: "Zrušit", style: "cancel" },
         {
           text: "Smazat",
           style: "destructive",
@@ -333,7 +333,7 @@ export default function AvailabilityScreen() {
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               loadData();
             } catch (error) {
-              Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodarilo se smazat blok");
+              Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodařilo se smazat blok");
             }
           },
         },
@@ -377,7 +377,7 @@ export default function AvailabilityScreen() {
     if (!selectedBlockForManual) return;
     
     if (!manualClientName.trim()) {
-      Alert.alert("Chyba", "Zadejte jmeno klienta");
+      Alert.alert("Chyba", "Zadejte jméno klienta");
       return;
     }
 
@@ -392,7 +392,7 @@ export default function AvailabilityScreen() {
       setShowManualModal(false);
       loadData();
     } catch (error) {
-      Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodarilo se vytvorit rezervaci");
+      Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodařilo se vytvořit rezervaci");
     }
   };
 
@@ -402,12 +402,12 @@ export default function AvailabilityScreen() {
       : booking.userName;
     
     Alert.alert(
-      "Zrusit rezervaci",
-      `Opravdu chcete zrusit rezervaci?\n\nKlient: ${clientName}\nCas: ${booking.startTime} - ${booking.endTime}`,
+      "Zrušit rezervaci",
+      `Opravdu chcete zrušit rezervaci?\n\nKlient: ${clientName}\nČas: ${booking.startTime} - ${booking.endTime}`,
       [
         { text: "Ne", style: "cancel" },
         {
-          text: "Zrusit",
+          text: "Zrušit",
           style: "destructive",
           onPress: async () => {
             try {
@@ -415,7 +415,7 @@ export default function AvailabilityScreen() {
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               loadData();
             } catch (error) {
-              Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodarilo se zrusit rezervaci");
+              Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodařilo se zrušit rezervaci");
             }
           },
         },
@@ -533,7 +533,7 @@ export default function AvailabilityScreen() {
 
         <View style={styles.headerRow}>
           <View>
-            <ThemedText type="h4">Pracovni bloky</ThemedText>
+            <ThemedText type="h4">Pracovní bloky</ThemedText>
             <ThemedText type="small" style={{ color: theme.textSecondary }}>
               {formatDateFull(selectedDate)}
             </ThemedText>
@@ -585,7 +585,7 @@ export default function AvailabilityScreen() {
                   </View>
                   <View style={[styles.statusBadge, { backgroundColor: availableSlotsCount > 0 ? theme.success + "20" : theme.error + "20" }]}>
                     <ThemedText type="small" style={{ color: availableSlotsCount > 0 ? theme.success : theme.error, fontWeight: "600" }}>
-                      {availableSlotsCount > 0 ? `${availableSlotsCount} volnych mist` : "Plne obsazeno"}
+                      {availableSlotsCount > 0 ? `${availableSlotsCount} volných míst` : "Plně obsazeno"}
                     </ThemedText>
                   </View>
                 </View>
@@ -622,10 +622,10 @@ export default function AvailabilityScreen() {
           <Card elevation={1} style={styles.emptyCard}>
             <Feather name="calendar" size={40} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
             <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
-              Na tento den nejsou nastaveny zadne pracovni bloky
+              Na tento den nejsou nastaveny žádné pracovní bloky
             </ThemedText>
             <Button onPress={handleOpenAddModal} style={{ backgroundColor: theme.primary, marginTop: Spacing.lg }}>
-              Pridat blok
+              Přidat blok
             </Button>
           </Card>
         )}
@@ -635,7 +635,7 @@ export default function AvailabilityScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]}>
             <View style={styles.modalHeader}>
-              <ThemedText type="h3">Pridat pracovni blok</ThemedText>
+              <ThemedText type="h3">Přidat pracovní blok</ThemedText>
               <Pressable onPress={() => setShowAddModal(false)}>
                 <Feather name="x" size={24} color={theme.text} />
               </Pressable>
@@ -665,13 +665,13 @@ export default function AvailabilityScreen() {
                   onPress={handleSelectWorkdays}
                   style={[styles.quickSelectButton, { backgroundColor: theme.primary + "20", borderColor: theme.primary }]}
                 >
-                  <ThemedText type="small" style={{ color: theme.primary, fontWeight: "600" }}>Pracovni dny</ThemedText>
+                  <ThemedText type="small" style={{ color: theme.primary, fontWeight: "600" }}>Pracovní dny</ThemedText>
                 </Pressable>
                 <Pressable 
                   onPress={handleClearSelection}
                   style={[styles.quickSelectButton, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}
                 >
-                  <ThemedText type="small" style={{ color: theme.textSecondary }}>Zrusit vyber</ThemedText>
+                  <ThemedText type="small" style={{ color: theme.textSecondary }}>Zrušit výběr</ThemedText>
                 </Pressable>
               </View>
 
@@ -814,7 +814,7 @@ export default function AvailabilityScreen() {
             </ScrollView>
 
             <Button onPress={handleAddBlocks} style={{ backgroundColor: theme.primary, marginTop: Spacing.xl }}>
-              Pridat bloky ({selectedDates.length} dnu x {selectedBranchIds.length} poboce)
+              Přidat bloky ({selectedDates.length} dnu x {selectedBranchIds.length} poboce)
             </Button>
           </View>
         </View>
@@ -824,7 +824,7 @@ export default function AvailabilityScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]}>
             <View style={styles.modalHeader}>
-              <ThemedText type="h3">Manualni rezervace</ThemedText>
+              <ThemedText type="h3">Manuální rezervace</ThemedText>
               <Pressable onPress={() => setShowManualModal(false)}>
                 <Feather name="x" size={24} color={theme.text} />
               </Pressable>
@@ -840,16 +840,16 @@ export default function AvailabilityScreen() {
             ) : null}
 
             <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-              <ThemedText type="h4" style={styles.modalLabel}>Jmeno klienta</ThemedText>
+              <ThemedText type="h4" style={styles.modalLabel}>Jméno klienta</ThemedText>
               <TextInput
                 value={manualClientName}
                 onChangeText={setManualClientName}
-                placeholder="Zadejte jmeno klienta"
+                placeholder="Zadejte jméno klienta"
                 placeholderTextColor={theme.textSecondary}
                 style={[styles.input, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
               />
 
-              <ThemedText type="h4" style={styles.modalLabel}>Cas zacatku treninku</ThemedText>
+              <ThemedText type="h4" style={styles.modalLabel}>Čas začátku tréninku</ThemedText>
               {availableStartTimes.length > 0 ? (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeScroll}>
                   {availableStartTimes.map(time => (
@@ -875,7 +875,7 @@ export default function AvailabilityScreen() {
                 </ScrollView>
               ) : (
                 <ThemedText type="body" style={{ color: theme.error }}>
-                  Zadne volne casy v tomto bloku
+                  Žádné volné časy v tomto bloku
                 </ThemedText>
               )}
             </ScrollView>
@@ -885,7 +885,7 @@ export default function AvailabilityScreen() {
               disabled={availableStartTimes.length === 0}
               style={{ backgroundColor: availableStartTimes.length > 0 ? theme.primary : theme.textSecondary, marginTop: Spacing.xl }}
             >
-              Vytvorit rezervaci ({TRAINING_DURATION} min)
+              Vytvořit rezervaci ({TRAINING_DURATION} min)
             </Button>
           </View>
         </View>

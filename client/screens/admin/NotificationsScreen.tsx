@@ -99,12 +99,12 @@ export default function NotificationsScreen() {
 
   const handleSend = async () => {
     if (!message.trim()) {
-      Alert.alert("Chyba", "Zadejte text zpravy");
+      Alert.alert("Chyba", "Zadejte text zprávy");
       return;
     }
 
     if (filteredClients.length === 0) {
-      Alert.alert("Chyba", "Zadni klienti neodpovidaji filtrum");
+      Alert.alert("Chyba", "Žádní klienti neodpovídají filtrům");
       return;
     }
 
@@ -131,8 +131,8 @@ export default function NotificationsScreen() {
       await saveNotification(notification);
 
       Alert.alert(
-        "Odeslano",
-        `Oznameni bylo odeslano ${filteredClients.length} ${filteredClients.length === 1 ? "klientovi" : "klientum"}.`,
+        "Odesláno",
+        `Oznámení bylo odesláno ${filteredClients.length} ${filteredClients.length === 1 ? "klientovi" : "klientům"}.`,
         [{ text: "OK", onPress: () => {
           setMessage("");
           setTitle("");
@@ -145,7 +145,7 @@ export default function NotificationsScreen() {
       
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
-      Alert.alert("Chyba", "Oznameni se nepodarilo odeslat");
+      Alert.alert("Chyba", "Oznámení se nepodařilo odeslat");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsLoading(false);
@@ -190,11 +190,11 @@ export default function NotificationsScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Card elevation={1} style={styles.section}>
-          <ThemedText type="h4" style={styles.sectionTitle}>Text oznameni</ThemedText>
+          <ThemedText type="h4" style={styles.sectionTitle}>Text oznámení</ThemedText>
           
           <TextInput
             style={[styles.input, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
-            placeholder="Predmet (volitelne)"
+            placeholder="Předmět (volitelné)"
             placeholderTextColor={theme.textSecondary}
             value={title}
             onChangeText={setTitle}
@@ -202,7 +202,7 @@ export default function NotificationsScreen() {
           
           <TextInput
             style={[styles.textArea, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
-            placeholder="Text zpravy..."
+            placeholder="Text zprávy..."
             placeholderTextColor={theme.textSecondary}
             value={message}
             onChangeText={setMessage}
@@ -219,7 +219,7 @@ export default function NotificationsScreen() {
             <OptionButton
               selected={targetType === "all"}
               onPress={() => setTargetType("all")}
-              label="Vsem klientum"
+              label="Všem klientům"
             />
             <OptionButton
               selected={targetType === "booked"}
@@ -232,7 +232,7 @@ export default function NotificationsScreen() {
         {targetType === "booked" ? (
           <>
             <Card elevation={1} style={styles.section}>
-              <ThemedText type="h4" style={styles.sectionTitle}>Casovy filtr</ThemedText>
+              <ThemedText type="h4" style={styles.sectionTitle}>Časový filtr</ThemedText>
               
               <View style={styles.optionsRow}>
                 <OptionButton
@@ -243,7 +243,7 @@ export default function NotificationsScreen() {
                 <OptionButton
                   selected={timeFilter === "week"}
                   onPress={() => setTimeFilter("week")}
-                  label="Tento tyden"
+                  label="Tento týden"
                 />
                 <OptionButton
                   selected={timeFilter === "custom"}
@@ -269,13 +269,13 @@ export default function NotificationsScreen() {
             </Card>
 
             <Card elevation={1} style={styles.section}>
-              <ThemedText type="h4" style={styles.sectionTitle}>Pobocka</ThemedText>
+              <ThemedText type="h4" style={styles.sectionTitle}>Pobočka</ThemedText>
               
               <View style={styles.optionsRow}>
                 <OptionButton
                   selected={selectedLocationId === null}
                   onPress={() => setSelectedLocationId(null)}
-                  label="Vsechny"
+                  label="Všechny"
                 />
                 {locations.map(loc => (
                   <OptionButton
@@ -294,9 +294,9 @@ export default function NotificationsScreen() {
           <View style={styles.previewHeader}>
             <Feather name="users" size={20} color={theme.primary} />
             <ThemedText type="body" style={{ marginLeft: Spacing.sm }}>
-              Prijemci: <ThemedText type="body" style={{ fontWeight: "700", color: theme.primary }}>
+              Příjemci: <ThemedText type="body" style={{ fontWeight: "700", color: theme.primary }}>
                 {filteredClients.length}
-              </ThemedText> {filteredClients.length === 1 ? "klient" : "klientu"}
+              </ThemedText> {filteredClients.length === 1 ? "klient" : "klientů"}
             </ThemedText>
           </View>
         </Card>
@@ -309,7 +309,7 @@ export default function NotificationsScreen() {
           <View style={styles.buttonContent}>
             <Feather name="send" size={18} color="#FFFFFF" />
             <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600", marginLeft: Spacing.sm }}>
-              Odeslat oznameni
+              Odeslat oznámení
             </ThemedText>
           </View>
         </Button>

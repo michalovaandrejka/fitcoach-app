@@ -28,12 +28,12 @@ export default function LoginScreen() {
     setErrorMessage("");
     
     if (!loginOrEmail || !password) {
-      setErrorMessage("Vyplnte vsechna pole");
+      setErrorMessage("Vyplňte všechna pole");
       return;
     }
     
     if (!isLogin && !name) {
-      setErrorMessage("Vyplnte jmeno");
+      setErrorMessage("Vyplňte jméno");
       return;
     }
 
@@ -46,7 +46,7 @@ export default function LoginScreen() {
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error: any) {
-      setErrorMessage(error.message || "Prihlaseni se nezdarilo");
+      setErrorMessage(error.message || "Přihlášení se nezdařilo");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsLoading(false);
@@ -69,9 +69,9 @@ export default function LoginScreen() {
               contentFit="cover"
             />
           </View>
-          <ThemedText type="h2" style={styles.trainerName}>Andrea Michalova</ThemedText>
+          <ThemedText type="h2" style={styles.trainerName}>Andrea Michalová</ThemedText>
           <ThemedText type="body" style={[styles.trainerTitle, { color: theme.primary }]}>
-            fitness trenerka
+            fitness trenérka
           </ThemedText>
         </View>
 
@@ -80,7 +80,7 @@ export default function LoginScreen() {
         </View>
 
         <ThemedText type="h4" style={styles.formTitle}>
-          {isLogin ? "Prihlaseni" : "Registrace"}
+          {isLogin ? "Přihlášení" : "Registrace"}
         </ThemedText>
 
         {errorMessage ? (
@@ -93,7 +93,7 @@ export default function LoginScreen() {
           {!isLogin ? (
             <TextInput
               style={[styles.input, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
-              placeholder="Jmeno"
+              placeholder="Jméno"
               placeholderTextColor={theme.textSecondary}
               value={name}
               onChangeText={setName}
@@ -124,25 +124,18 @@ export default function LoginScreen() {
             {isLoading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              isLogin ? "Prihlasit se" : "Registrovat"
+              isLogin ? "Přihlásit se" : "Registrovat"
             )}
           </Button>
         </View>
 
         <Pressable onPress={() => setIsLogin(!isLogin)} style={styles.switchButton}>
           <ThemedText type="body" style={{ color: theme.textSecondary }}>
-            {isLogin ? "Nemate ucet? " : "Mate ucet? "}
-            <ThemedText type="link">{isLogin ? "Registrovat" : "Prihlasit se"}</ThemedText>
+            {isLogin ? "Nemáte účet? " : "Máte účet? "}
+            <ThemedText type="link">{isLogin ? "Registrovat" : "Přihlásit se"}</ThemedText>
           </ThemedText>
         </Pressable>
 
-        {isLogin ? (
-          <View style={styles.hint}>
-            <ThemedText type="small" style={{ color: theme.textSecondary, textAlign: "center" }}>
-              Trenerka: login "Andrea", heslo "Andrea"
-            </ThemedText>
-          </View>
-        ) : null}
       </KeyboardAwareScrollViewCompat>
     </ThemedView>
   );
@@ -211,10 +204,6 @@ const styles = StyleSheet.create({
   switchButton: {
     alignItems: "center",
     marginTop: Spacing["2xl"],
-    padding: Spacing.md,
-  },
-  hint: {
-    marginTop: Spacing.lg,
     padding: Spacing.md,
   },
 });
