@@ -1,0 +1,88 @@
+# FitCoach - Fitness Trainer Mobile App
+
+## Overview
+FitCoach is a mobile application for a personal fitness trainer and her clients. Clients can book training sessions, manage their meal preferences, and view their upcoming trainings. The trainer (admin) can manage clients, availability, and view the training calendar.
+
+## Tech Stack
+- **Frontend**: React Native with Expo
+- **Backend**: Express.js (Node.js)
+- **Data Storage**: AsyncStorage (local persistence for MVP)
+- **Navigation**: React Navigation 7+
+- **State Management**: React Context + TanStack Query
+
+## Project Structure
+```
+client/
+├── App.tsx                 # Main app entry with providers
+├── contexts/
+│   └── AuthContext.tsx     # Authentication state management
+├── types/
+│   └── index.ts            # TypeScript type definitions
+├── lib/
+│   ├── query-client.ts     # TanStack Query configuration
+│   └── storage.ts          # AsyncStorage data layer
+├── constants/
+│   └── theme.ts            # Design tokens (colors, spacing, typography)
+├── hooks/                  # Custom React hooks
+├── components/             # Reusable UI components
+├── navigation/
+│   ├── RootStackNavigator.tsx     # Root navigation with auth flow
+│   ├── ClientTabNavigator.tsx     # Client bottom tabs
+│   └── AdminDrawerNavigator.tsx   # Admin drawer with nested stacks
+└── screens/
+    ├── LoginScreen.tsx            # Login/Registration
+    ├── client/                    # Client screens
+    │   ├── TrainingsScreen.tsx    # Upcoming trainings
+    │   ├── BookingScreen.tsx      # Book new training
+    │   ├── MealPlanScreen.tsx     # Meal preferences
+    │   └── ProfileScreen.tsx      # User profile
+    └── admin/                     # Admin screens
+        ├── DashboardScreen.tsx    # Admin dashboard
+        ├── ClientsScreen.tsx      # Client list
+        ├── ClientDetailScreen.tsx # Client detail with tabs
+        ├── CalendarScreen.tsx     # Training calendar
+        ├── AvailabilityScreen.tsx # Manage availability
+        └── AdminProfileScreen.tsx # Admin profile
+```
+
+## User Roles
+1. **CLIENT** - Regular users who book trainings
+2. **ADMIN** - Trainer with management capabilities
+
+## Features
+
+### Client Features
+- View upcoming training sessions
+- Book new training (select location, date, time)
+- Cancel bookings
+- Manage meal preferences (likes, dislikes, goals)
+- View and edit profile
+
+### Admin Features
+- Dashboard with stats
+- View all clients
+- Client detail with bookings, meal plan, and private notes
+- Training calendar view
+- Manage availability (add/toggle time slots)
+
+## Design System
+- Primary Color: #FF6B35 (energetic coral)
+- Secondary Color: #004E89 (deep blue)
+- Background: #F7F9FC (light gray)
+- Surface: #FFFFFF (white cards)
+
+## Running the App
+The app runs on port 8081 (Expo) with the Express backend on port 5000.
+
+## Recent Changes
+- Initial MVP implementation (January 2026)
+- Login with role selection (CLIENT/ADMIN)
+- Full booking flow for clients
+- Admin management screens
+- AsyncStorage data persistence with idempotent initialization
+- Admin drawer navigator with hamburger menu
+- Fixed data persistence to prevent data loss on app restart
+
+## User Preferences
+- Language: Czech (UI text in Czech)
+- Focus on clean, modern iOS-style design

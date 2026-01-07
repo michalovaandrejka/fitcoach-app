@@ -1,0 +1,238 @@
+import React, { useState, useCallback } from "react";
+import { StyleSheet, View, ScrollView, RefreshControl, Pressable } from "react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useHeaderHeight } from "@react-navigation/elements";
+import { Feather } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+
+import { ThemedView } from "@/components/ThemedView";
+import { ThemedText } from "@/components/ThemedText";
+import { Card } from "@/components/Card";
+import { useTheme } from "@/hooks/useTheme";
+import { useAuth } from "@/contexts/AuthContext";
+import { Spacing, BorderRadius } from "@/constants/theme";
+import { getClients, getBookings, getAvailability } from "@/lib/storage";
+
+export default function DashboardScreen() {
+  const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
+  const navigation = useNavigation<any>();
+  const { theme } = useTheme();
+  const { user } = useAuth();
+  
+  const [stats, setStats] = useState({
+    clientsCount: 0,
+    todayBookings: 0,
+    availableSlots: 0,
+  });
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadData = async () => {
+    const [clients, bookings, availability] = await Promise.all([
+      getClients(),
+      getBookings(),
+      getAvailability(),
+    ]);
+    
+    const today = new Date().toISOString().split("T")[0];
+    const todayBookings = bookings.filter(b => b.date === today);
+    const availableSlots = availability.filter(s => s.isAvailable).length;
+    
+    setStats({
+      clientsCount: clients.length,
+      todayBookings: todayBookings.length,
+      availableSlots,
+    });
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
+
+  const StatCard = ({ icon, label, value, color }: { icon: any; label: string; value: number; color: string }) => (
+    <Card elevation={1} style={styles.statCard}>
+      <View style={[styles.statIcon, { backgroundColor: color + "20" }]}>
+        <Feather name={icon} size={24} color={color} />
+      </View>
+      <ThemedText type="h2" style={styles.statValue}>{value}</ThemedText>
+      <ThemedText type="small" style={{ color: theme.textSecondary }}>{label}</ThemedText>
+    </Card>
+  );
+
+  const QuickAction = ({ icon, label, onPress }: { icon: any; label: string; onPress: () => void }) => (
+    <Pressable
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress();
+      }}
+      style={[styles.quickAction, { backgroundColor: theme.primary }]}
+    >
+      <Feather name={icon} size={20} color="#FFFFFF" />
+      <ThemedText type="body" style={{ color: "#FFFFFF", marginLeft: Spacing.sm, fontWeight: "600" }}>
+        {label}
+      </ThemedText>
+    </Pressable>
+  );
+
+  return (
+    <ThemedView style={styles.container}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: headerHeight + Spacing.xl, paddingBottom: insets.bottom + Spacing.xl },
+        ]}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <ThemedText type="body" style={{ color: theme.textSecondary }}>
+            Vítejte zpět,
+          </ThemedText>
+          <ThemedText type="h2">{user?.name}</ThemedText>
+        </View>
+
+        <View style={styles.statsGrid}>
+          <StatCard icon="users" label="Klientů celkem" value={stats.clientsCount} color={theme.primary} />
+          <StatCard icon="calendar" label="Tréninků dnes" value={stats.todayBookings} color={theme.secondary} />
+        </View>
+        
+        <Card elevation={1} style={styles.fullWidthStat}>
+          <View style={styles.fullWidthStatContent}>
+            <View style={[styles.statIcon, { backgroundColor: theme.success + "20" }]}>
+              <Feather name="clock" size={24} color={theme.success} />
+            </View>
+            <View style={styles.fullWidthStatText}>
+              <ThemedText type="h3">{stats.availableSlots}</ThemedText>
+              <ThemedText type="small" style={{ color: theme.textSecondary }}>Volných termínů</ThemedText>
+            </View>
+          </View>
+        </Card>
+
+        <ThemedText type="h4" style={styles.sectionTitle}>Rychlé akce</ThemedText>
+        
+        <View style={styles.quickActions}>
+          <QuickAction
+            icon="plus"
+            label="Přidat dostupnost"
+            onPress={() => navigation.navigate("AdminAvailability")}
+          />
+          <QuickAction
+            icon="calendar"
+            label="Zobrazit kalendář"
+            onPress={() => navigation.navigate("AdminCalendar")}
+          />
+        </View>
+
+        <Pressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            navigation.navigate("AdminClients");
+          }}
+          style={styles.clientsLink}
+        >
+          <Card elevation={1} style={styles.clientsCard}>
+            <View style={styles.clientsCardContent}>
+              <View style={[styles.clientsIcon, { backgroundColor: theme.primary + "20" }]}>
+                <Feather name="users" size={24} color={theme.primary} />
+              </View>
+              <View style={styles.clientsText}>
+                <ThemedText type="h4">Zobrazit všechny klienty</ThemedText>
+                <ThemedText type="small" style={{ color: theme.textSecondary }}>
+                  Správa klientů a jejich rezervací
+                </ThemedText>
+              </View>
+              <Feather name="chevron-right" size={24} color={theme.textSecondary} />
+            </View>
+          </Card>
+        </Pressable>
+      </ScrollView>
+    </ThemedView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    paddingHorizontal: Spacing.xl,
+  },
+  header: {
+    marginBottom: Spacing["2xl"],
+  },
+  statsGrid: {
+    flexDirection: "row",
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  statCard: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: Spacing.xl,
+  },
+  statIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: Spacing.md,
+  },
+  statValue: {
+    marginBottom: Spacing.xs,
+  },
+  fullWidthStat: {
+    marginBottom: Spacing["2xl"],
+  },
+  fullWidthStatContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  fullWidthStatText: {
+    marginLeft: Spacing.lg,
+  },
+  sectionTitle: {
+    marginBottom: Spacing.lg,
+  },
+  quickActions: {
+    gap: Spacing.md,
+    marginBottom: Spacing["2xl"],
+  },
+  quickAction: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.sm,
+  },
+  clientsLink: {
+    marginBottom: Spacing.lg,
+  },
+  clientsCard: {},
+  clientsCardContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  clientsIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: Spacing.md,
+  },
+  clientsText: {
+    flex: 1,
+  },
+});

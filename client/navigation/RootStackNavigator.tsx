@@ -1,34 +1,76 @@
 import React from "react";
+import { ActivityIndicator, View, StyleSheet } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import MainTabNavigator from "@/navigation/MainTabNavigator";
-import ModalScreen from "@/screens/ModalScreen";
+
+import ClientTabNavigator from "@/navigation/ClientTabNavigator";
+import AdminDrawerNavigator from "@/navigation/AdminDrawerNavigator";
+import LoginScreen from "@/screens/LoginScreen";
+import BookingScreen from "@/screens/client/BookingScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/hooks/useTheme";
 
 export type RootStackParamList = {
-  Main: undefined;
-  Modal: undefined;
+  Login: undefined;
+  ClientMain: undefined;
+  AdminMain: undefined;
+  BookingModal: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootStackNavigator() {
   const screenOptions = useScreenOptions();
+  const { user, isLoading, isAuthenticated } = useAuth();
+  const { theme } = useTheme();
+
+  if (isLoading) {
+    return (
+      <View style={[styles.loading, { backgroundColor: theme.backgroundRoot }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+      </View>
+    );
+  }
 
   return (
     <Stack.Navigator screenOptions={screenOptions}>
-      <Stack.Screen
-        name="Main"
-        component={MainTabNavigator}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="Modal"
-        component={ModalScreen}
-        options={{
-          presentation: "modal",
-          headerTitle: "Modal",
-        }}
-      />
+      {!isAuthenticated ? (
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{ headerShown: false }}
+        />
+      ) : user?.role === "ADMIN" ? (
+        <Stack.Screen
+          name="AdminMain"
+          component={AdminDrawerNavigator}
+          options={{ headerShown: false }}
+        />
+      ) : (
+        <>
+          <Stack.Screen
+            name="ClientMain"
+            component={ClientTabNavigator}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="BookingModal"
+            component={BookingScreen}
+            options={{
+              presentation: "modal",
+              headerTitle: "Rezervace tréninku",
+            }}
+          />
+        </>
+      )}
     </Stack.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
