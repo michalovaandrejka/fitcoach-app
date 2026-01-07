@@ -22,6 +22,7 @@ import CalendarScreen from "@/screens/admin/CalendarScreen";
 import AvailabilityScreen from "@/screens/admin/AvailabilityScreen";
 import AdminProfileScreen from "@/screens/admin/AdminProfileScreen";
 import LocationsScreen from "@/screens/admin/LocationsScreen";
+import NotificationsScreen from "@/screens/admin/NotificationsScreen";
 
 export type AdminStackParamList = {
   AdminDashboard: undefined;
@@ -30,6 +31,7 @@ export type AdminStackParamList = {
   AdminCalendar: undefined;
   AdminAvailability: undefined;
   AdminLocations: undefined;
+  AdminNotifications: undefined;
   AdminProfile: undefined;
 };
 
@@ -38,6 +40,7 @@ export type AdminDrawerParamList = {
   ClientsStack: undefined;
   CalendarStack: undefined;
   AvailabilityStack: undefined;
+  NotificationsStack: undefined;
   LocationsStack: undefined;
   ProfileStack: undefined;
 };
@@ -112,6 +115,15 @@ function LocationsStack() {
   );
 }
 
+function NotificationsStack() {
+  const screenOptions = useAdminScreenOptions();
+  return (
+    <Stack.Navigator screenOptions={screenOptions}>
+      <Stack.Screen name="AdminNotifications" component={NotificationsScreen} options={{ headerTitle: "Oznameni" }} />
+    </Stack.Navigator>
+  );
+}
+
 function ProfileStack() {
   const screenOptions = useAdminScreenOptions();
   return (
@@ -132,6 +144,7 @@ const drawerItems: DrawerItem[] = [
   { name: "ClientsStack", label: "Klienti", icon: "users" },
   { name: "CalendarStack", label: "Kalendar", icon: "calendar" },
   { name: "AvailabilityStack", label: "Dostupnost", icon: "clock" },
+  { name: "NotificationsStack", label: "Oznameni", icon: "bell" },
   { name: "LocationsStack", label: "Pobocky", icon: "map-pin" },
   { name: "ProfileStack", label: "Profil", icon: "user" },
 ];
@@ -213,6 +226,7 @@ export default function AdminDrawerNavigator() {
       <Drawer.Screen name="ClientsStack" component={ClientsStack} />
       <Drawer.Screen name="CalendarStack" component={CalendarStack} />
       <Drawer.Screen name="AvailabilityStack" component={AvailabilityStack} />
+      <Drawer.Screen name="NotificationsStack" component={NotificationsStack} />
       <Drawer.Screen name="LocationsStack" component={LocationsStack} />
       <Drawer.Screen name="ProfileStack" component={ProfileStack} />
     </Drawer.Navigator>
