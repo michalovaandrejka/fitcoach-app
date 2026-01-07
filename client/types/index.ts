@@ -7,25 +7,28 @@ export interface Location {
 
 export type BookingType = "app" | "manual";
 
-export interface Availability {
+export const TRAINING_DURATION = 90;
+
+export interface AvailabilityBlock {
   id: string;
   date: string;
-  time: string;
-  allowedLocationIds: string[];
-  isBooked: boolean;
-  bookingType?: BookingType;
-  manualClientName?: string;
-  manualBranchId?: string;
+  startTime: string;
+  endTime: string;
+  branchId: string;
 }
 
 export interface Booking {
   id: string;
-  userId: string;
-  availabilityId: string;
-  locationId: string;
-  locationName: string;
   date: string;
-  time: string;
+  startTime: string;
+  endTime: string;
+  duration: number;
+  bookingType: BookingType;
+  branchId: string;
+  branchName: string;
+  userId?: string;
+  userName?: string;
+  manualClientName?: string;
   createdAt: string;
 }
 
@@ -84,4 +87,12 @@ export interface StoredUser {
   passwordHash: string;
   onboardingCompleted: boolean;
   createdAt: string;
+}
+
+export interface AvailableSlot {
+  startTime: string;
+  endTime: string;
+  branchId: string;
+  branchName: string;
+  blockId: string;
 }

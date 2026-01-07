@@ -1,0 +1,112 @@
+Uprav systém dostupnosti a rezervací
+tak, aby používal JEDNOTNOU LOGIKU pracovních bloků.
+
+====================================
+1) KONCEPT DOSTUPNOSTI
+====================================
+
+Trenérka (ADMIN) NEVYTVÁŘÍ konkrétní sloty.
+Místo toho definuje PRACOVNÍ BLOKY:
+
+- datum / více dnů
+- čas OD
+- čas DO
+- pobočka / pobočky
+
+Příklad:
+- 12. 7. 2026
+- 09:00 – 14:00
+- FitZone Centrum, FitZone Vinohrady
+
+====================================
+2) HROMADNÉ PŘIDÁVÁNÍ BLOKŮ
+====================================
+
+Po kliknutí na „+“:
+- výběr:
+  - jednoho nebo více dnů
+  - času OD – DO
+  - jedné nebo více poboček
+
+Systém vytvoří pracovní bloky
+pro všechny kombinace.
+
+====================================
+3) DÉLKA TRÉNINKU
+====================================
+
+- délka tréninku je pevně:
+  90 minut
+
+====================================
+4) VÝBĚR ČASU KLIENTEM
+====================================
+
+Klient si vybírá pouze START tréninku.
+
+Možné starty:
+- každých 15 minut
+
+ZOBRAZ POUZE TY STARTY:
+- kde platí:
+  start + 90 min ≤ konec bloku
+- a nedochází ke kolizi
+  s jiným tréninkem (app / manuální)
+
+====================================
+5) KOLIZE
+====================================
+
+Systém MUSÍ ověřit:
+- že celý 90min interval je volný
+- že nepřesahuje blok
+- že se nepřekrývá s jiným tréninkem
+
+Kolizní časy se klientovi vůbec nezobrazují.
+
+====================================
+6) MANUÁLNÍ REZERVACE
+====================================
+
+ADMIN může:
+- ručně zvolit start tréninku
+- zadat jméno klienta
+- vybrat pobočku
+
+Systém automaticky:
+- zablokuje celý 90min interval
+
+====================================
+7) ZOBRAZENÍ V ADMINISTRACI
+====================================
+
+ADMIN vidí:
+- pracovní bloky (OD–DO)
+- rezervace uvnitř bloků
+- volné / obsazené úseky
+
+====================================
+8) DATOVÝ MODEL
+====================================
+
+AvailabilityBlock:
+- date
+- start_time
+- end_time
+- branch
+
+Booking:
+- start_time
+- end_time
+- duration = 90
+- booking_type (app / manual)
+- branch
+
+====================================
+9) CÍL
+====================================
+
+- minimum klikání pro trenérku
+- flexibilita pro klienty
+- žádné překryvy
+- logika odpovídá reálným tréninkům

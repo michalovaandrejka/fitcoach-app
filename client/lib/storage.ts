@@ -1,15 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Booking, MealPreference, Availability, Location, Client, AdminNote, StoredUser, UserRole, TrainerMealPlan, Notification } from "@/types";
+import { Booking, MealPreference, AvailabilityBlock, Location, Client, AdminNote, StoredUser, TrainerMealPlan, Notification, TRAINING_DURATION, AvailableSlot } from "@/types";
 
 const KEYS = {
-  BOOKINGS: "@fitcoach_bookings",
+  BOOKINGS: "@fitcoach_bookings_v2",
   MEAL_PREFERENCES: "@fitcoach_meal_prefs",
-  AVAILABILITY: "@fitcoach_availability",
+  AVAILABILITY_BLOCKS: "@fitcoach_availability_blocks",
   LOCATIONS: "@fitcoach_locations",
   CLIENTS: "@fitcoach_clients",
   ADMIN_NOTES: "@fitcoach_admin_notes",
   USERS: "@fitcoach_users",
-  DATA_INITIALIZED: "@fitcoach_initialized_v3",
+  DATA_INITIALIZED: "@fitcoach_initialized_v4",
   TRAINER_MEAL_PLANS: "@fitcoach_trainer_meal_plans",
   NOTIFICATIONS: "@fitcoach_notifications",
 };
@@ -47,8 +47,8 @@ const DEFAULT_LOCATIONS: Location[] = [
   { id: "loc_2", name: "FitZone Vinohrady", address: "Vinohradska 456, Praha 2", isActive: true },
 ];
 
-const generateMockAvailability = (): Availability[] => {
-  const slots: Availability[] = [];
+const generateMockAvailabilityBlocks = (): AvailabilityBlock[] => {
+  const blocks: AvailabilityBlock[] = [];
   const today = new Date();
   
   for (let d = 0; d < 14; d++) {
@@ -56,24 +56,25 @@ const generateMockAvailability = (): Availability[] => {
     date.setDate(date.getDate() + d);
     const dateStr = date.toISOString().split("T")[0];
     
-    const times = ["08:00", "09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
-    times.forEach((time, idx) => {
-      const allowedLocationIds = idx % 3 === 0 
-        ? ["loc_1", "loc_2"] 
-        : idx % 3 === 1 
-          ? ["loc_1"] 
-          : ["loc_2"];
-      
-      slots.push({
-        id: `avail_${dateStr}_${time}`,
+    if (date.getDay() !== 0 && date.getDay() !== 6) {
+      blocks.push({
+        id: `block_${dateStr}_morning_loc1`,
         date: dateStr,
-        time,
-        allowedLocationIds,
-        isBooked: false,
+        startTime: "08:00",
+        endTime: "12:00",
+        branchId: "loc_1",
       });
-    });
+      
+      blocks.push({
+        id: `block_${dateStr}_afternoon_loc2`,
+        date: dateStr,
+        startTime: "14:00",
+        endTime: "18:00",
+        branchId: "loc_2",
+      });
+    }
   }
-  return slots;
+  return blocks;
 };
 
 const MOCK_CLIENTS: Client[] = [
@@ -90,7 +91,7 @@ export async function initializeData(): Promise<boolean> {
   }
   
   await AsyncStorage.setItem(KEYS.LOCATIONS, JSON.stringify(DEFAULT_LOCATIONS));
-  await AsyncStorage.setItem(KEYS.AVAILABILITY, JSON.stringify(generateMockAvailability()));
+  await AsyncStorage.setItem(KEYS.AVAILABILITY_BLOCKS, JSON.stringify(generateMockAvailabilityBlocks()));
   await AsyncStorage.setItem(KEYS.CLIENTS, JSON.stringify(MOCK_CLIENTS));
   await AsyncStorage.setItem(KEYS.BOOKINGS, JSON.stringify([]));
   await AsyncStorage.setItem(KEYS.USERS, JSON.stringify([DEFAULT_ADMIN]));
@@ -212,53 +213,140 @@ export async function addLocation(name: string, address: string): Promise<Locati
   return newLocation;
 }
 
-export async function getAvailability(): Promise<Availability[]> {
-  const data = await AsyncStorage.getItem(KEYS.AVAILABILITY);
+export async function getAvailabilityBlocks(): Promise<AvailabilityBlock[]> {
+  const data = await AsyncStorage.getItem(KEYS.AVAILABILITY_BLOCKS);
   return data ? JSON.parse(data) : [];
 }
 
-export async function getAvailableSlots(): Promise<Availability[]> {
-  const slots = await getAvailability();
-  return slots.filter(s => !s.isBooked);
-}
-
-export async function addAvailability(date: string, time: string, allowedLocationIds: string[]): Promise<Availability> {
-  const slots = await getAvailability();
+export async function addAvailabilityBlock(
+  date: string,
+  startTime: string,
+  endTime: string,
+  branchId: string
+): Promise<AvailabilityBlock> {
+  const blocks = await getAvailabilityBlocks();
   
-  const existing = slots.find(s => s.date === date && s.time === time);
-  if (existing) {
-    throw new Error("Tento cas je jiz v kalendari");
-  }
-  
-  const newSlot: Availability = {
-    id: `avail_${date}_${time}`,
+  const newBlock: AvailabilityBlock = {
+    id: `block_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     date,
-    time,
-    allowedLocationIds,
-    isBooked: false,
+    startTime,
+    endTime,
+    branchId,
   };
   
-  slots.push(newSlot);
-  await AsyncStorage.setItem(KEYS.AVAILABILITY, JSON.stringify(slots));
-  return newSlot;
+  blocks.push(newBlock);
+  await AsyncStorage.setItem(KEYS.AVAILABILITY_BLOCKS, JSON.stringify(blocks));
+  return newBlock;
 }
 
-export async function updateAvailability(slotId: string, updates: Partial<Omit<Availability, "id">>): Promise<void> {
-  const slots = await getAvailability();
-  const updated = slots.map(s => s.id === slotId ? { ...s, ...updates } : s);
-  await AsyncStorage.setItem(KEYS.AVAILABILITY, JSON.stringify(updated));
-}
-
-export async function deleteAvailability(slotId: string): Promise<void> {
-  const slots = await getAvailability();
-  const slot = slots.find(s => s.id === slotId);
+export async function addAvailabilityBlocks(
+  dates: string[],
+  startTime: string,
+  endTime: string,
+  branchIds: string[]
+): Promise<AvailabilityBlock[]> {
+  const blocks = await getAvailabilityBlocks();
+  const newBlocks: AvailabilityBlock[] = [];
   
-  if (slot?.isBooked) {
-    throw new Error("Nelze smazat rezervovany cas");
+  for (const date of dates) {
+    for (const branchId of branchIds) {
+      const newBlock: AvailabilityBlock = {
+        id: `block_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        date,
+        startTime,
+        endTime,
+        branchId,
+      };
+      newBlocks.push(newBlock);
+    }
   }
   
-  const updated = slots.filter(s => s.id !== slotId);
-  await AsyncStorage.setItem(KEYS.AVAILABILITY, JSON.stringify(updated));
+  blocks.push(...newBlocks);
+  await AsyncStorage.setItem(KEYS.AVAILABILITY_BLOCKS, JSON.stringify(blocks));
+  return newBlocks;
+}
+
+export async function deleteAvailabilityBlock(blockId: string): Promise<void> {
+  const blocks = await getAvailabilityBlocks();
+  const bookings = await getBookings();
+  
+  const block = blocks.find(b => b.id === blockId);
+  if (!block) {
+    throw new Error("Blok neexistuje");
+  }
+  
+  const hasBookings = bookings.some(b => 
+    b.date === block.date && 
+    b.branchId === block.branchId &&
+    timeToMinutes(b.startTime) >= timeToMinutes(block.startTime) &&
+    timeToMinutes(b.endTime) <= timeToMinutes(block.endTime)
+  );
+  
+  if (hasBookings) {
+    throw new Error("Nelze smazat blok s rezervacemi");
+  }
+  
+  const updated = blocks.filter(b => b.id !== blockId);
+  await AsyncStorage.setItem(KEYS.AVAILABILITY_BLOCKS, JSON.stringify(updated));
+}
+
+function timeToMinutes(time: string): number {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function minutesToTime(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
+}
+
+export async function getAvailableStartTimes(date: string): Promise<AvailableSlot[]> {
+  const blocks = await getAvailabilityBlocks();
+  const bookings = await getBookings();
+  const locations = await getLocations();
+  
+  const dayBlocks = blocks.filter(b => b.date === date);
+  const dayBookings = bookings.filter(b => b.date === date);
+  
+  const availableSlots: AvailableSlot[] = [];
+  
+  for (const block of dayBlocks) {
+    const location = locations.find(l => l.id === block.branchId);
+    if (!location || !location.isActive) continue;
+    
+    const blockStart = timeToMinutes(block.startTime);
+    const blockEnd = timeToMinutes(block.endTime);
+    
+    for (let start = blockStart; start + TRAINING_DURATION <= blockEnd; start += 15) {
+      const end = start + TRAINING_DURATION;
+      
+      const hasCollision = dayBookings.some(b => {
+        if (b.branchId !== block.branchId) return false;
+        const bStart = timeToMinutes(b.startTime);
+        const bEnd = timeToMinutes(b.endTime);
+        return start < bEnd && end > bStart;
+      });
+      
+      if (!hasCollision) {
+        availableSlots.push({
+          startTime: minutesToTime(start),
+          endTime: minutesToTime(end),
+          branchId: block.branchId,
+          branchName: location.name,
+          blockId: block.id,
+        });
+      }
+    }
+  }
+  
+  availableSlots.sort((a, b) => {
+    const timeCompare = a.startTime.localeCompare(b.startTime);
+    if (timeCompare !== 0) return timeCompare;
+    return a.branchName.localeCompare(b.branchName);
+  });
+  
+  return availableSlots;
 }
 
 export async function getBookings(userId?: string): Promise<Booking[]> {
@@ -272,47 +360,83 @@ export async function getBookings(userId?: string): Promise<Booking[]> {
 
 export async function createBooking(
   userId: string,
-  availabilityId: string,
-  locationId: string
+  userName: string,
+  date: string,
+  startTime: string,
+  branchId: string
 ): Promise<Booking> {
-  const slots = await getAvailability();
-  const slot = slots.find(s => s.id === availabilityId);
-  
-  if (!slot) {
-    throw new Error("Casovy slot neexistuje");
-  }
-  
-  if (slot.isBooked) {
-    throw new Error("Tento cas je jiz rezervovan");
-  }
-  
-  if (!slot.allowedLocationIds.includes(locationId)) {
-    throw new Error("Tato pobocka neni dostupna pro tento cas");
-  }
-  
   const locations = await getLocations();
-  const location = locations.find(l => l.id === locationId);
+  const location = locations.find(l => l.id === branchId);
   
   if (!location) {
     throw new Error("Pobocka neexistuje");
   }
   
+  const availableSlots = await getAvailableStartTimes(date);
+  const isAvailable = availableSlots.some(
+    s => s.startTime === startTime && s.branchId === branchId
+  );
+  
+  if (!isAvailable) {
+    throw new Error("Tento cas neni dostupny");
+  }
+  
+  const endMinutes = timeToMinutes(startTime) + TRAINING_DURATION;
+  const endTime = minutesToTime(endMinutes);
+  
   const bookings = await getBookings();
   const newBooking: Booking = {
     id: `booking_${Date.now()}`,
+    date,
+    startTime,
+    endTime,
+    duration: TRAINING_DURATION,
+    bookingType: "app",
+    branchId,
+    branchName: location.name,
     userId,
-    availabilityId,
-    locationId,
-    locationName: location.name,
-    date: slot.date,
-    time: slot.time,
+    userName,
     createdAt: new Date().toISOString(),
   };
   
   bookings.push(newBooking);
   await AsyncStorage.setItem(KEYS.BOOKINGS, JSON.stringify(bookings));
   
-  await updateAvailability(availabilityId, { isBooked: true });
+  return newBooking;
+}
+
+export async function createManualBooking(
+  date: string,
+  startTime: string,
+  branchId: string,
+  clientName: string
+): Promise<Booking> {
+  const locations = await getLocations();
+  const location = locations.find(l => l.id === branchId);
+  
+  if (!location) {
+    throw new Error("Pobocka neexistuje");
+  }
+  
+  const endMinutes = timeToMinutes(startTime) + TRAINING_DURATION;
+  const endTime = minutesToTime(endMinutes);
+  
+  const bookings = await getBookings();
+  const newBooking: Booking = {
+    id: `booking_${Date.now()}`,
+    date,
+    startTime,
+    endTime,
+    duration: TRAINING_DURATION,
+    bookingType: "manual",
+    branchId,
+    branchName: location.name,
+    manualClientName: clientName,
+    createdAt: new Date().toISOString(),
+  };
+  
+  bookings.push(newBooking);
+  await AsyncStorage.setItem(KEYS.BOOKINGS, JSON.stringify(bookings));
   
   return newBooking;
 }
@@ -327,8 +451,6 @@ export async function cancelBooking(bookingId: string): Promise<void> {
   
   const updated = bookings.filter(b => b.id !== bookingId);
   await AsyncStorage.setItem(KEYS.BOOKINGS, JSON.stringify(updated));
-  
-  await updateAvailability(booking.availabilityId, { isBooked: false });
 }
 
 export async function getMealPreference(userId: string): Promise<MealPreference | null> {
@@ -409,7 +531,7 @@ export async function getBookedClientsForFilter(
   const bookings = await getBookings();
   const clients = await getClients();
   
-  let filteredBookings = bookings;
+  let filteredBookings = bookings.filter(b => b.userId);
   
   if (dateFilter) {
     filteredBookings = filteredBookings.filter(b => b.date === dateFilter);
@@ -427,10 +549,10 @@ export async function getBookedClientsForFilter(
   }
   
   if (locationId) {
-    filteredBookings = filteredBookings.filter(b => b.locationId === locationId);
+    filteredBookings = filteredBookings.filter(b => b.branchId === locationId);
   }
   
-  const uniqueClientIds = [...new Set(filteredBookings.map(b => b.userId))];
+  const uniqueClientIds = [...new Set(filteredBookings.map(b => b.userId).filter(Boolean))];
   return clients.filter(c => uniqueClientIds.includes(c.id));
 }
 
@@ -463,12 +585,6 @@ export async function deleteClient(clientId: string): Promise<void> {
   await AsyncStorage.setItem(KEYS.ADMIN_NOTES, JSON.stringify(updatedNotes));
 
   const bookings = await getBookings();
-  const clientBookings = bookings.filter(b => b.userId === clientId);
-  
-  for (const booking of clientBookings) {
-    await updateAvailability(booking.availabilityId, { isBooked: false });
-  }
-  
   const updatedBookings = bookings.filter(b => b.userId !== clientId);
   await AsyncStorage.setItem(KEYS.BOOKINGS, JSON.stringify(updatedBookings));
 }
@@ -478,52 +594,32 @@ export async function getFutureBookings(userId: string): Promise<Booking[]> {
   const today = new Date().toISOString().split("T")[0];
   return bookings.filter(b => b.date >= today).sort((a, b) => {
     if (a.date === b.date) {
-      return a.time.localeCompare(b.time);
+      return a.startTime.localeCompare(b.startTime);
     }
     return a.date.localeCompare(b.date);
   });
 }
 
-export async function createManualBooking(slotId: string, clientName: string, branchId: string): Promise<void> {
-  const slots = await getAvailability();
-  const slot = slots.find(s => s.id === slotId);
+export async function getDaySchedule(date: string): Promise<{
+  blocks: AvailabilityBlock[];
+  bookings: Booking[];
+}> {
+  const blocks = await getAvailabilityBlocks();
+  const bookings = await getBookings();
   
-  if (!slot) {
-    throw new Error("Casovy slot neexistuje");
-  }
-  
-  if (slot.isBooked) {
-    throw new Error("Tento cas je jiz rezervovan");
-  }
-  
-  await updateAvailability(slotId, {
-    isBooked: true,
-    bookingType: "manual",
-    manualClientName: clientName,
-    manualBranchId: branchId,
-  });
+  return {
+    blocks: blocks.filter(b => b.date === date),
+    bookings: bookings.filter(b => b.date === date),
+  };
 }
 
-export async function releaseManualBooking(slotId: string): Promise<void> {
-  const slots = await getAvailability();
-  const slot = slots.find(s => s.id === slotId);
-  
-  if (!slot) {
-    throw new Error("Casovy slot neexistuje");
-  }
-  
-  if (!slot.isBooked) {
-    throw new Error("Tento cas neni rezervovan");
-  }
-  
-  if (slot.bookingType !== "manual") {
-    throw new Error("Nelze uvolnit rezervaci z aplikace. Pouzijte zruseni rezervace.");
-  }
-  
-  await updateAvailability(slotId, {
-    isBooked: false,
-    bookingType: undefined,
-    manualClientName: undefined,
-    manualBranchId: undefined,
+export async function getAllFutureBookings(): Promise<Booking[]> {
+  const bookings = await getBookings();
+  const today = new Date().toISOString().split("T")[0];
+  return bookings.filter(b => b.date >= today).sort((a, b) => {
+    if (a.date === b.date) {
+      return a.startTime.localeCompare(b.startTime);
+    }
+    return a.date.localeCompare(b.date);
   });
 }
