@@ -37,7 +37,7 @@ export default function DashboardScreen() {
     
     const today = new Date().toISOString().split("T")[0];
     const todayBookings = bookings.filter(b => b.date === today);
-    const availableSlots = availability.filter(s => s.isAvailable).length;
+    const availableSlots = availability.filter(s => !s.isBooked).length;
     
     setStats({
       clientsCount: clients.length,

@@ -76,9 +76,8 @@ export default function ClientTabNavigator() {
         component={BookingPlaceholder}
         options={{
           title: "Rezervace",
-          tabBarButton: (props) => (
+          tabBarButton: () => (
             <Pressable
-              {...props}
               accessibilityLabel="Rezervovat trénink"
               accessibilityRole="button"
               onPress={() => {

@@ -144,7 +144,7 @@ export default function CalendarScreen() {
                 )}
                 {isToday ? (
                   <ThemedText
-                    type="caption"
+                    type="small"
                     style={{ color: isSelected ? "#FFFFFF" : theme.primary, fontWeight: "600" }}
                   >
                     Dnes

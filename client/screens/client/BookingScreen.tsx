@@ -12,8 +12,8 @@ import { Card } from "@/components/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getAvailability, getLocations, createBooking } from "@/lib/storage";
-import { TimeSlot, Location } from "@/types";
+import { getAvailableSlots, getLocations, createBooking } from "@/lib/storage";
+import { Availability, Location } from "@/types";
 
 export default function BookingScreen() {
   const insets = useSafeAreaInsets();
@@ -22,9 +22,9 @@ export default function BookingScreen() {
   const { user } = useAuth();
   
   const [locations, setLocations] = useState<Location[]>([]);
-  const [availability, setAvailability] = useState<TimeSlot[]>([]);
+  const [availability, setAvailability] = useState<Availability[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<Availability | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,27 +35,32 @@ export default function BookingScreen() {
 
   const loadData = async () => {
     setIsLoading(true);
-    const [avail, locs] = await Promise.all([getAvailability(), getLocations()]);
+    const [avail, locs] = await Promise.all([getAvailableSlots(), getLocations()]);
     setAvailability(avail);
     setLocations(locs);
     setIsLoading(false);
   };
 
   const getAvailableDates = () => {
-    const dates = [...new Set(availability.filter(s => s.isAvailable).map(s => s.date))];
-    return dates.sort().slice(0, 14);
+    const dates = [...new Set(availability.map(s => s.date))];
+    return dates.sort();
   };
 
   const getTimeSlotsForDate = () => {
-    if (!selectedDate || !selectedLocation) return [];
-    return availability.filter(
-      s => s.date === selectedDate && s.locationId === selectedLocation && s.isAvailable
-    );
+    if (!selectedDate) return [];
+    return availability
+      .filter(s => s.date === selectedDate)
+      .sort((a, b) => a.time.localeCompare(b.time));
+  };
+
+  const getAllowedLocations = () => {
+    if (!selectedSlot) return [];
+    return locations.filter(l => selectedSlot.allowedLocationIds.includes(l.id) && l.isActive);
   };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    const days = ["Ne", "Po", "Út", "St", "Čt", "Pá", "So"];
+    const days = ["Ne", "Po", "Ut", "St", "Ct", "Pa", "So"];
     return {
       day: days[date.getDay()],
       date: date.getDate(),
@@ -63,28 +68,42 @@ export default function BookingScreen() {
     };
   };
 
+  const handleSelectDate = (date: string) => {
+    setSelectedDate(date);
+    setSelectedSlot(null);
+    setSelectedLocation(null);
+    Haptics.selectionAsync();
+  };
+
+  const handleSelectSlot = (slot: Availability) => {
+    setSelectedSlot(slot);
+    setSelectedLocation(null);
+    if (slot.allowedLocationIds.length === 1) {
+      setSelectedLocation(slot.allowedLocationIds[0]);
+    }
+    Haptics.selectionAsync();
+  };
+
+  const handleSelectLocation = (locationId: string) => {
+    setSelectedLocation(locationId);
+    Haptics.selectionAsync();
+  };
+
   const handleSubmit = async () => {
-    if (!selectedDate || !selectedTime || !selectedLocation || !user) {
-      Alert.alert("Chyba", "Vyberte prosím datum, čas a pobočku");
+    if (!selectedSlot || !selectedLocation || !user) {
+      Alert.alert("Chyba", "Vyberte prosim datum, cas a pobocku");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const location = locations.find(l => l.id === selectedLocation);
-      await createBooking({
-        userId: user.id,
-        date: selectedDate,
-        time: selectedTime,
-        locationId: selectedLocation,
-        locationName: location?.name || "",
-      });
+      await createBooking(user.id, selectedSlot.id, selectedLocation);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert("Úspěch", "Trénink byl úspěšně rezervován", [
+      Alert.alert("Uspech", "Trenink byl uspesne rezervovan", [
         { text: "OK", onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
-      Alert.alert("Chyba", "Nepodařilo se vytvořit rezervaci");
+      Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodarilo se vytvorit rezervaci");
     } finally {
       setIsSubmitting(false);
     }
@@ -100,6 +119,7 @@ export default function BookingScreen() {
 
   const availableDates = getAvailableDates();
   const timeSlots = getTimeSlotsForDate();
+  const allowedLocations = getAllowedLocations();
 
   return (
     <ThemedView style={styles.container}>
@@ -111,144 +131,178 @@ export default function BookingScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.section}>
-          <ThemedText type="h4" style={styles.sectionTitle}>Vyberte pobočku</ThemedText>
-          <View style={styles.locationGrid}>
-            {locations.filter(l => l.isActive).map(location => (
-              <Pressable
-                key={location.id}
-                onPress={() => {
-                  setSelectedLocation(location.id);
-                  setSelectedTime(null);
-                  Haptics.selectionAsync();
-                }}
-                style={[
-                  styles.locationCard,
-                  {
-                    backgroundColor: selectedLocation === location.id ? theme.primary + "15" : theme.backgroundSecondary,
-                    borderColor: selectedLocation === location.id ? theme.primary : theme.border,
-                  },
-                ]}
-              >
-                <View style={styles.locationHeader}>
-                  <Feather
-                    name="map-pin"
-                    size={20}
-                    color={selectedLocation === location.id ? theme.primary : theme.textSecondary}
-                  />
-                  {selectedLocation === location.id ? (
-                    <View style={[styles.checkCircle, { backgroundColor: theme.primary }]}>
-                      <Feather name="check" size={12} color="#FFFFFF" />
-                    </View>
-                  ) : null}
-                </View>
-                <ThemedText type="h4" style={styles.locationName}>{location.name}</ThemedText>
-                <ThemedText type="small" style={{ color: theme.textSecondary }}>{location.address}</ThemedText>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <ThemedText type="h4" style={styles.sectionTitle}>Vyberte datum</ThemedText>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.datesScroll}>
-            {availableDates.map(date => {
-              const { day, date: dayNum, month } = formatDate(date);
-              const hasSlots = selectedLocation
-                ? availability.some(s => s.date === date && s.locationId === selectedLocation && s.isAvailable)
-                : true;
-              
-              return (
-                <Pressable
-                  key={date}
-                  onPress={() => {
-                    if (hasSlots) {
-                      setSelectedDate(date);
-                      setSelectedTime(null);
-                      Haptics.selectionAsync();
-                    }
-                  }}
-                  disabled={!hasSlots}
-                  style={[
-                    styles.dateCard,
-                    {
-                      backgroundColor: selectedDate === date ? theme.primary : theme.backgroundSecondary,
-                      opacity: hasSlots ? 1 : 0.4,
-                    },
-                  ]}
-                >
-                  <ThemedText
-                    type="small"
-                    style={{ color: selectedDate === date ? "#FFFFFF" : theme.textSecondary }}
-                  >
-                    {day}
-                  </ThemedText>
-                  <ThemedText
-                    type="h3"
-                    style={{ color: selectedDate === date ? "#FFFFFF" : theme.text }}
-                  >
-                    {dayNum}
-                  </ThemedText>
-                  <ThemedText
-                    type="small"
-                    style={{ color: selectedDate === date ? "#FFFFFF" : theme.textSecondary }}
-                  >
-                    {month}.
-                  </ThemedText>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        </View>
-
-        {selectedDate && selectedLocation ? (
-          <View style={styles.section}>
-            <ThemedText type="h4" style={styles.sectionTitle}>Vyberte čas</ThemedText>
-            {timeSlots.length > 0 ? (
-              <View style={styles.timesGrid}>
-                {timeSlots.map(slot => (
+          <ThemedText type="h4" style={styles.sectionTitle}>1. Vyberte datum</ThemedText>
+          {availableDates.length > 0 ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.datesScroll}>
+              {availableDates.map(date => {
+                const { day, date: dayNum, month } = formatDate(date);
+                const isSelected = selectedDate === date;
+                
+                return (
                   <Pressable
-                    key={slot.id}
-                    onPress={() => {
-                      setSelectedTime(slot.time);
-                      Haptics.selectionAsync();
-                    }}
+                    key={date}
+                    onPress={() => handleSelectDate(date)}
                     style={[
-                      styles.timeSlot,
-                      {
-                        backgroundColor: selectedTime === slot.time ? theme.primary : theme.backgroundSecondary,
-                        borderColor: selectedTime === slot.time ? theme.primary : theme.border,
-                      },
+                      styles.dateCard,
+                      { backgroundColor: isSelected ? theme.primary : theme.backgroundSecondary },
                     ]}
                   >
                     <ThemedText
-                      type="body"
-                      style={{
-                        color: selectedTime === slot.time ? "#FFFFFF" : theme.text,
-                        fontWeight: selectedTime === slot.time ? "600" : "400",
-                      }}
+                      type="small"
+                      style={{ color: isSelected ? "#FFFFFF" : theme.textSecondary }}
                     >
-                      {slot.time}
+                      {day}
+                    </ThemedText>
+                    <ThemedText
+                      type="h3"
+                      style={{ color: isSelected ? "#FFFFFF" : theme.text }}
+                    >
+                      {dayNum}
+                    </ThemedText>
+                    <ThemedText
+                      type="small"
+                      style={{ color: isSelected ? "#FFFFFF" : theme.textSecondary }}
+                    >
+                      {month}.
                     </ThemedText>
                   </Pressable>
-                ))}
+                );
+              })}
+            </ScrollView>
+          ) : (
+            <Card elevation={1} style={styles.emptyCard}>
+              <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
+                Zadne volne terminy
+              </ThemedText>
+            </Card>
+          )}
+        </View>
+
+        {selectedDate ? (
+          <View style={styles.section}>
+            <ThemedText type="h4" style={styles.sectionTitle}>2. Vyberte cas</ThemedText>
+            {timeSlots.length > 0 ? (
+              <View style={styles.timesGrid}>
+                {timeSlots.map(slot => {
+                  const isSelected = selectedSlot?.id === slot.id;
+                  const locationNames = slot.allowedLocationIds
+                    .map(id => locations.find(l => l.id === id)?.name)
+                    .filter(Boolean)
+                    .join(", ");
+                  
+                  return (
+                    <Pressable
+                      key={slot.id}
+                      onPress={() => handleSelectSlot(slot)}
+                      style={[
+                        styles.timeSlot,
+                        {
+                          backgroundColor: isSelected ? theme.primary + "15" : theme.backgroundSecondary,
+                          borderColor: isSelected ? theme.primary : theme.border,
+                        },
+                      ]}
+                    >
+                      <ThemedText
+                        type="h4"
+                        style={{ color: isSelected ? theme.primary : theme.text }}
+                      >
+                        {slot.time}
+                      </ThemedText>
+                      <View style={styles.slotLocationRow}>
+                        <Feather name="map-pin" size={12} color={theme.textSecondary} />
+                        <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: 4 }}>
+                          {slot.allowedLocationIds.length === locations.length ? "Obe pobocky" : locationNames}
+                        </ThemedText>
+                      </View>
+                    </Pressable>
+                  );
+                })}
               </View>
             ) : (
-              <Card elevation={1} style={styles.noSlotsCard}>
+              <Card elevation={1} style={styles.emptyCard}>
                 <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
-                  Na tento den nejsou dostupné žádné volné termíny
+                  Na tento den nejsou dostupne zadne volne terminy
                 </ThemedText>
               </Card>
             )}
           </View>
         ) : null}
 
+        {selectedSlot && allowedLocations.length > 1 ? (
+          <View style={styles.section}>
+            <ThemedText type="h4" style={styles.sectionTitle}>3. Vyberte pobocku</ThemedText>
+            <View style={styles.locationGrid}>
+              {allowedLocations.map(location => {
+                const isSelected = selectedLocation === location.id;
+                
+                return (
+                  <Pressable
+                    key={location.id}
+                    onPress={() => handleSelectLocation(location.id)}
+                    style={[
+                      styles.locationCard,
+                      {
+                        backgroundColor: isSelected ? theme.primary + "15" : theme.backgroundSecondary,
+                        borderColor: isSelected ? theme.primary : theme.border,
+                      },
+                    ]}
+                  >
+                    <View style={styles.locationHeader}>
+                      <Feather
+                        name="map-pin"
+                        size={20}
+                        color={isSelected ? theme.primary : theme.textSecondary}
+                      />
+                      {isSelected ? (
+                        <View style={[styles.checkCircle, { backgroundColor: theme.primary }]}>
+                          <Feather name="check" size={12} color="#FFFFFF" />
+                        </View>
+                      ) : null}
+                    </View>
+                    <ThemedText type="h4" style={styles.locationName}>{location.name}</ThemedText>
+                    <ThemedText type="small" style={{ color: theme.textSecondary }}>{location.address}</ThemedText>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        ) : null}
+
+        {selectedSlot ? (
+          <View style={styles.summarySection}>
+            <Card elevation={2} style={styles.summaryCard}>
+              <ThemedText type="h4" style={styles.summaryTitle}>Shrnutí rezervace</ThemedText>
+              <View style={styles.summaryRow}>
+                <Feather name="calendar" size={18} color={theme.textSecondary} />
+                <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
+                  {formatDate(selectedSlot.date).day} {formatDate(selectedSlot.date).date}.{formatDate(selectedSlot.date).month}.
+                </ThemedText>
+              </View>
+              <View style={styles.summaryRow}>
+                <Feather name="clock" size={18} color={theme.textSecondary} />
+                <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
+                  {selectedSlot.time}
+                </ThemedText>
+              </View>
+              {selectedLocation ? (
+                <View style={styles.summaryRow}>
+                  <Feather name="map-pin" size={18} color={theme.textSecondary} />
+                  <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
+                    {locations.find(l => l.id === selectedLocation)?.name}
+                  </ThemedText>
+                </View>
+              ) : null}
+            </Card>
+          </View>
+        ) : null}
+
         <View style={styles.submitSection}>
           <Button
             onPress={handleSubmit}
-            disabled={!selectedDate || !selectedTime || !selectedLocation || isSubmitting}
+            disabled={!selectedSlot || !selectedLocation || isSubmitting}
             style={{ backgroundColor: theme.primary }}
           >
-            {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : "Rezervovat trénink"}
+            {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : "Rezervovat trenink"}
           </Button>
         </View>
       </ScrollView>
@@ -272,6 +326,30 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginBottom: Spacing.lg,
+  },
+  datesScroll: {
+    marginHorizontal: -Spacing.xl,
+    paddingHorizontal: Spacing.xl,
+  },
+  dateCard: {
+    width: 70,
+    paddingVertical: Spacing.lg,
+    borderRadius: BorderRadius.sm,
+    alignItems: "center",
+    marginRight: Spacing.md,
+  },
+  timesGrid: {
+    gap: Spacing.md,
+  },
+  timeSlot: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+  },
+  slotLocationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: Spacing.xs,
   },
   locationGrid: {
     gap: Spacing.md,
@@ -297,30 +375,22 @@ const styles = StyleSheet.create({
   locationName: {
     marginBottom: Spacing.xs,
   },
-  datesScroll: {
-    marginHorizontal: -Spacing.xl,
-    paddingHorizontal: Spacing.xl,
-  },
-  dateCard: {
-    width: 70,
-    paddingVertical: Spacing.lg,
-    borderRadius: BorderRadius.sm,
-    alignItems: "center",
-    marginRight: Spacing.md,
-  },
-  timesGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.md,
-  },
-  timeSlot: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xl,
-    borderRadius: BorderRadius.xs,
-    borderWidth: 1,
-  },
-  noSlotsCard: {
+  emptyCard: {
     padding: Spacing.xl,
+  },
+  summarySection: {
+    marginBottom: Spacing.xl,
+  },
+  summaryCard: {
+    padding: Spacing.lg,
+  },
+  summaryTitle: {
+    marginBottom: Spacing.lg,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: Spacing.md,
   },
   submitSection: {
     marginTop: Spacing.lg,
