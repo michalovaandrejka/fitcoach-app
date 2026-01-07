@@ -87,6 +87,7 @@ The app runs on port 8081 (Expo) with the Express backend on port 5000.
 - **Trainer branding**: Login screen with trainer profile photo and name (Andrea Michalova)
 - **Push notifications system**: Admin can send targeted notifications to clients (all or by booking filters)
 - **Meal plan system**: Trainer can create meal plans for clients, clients can view their personalized meal plan
+- **Manual slot management** (January 2026): Admin can manually block time slots for external clients (WhatsApp, phone, etc.) and release them back to available
 
 ## User Preferences
 - Language: Czech (UI text in Czech)

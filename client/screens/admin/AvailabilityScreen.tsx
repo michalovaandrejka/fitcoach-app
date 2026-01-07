@@ -12,8 +12,9 @@ import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getAvailability, getLocations, addAvailability, deleteAvailability } from "@/lib/storage";
-import { Availability, Location } from "@/types";
+import { getAvailability, getLocations, addAvailability, deleteAvailability, createManualBooking, releaseManualBooking, getBookings, cancelBooking } from "@/lib/storage";
+import { Availability, Location, Booking } from "@/types";
+import { TextInput } from "react-native";
 
 const TIME_OPTIONS = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"];
 
@@ -24,19 +25,25 @@ export default function AvailabilityScreen() {
   
   const [slots, setSlots] = useState<Availability[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [refreshing, setRefreshing] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newSlotTime, setNewSlotTime] = useState("09:00");
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
+  const [showManualModal, setShowManualModal] = useState(false);
+  const [selectedSlotForManual, setSelectedSlotForManual] = useState<Availability | null>(null);
+  const [manualClientName, setManualClientName] = useState("");
 
   const loadData = async () => {
-    const [slotsData, locsData] = await Promise.all([
+    const [slotsData, locsData, bookingsData] = await Promise.all([
       getAvailability(),
       getLocations(),
+      getBookings(),
     ]);
     setSlots(slotsData);
     setLocations(locsData);
+    setBookings(bookingsData);
     if (locsData.length > 0 && selectedLocationIds.length === 0) {
       setSelectedLocationIds(locsData.map(l => l.id));
     }
@@ -149,6 +156,95 @@ export default function AvailabilityScreen() {
     );
   };
 
+  const handleSlotPress = (slot: Availability) => {
+    if (!slot.isBooked) {
+      setSelectedSlotForManual(slot);
+      setManualClientName("");
+      setShowManualModal(true);
+      Haptics.selectionAsync();
+    } else if (slot.bookingType === "manual") {
+      Alert.alert(
+        "Uvolnit termin",
+        `Opravdu chcete uvolnit termin ${slot.time}?\n\nRezervovano pro: ${slot.manualClientName}`,
+        [
+          { text: "Zrusit", style: "cancel" },
+          {
+            text: "Uvolnit",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await releaseManualBooking(slot.id);
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                loadData();
+              } catch (error) {
+                Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodarilo se uvolnit termin");
+              }
+            },
+          },
+        ]
+      );
+    } else {
+      const booking = bookings.find(b => b.availabilityId === slot.id);
+      if (booking) {
+        Alert.alert(
+          "Zrusit rezervaci",
+          `Termin ${slot.time} je rezervovan z aplikace.\n\nChcete rezervaci zrusit?`,
+          [
+            { text: "Ne", style: "cancel" },
+            {
+              text: "Zrusit rezervaci",
+              style: "destructive",
+              onPress: async () => {
+                try {
+                  await cancelBooking(booking.id);
+                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  loadData();
+                } catch (error) {
+                  Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodarilo se zrusit rezervaci");
+                }
+              },
+            },
+          ]
+        );
+      }
+    }
+  };
+
+  const handleManualBooking = async () => {
+    if (!selectedSlotForManual) return;
+    
+    if (!manualClientName.trim()) {
+      Alert.alert("Chyba", "Zadejte jmeno klienta");
+      return;
+    }
+
+    try {
+      await createManualBooking(selectedSlotForManual.id, manualClientName.trim());
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setShowManualModal(false);
+      setSelectedSlotForManual(null);
+      setManualClientName("");
+      loadData();
+    } catch (error) {
+      Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodarilo se vytvorit rezervaci");
+    }
+  };
+
+  const getBookingInfo = (slot: Availability): string | null => {
+    if (!slot.isBooked) return null;
+    
+    if (slot.bookingType === "manual" && slot.manualClientName) {
+      return `Rezervovano: ${slot.manualClientName} (manualne)`;
+    }
+    
+    const booking = bookings.find(b => b.availabilityId === slot.id);
+    if (booking) {
+      return `Rezervovano: ${booking.locationName}`;
+    }
+    
+    return "Obsazeno";
+  };
+
   const daySlots = getSlotsForDate();
   const dates = getDates();
 
@@ -214,50 +310,58 @@ export default function AvailabilityScreen() {
         </View>
 
         {daySlots.length > 0 ? (
-          daySlots.map(slot => (
-            <Card key={slot.id} elevation={1} style={styles.slotCard}>
-              <View style={styles.slotContent}>
-                <View style={styles.slotInfo}>
-                  <ThemedText type="h4">{slot.time}</ThemedText>
-                  <View style={styles.locationRow}>
-                    <Feather name="map-pin" size={14} color={theme.textSecondary} />
-                    <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs, flex: 1 }}>
-                      {getLocationNames(slot.allowedLocationIds)}
-                    </ThemedText>
+          daySlots.map(slot => {
+            const bookingInfo = getBookingInfo(slot);
+            return (
+              <Card key={slot.id} elevation={1} style={styles.slotCard} onPress={() => handleSlotPress(slot)}>
+                <View style={styles.slotContent}>
+                  <View style={styles.slotInfo}>
+                    <ThemedText type="h4">{slot.time}</ThemedText>
+                    <View style={styles.locationRow}>
+                      <Feather name="map-pin" size={14} color={theme.textSecondary} />
+                      <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs, flex: 1 }}>
+                        {getLocationNames(slot.allowedLocationIds)}
+                      </ThemedText>
+                    </View>
+                    {bookingInfo ? (
+                      <ThemedText type="small" style={{ color: theme.primary, marginTop: Spacing.xs }}>
+                        {bookingInfo}
+                      </ThemedText>
+                    ) : null}
                   </View>
-                </View>
-                <View style={styles.slotActions}>
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      { backgroundColor: slot.isBooked ? theme.error + "20" : theme.success + "20" },
-                    ]}
-                  >
+                  <View style={styles.slotActions}>
                     <View
                       style={[
-                        styles.statusDot,
-                        { backgroundColor: slot.isBooked ? theme.error : theme.success },
+                        styles.statusBadge,
+                        { backgroundColor: slot.isBooked ? theme.error + "20" : theme.success + "20" },
                       ]}
-                    />
-                    <ThemedText
-                      type="small"
-                      style={{ color: slot.isBooked ? theme.error : theme.success, fontWeight: "600" }}
                     >
-                      {slot.isBooked ? "Obsazeno" : "Volny"}
-                    </ThemedText>
+                      <View
+                        style={[
+                          styles.statusDot,
+                          { backgroundColor: slot.isBooked ? theme.error : theme.success },
+                        ]}
+                      />
+                      <ThemedText
+                        type="small"
+                        style={{ color: slot.isBooked ? theme.error : theme.success, fontWeight: "600" }}
+                      >
+                        {slot.isBooked ? "Obsazeno" : "Volny"}
+                      </ThemedText>
+                    </View>
+                    {!slot.isBooked ? (
+                      <Pressable
+                        onPress={() => handleDeleteSlot(slot)}
+                        style={[styles.deleteButton, { backgroundColor: theme.error + "20" }]}
+                      >
+                        <Feather name="trash-2" size={16} color={theme.error} />
+                      </Pressable>
+                    ) : null}
                   </View>
-                  {!slot.isBooked ? (
-                    <Pressable
-                      onPress={() => handleDeleteSlot(slot)}
-                      style={[styles.deleteButton, { backgroundColor: theme.error + "20" }]}
-                    >
-                      <Feather name="trash-2" size={16} color={theme.error} />
-                    </Pressable>
-                  ) : null}
                 </View>
-              </View>
-            </Card>
-          ))
+              </Card>
+            );
+          })
         ) : (
           <Card elevation={1} style={styles.emptyCard}>
             <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
@@ -340,6 +444,62 @@ export default function AvailabilityScreen() {
             <Button onPress={handleAddSlot} style={{ backgroundColor: theme.primary, marginTop: Spacing.xl }}>
               Pridat termin
             </Button>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={showManualModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]}>
+            <View style={styles.modalHeader}>
+              <ThemedText type="h3">Manualni rezervace</ThemedText>
+              <Pressable onPress={() => setShowManualModal(false)}>
+                <Feather name="x" size={24} color={theme.text} />
+              </Pressable>
+            </View>
+
+            {selectedSlotForManual ? (
+              <View style={[styles.selectedSlotInfo, { backgroundColor: theme.backgroundSecondary }]}>
+                <Feather name="clock" size={18} color={theme.primary} />
+                <ThemedText type="h4" style={{ marginLeft: Spacing.md }}>
+                  {selectedSlotForManual.time}
+                </ThemedText>
+                <ThemedText type="body" style={{ color: theme.textSecondary, marginLeft: Spacing.md }}>
+                  {selectedSlotForManual.date}
+                </ThemedText>
+              </View>
+            ) : null}
+
+            <ThemedText type="h4" style={styles.modalLabel}>Jmeno klienta</ThemedText>
+            <TextInput
+              value={manualClientName}
+              onChangeText={setManualClientName}
+              placeholder="Napr. Klient z WhatsAppu"
+              placeholderTextColor={theme.textSecondary}
+              style={[
+                styles.textInput,
+                {
+                  backgroundColor: theme.backgroundSecondary,
+                  color: theme.text,
+                  borderColor: theme.border,
+                },
+              ]}
+            />
+
+            <View style={styles.buttonRow}>
+              <Pressable
+                onPress={() => setShowManualModal(false)}
+                style={[styles.cancelButton, { backgroundColor: theme.backgroundSecondary }]}
+              >
+                <ThemedText type="body" style={{ fontWeight: "600" }}>Zrusit</ThemedText>
+              </Pressable>
+              <Button
+                onPress={handleManualBooking}
+                style={{ backgroundColor: theme.primary, flex: 1 }}
+              >
+                Potvrdit
+              </Button>
+            </View>
           </View>
         </View>
       </Modal>
@@ -477,6 +637,31 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 4,
     borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  selectedSlotInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.md,
+    borderRadius: BorderRadius.xs,
+    marginBottom: Spacing.xl,
+  },
+  textInput: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.xs,
+    borderWidth: 1,
+    fontSize: 16,
+    marginBottom: Spacing.xl,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    gap: Spacing.md,
+  },
+  cancelButton: {
+    flex: 1,
+    height: Spacing.buttonHeight,
+    borderRadius: BorderRadius.full,
     alignItems: "center",
     justifyContent: "center",
   },

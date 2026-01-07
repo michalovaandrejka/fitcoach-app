@@ -1,0 +1,89 @@
+Rozšiř manuální přepínání tréninkových termínů
+o povinný výběr pobočky při změně stavu na „OBSAZENO“.
+
+====================================
+1) KDY SE TO POUŽIJE
+====================================
+
+Tato logika se spustí:
+- když ADMIN (trenérka) klikne na termín ve stavu „VOLNO“
+- a chce jej ručně přepnout na „OBSAZENO“
+
+====================================
+2) MODÁLNÍ OKNO – ROZŠÍŘENÍ
+====================================
+
+Při manuálním přepnutí z „VOLNO“ na „OBSAZENO“
+zobraz modální okno, které obsahuje:
+
+POVINNÁ POLE:
+- jméno klienta (textové pole)
+- pobočka (výběr)
+
+POBOČKA – VÝBĚR:
+- dropdown / select
+- hodnoty:
+  - Fitko A
+  - Fitko B
+
+TLAČÍTKA:
+- „Potvrdit“
+- „Zrušit“
+
+====================================
+3) VALIDACE
+====================================
+
+- jméno klienta je povinné
+- pobočka je povinná
+- bez vyplnění obou polí nelze rezervaci potvrdit
+
+====================================
+4) CHOVÁNÍ PO POTVRZENÍ
+====================================
+
+Po potvrzení:
+- termín se přepne do stavu „OBSAZENO“
+- k termínu se uloží:
+  - manual_client_name
+  - branch (pobočka)
+  - booking_type = „manual“
+
+====================================
+5) ZOBRAZENÍ V ADMINISTRACI
+====================================
+
+U manuálně obsazeného termínu zobraz:
+- stav: „OBSAZENO“
+- text:
+  „Rezervováno: {jméno klienta}“
+- text:
+  „Pobočka: {název pobočky}“
+
+====================================
+6) DŮVOD A UX CÍL
+====================================
+
+CÍL:
+- trenérka má přehled, ve které pobočce má být
+- minimalizace chyb (nespletení fitka)
+- stejné chování jako u rezervací z aplikace
+
+====================================
+7) DATOVÝ MODEL – ROZŠÍŘENÍ
+====================================
+
+Booking / Slot rozšiř o pole:
+- branch (string / enum)
+
+====================================
+8) PRAVIDLA
+====================================
+
+- manuální rezervace:
+  - není navázaná na uživatelský účet
+  - slouží pouze jako blokace času
+- klient v aplikaci:
+  - nevidí manuální rezervace
+- admin:
+  - má plnou kontrolu nad změnou pobočky
