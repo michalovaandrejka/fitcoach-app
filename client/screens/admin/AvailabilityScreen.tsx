@@ -34,6 +34,7 @@ export default function AvailabilityScreen() {
   const [showManualModal, setShowManualModal] = useState(false);
   const [selectedSlotForManual, setSelectedSlotForManual] = useState<Availability | null>(null);
   const [manualClientName, setManualClientName] = useState("");
+  const [manualBranchId, setManualBranchId] = useState<string>("");
 
   const loadData = async () => {
     const [slotsData, locsData, bookingsData] = await Promise.all([
@@ -160,6 +161,7 @@ export default function AvailabilityScreen() {
     if (!slot.isBooked) {
       setSelectedSlotForManual(slot);
       setManualClientName("");
+      setManualBranchId(slot.allowedLocationIds[0] || "");
       setShowManualModal(true);
       Haptics.selectionAsync();
     } else if (slot.bookingType === "manual") {
@@ -218,31 +220,44 @@ export default function AvailabilityScreen() {
       return;
     }
 
+    if (!manualBranchId) {
+      Alert.alert("Chyba", "Vyberte pobocku");
+      return;
+    }
+
     try {
-      await createManualBooking(selectedSlotForManual.id, manualClientName.trim());
+      await createManualBooking(selectedSlotForManual.id, manualClientName.trim(), manualBranchId);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setShowManualModal(false);
       setSelectedSlotForManual(null);
       setManualClientName("");
+      setManualBranchId("");
       loadData();
     } catch (error) {
       Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodarilo se vytvorit rezervaci");
     }
   };
 
-  const getBookingInfo = (slot: Availability): string | null => {
+  const getBookingInfo = (slot: Availability): { client: string; branch?: string } | null => {
     if (!slot.isBooked) return null;
     
     if (slot.bookingType === "manual" && slot.manualClientName) {
-      return `Rezervovano: ${slot.manualClientName} (manualne)`;
+      const branchName = slot.manualBranchId ? locations.find(l => l.id === slot.manualBranchId)?.name : undefined;
+      return { 
+        client: `Rezervovano: ${slot.manualClientName} (manualne)`,
+        branch: branchName ? `Pobocka: ${branchName}` : undefined,
+      };
     }
     
     const booking = bookings.find(b => b.availabilityId === slot.id);
     if (booking) {
-      return `Rezervovano: ${booking.locationName}`;
+      return { 
+        client: `Rezervovano z aplikace`,
+        branch: `Pobocka: ${booking.locationName}`,
+      };
     }
     
-    return "Obsazeno";
+    return { client: "Obsazeno" };
   };
 
   const daySlots = getSlotsForDate();
@@ -324,9 +339,16 @@ export default function AvailabilityScreen() {
                       </ThemedText>
                     </View>
                     {bookingInfo ? (
-                      <ThemedText type="small" style={{ color: theme.primary, marginTop: Spacing.xs }}>
-                        {bookingInfo}
-                      </ThemedText>
+                      <View style={{ marginTop: Spacing.xs }}>
+                        <ThemedText type="small" style={{ color: theme.primary }}>
+                          {bookingInfo.client}
+                        </ThemedText>
+                        {bookingInfo.branch ? (
+                          <ThemedText type="small" style={{ color: theme.textSecondary }}>
+                            {bookingInfo.branch}
+                          </ThemedText>
+                        ) : null}
+                      </View>
                     ) : null}
                   </View>
                   <View style={styles.slotActions}>
@@ -485,6 +507,40 @@ export default function AvailabilityScreen() {
                 },
               ]}
             />
+
+            <ThemedText type="h4" style={styles.modalLabel}>Pobocka</ThemedText>
+            <View style={styles.branchSelector}>
+              {selectedSlotForManual?.allowedLocationIds.map(locId => {
+                const loc = locations.find(l => l.id === locId);
+                if (!loc) return null;
+                const isSelected = manualBranchId === locId;
+                return (
+                  <Pressable
+                    key={locId}
+                    onPress={() => {
+                      setManualBranchId(locId);
+                      Haptics.selectionAsync();
+                    }}
+                    style={[
+                      styles.branchOption,
+                      {
+                        backgroundColor: isSelected ? theme.primary + "20" : theme.backgroundSecondary,
+                        borderColor: isSelected ? theme.primary : theme.border,
+                      },
+                    ]}
+                  >
+                    <View style={[styles.radioCircle, { borderColor: isSelected ? theme.primary : theme.border }]}>
+                      {isSelected ? (
+                        <View style={[styles.radioFill, { backgroundColor: theme.primary }]} />
+                      ) : null}
+                    </View>
+                    <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
+                      {loc.name}
+                    </ThemedText>
+                  </Pressable>
+                );
+              })}
+            </View>
 
             <View style={styles.buttonRow}>
               <Pressable
@@ -664,5 +720,29 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
     alignItems: "center",
     justifyContent: "center",
+  },
+  branchSelector: {
+    gap: Spacing.sm,
+    marginBottom: Spacing.xl,
+  },
+  branchOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.md,
+    borderRadius: BorderRadius.xs,
+    borderWidth: 1,
+  },
+  radioCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radioFill: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
 });

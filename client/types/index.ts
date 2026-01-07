@@ -15,6 +15,7 @@ export interface Availability {
   isBooked: boolean;
   bookingType?: BookingType;
   manualClientName?: string;
+  manualBranchId?: string;
 }
 
 export interface Booking {

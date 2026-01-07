@@ -484,7 +484,7 @@ export async function getFutureBookings(userId: string): Promise<Booking[]> {
   });
 }
 
-export async function createManualBooking(slotId: string, clientName: string): Promise<void> {
+export async function createManualBooking(slotId: string, clientName: string, branchId: string): Promise<void> {
   const slots = await getAvailability();
   const slot = slots.find(s => s.id === slotId);
   
@@ -500,6 +500,7 @@ export async function createManualBooking(slotId: string, clientName: string): P
     isBooked: true,
     bookingType: "manual",
     manualClientName: clientName,
+    manualBranchId: branchId,
   });
 }
 
@@ -523,5 +524,6 @@ export async function releaseManualBooking(slotId: string): Promise<void> {
     isBooked: false,
     bookingType: undefined,
     manualClientName: undefined,
+    manualBranchId: undefined,
   });
 }
