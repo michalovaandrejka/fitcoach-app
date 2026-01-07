@@ -88,6 +88,11 @@ The app runs on port 8081 (Expo) with the Express backend on port 5000.
 - **Push notifications system**: Admin can send targeted notifications to clients (all or by booking filters)
 - **Meal plan system**: Trainer can create meal plans for clients, clients can view their personalized meal plan
 - **Manual slot management** (January 2026): Admin can manually block time slots for external clients (WhatsApp, phone, etc.) and release them back to available
+- **Work blocks system** (January 2026): Admin creates time blocks (e.g., 9:00-17:00) instead of individual slots
+- **Global time blocking**: One trainer = one booking per time slot globally (collision detection ignores branch)
+- **Monthly calendar view**: Admin can plan availability for entire month with month navigation
+- **Bulk block creation**: Select whole month, workdays only, or specific weekdays (all Mondays, etc.)
+- **90-minute trainings**: Fixed training duration with 15-minute interval booking start times
 
 ## User Preferences
 - Language: Czech (UI text in Czech)

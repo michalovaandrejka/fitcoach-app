@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { StyleSheet, View, ScrollView, Pressable, RefreshControl, Alert, Modal, TextInput } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -31,15 +31,23 @@ const TIME_OPTIONS = [
   "18:00", "18:30", "19:00", "19:30", "20:00"
 ];
 
+const WEEKDAY_NAMES = ["Po", "Ut", "St", "Ct", "Pa", "So", "Ne"];
+const MONTH_NAMES = ["Leden", "Unor", "Brezen", "Duben", "Kveten", "Cerven", "Cervenec", "Srpen", "Zari", "Rijen", "Listopad", "Prosinec"];
+
 export default function AvailabilityScreen() {
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const { theme } = useTheme();
   
-  const [blocks, setBlocks] = useState<AvailabilityBlock[]>([]);
+  const [allBlocks, setAllBlocks] = useState<AvailabilityBlock[]>([]);
+  const [dayBlocks, setDayBlocks] = useState<AvailabilityBlock[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() };
+  });
   const [refreshing, setRefreshing] = useState(false);
   
   const [showAddModal, setShowAddModal] = useState(false);
@@ -47,6 +55,10 @@ export default function AvailabilityScreen() {
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
   const [selectedBranchIds, setSelectedBranchIds] = useState<string[]>([]);
+  const [modalMonth, setModalMonth] = useState(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() };
+  });
   
   const [showManualModal, setShowManualModal] = useState(false);
   const [manualStartTime, setManualStartTime] = useState("09:00");
@@ -55,12 +67,14 @@ export default function AvailabilityScreen() {
   const [selectedBlockForManual, setSelectedBlockForManual] = useState<AvailabilityBlock | null>(null);
 
   const loadData = async () => {
-    const [locsData, scheduleData] = await Promise.all([
+    const [locsData, blocksData, scheduleData] = await Promise.all([
       getLocations(),
+      getAvailabilityBlocks(),
       getDaySchedule(selectedDate),
     ]);
     setLocations(locsData);
-    setBlocks(scheduleData.blocks);
+    setAllBlocks(blocksData);
+    setDayBlocks(scheduleData.blocks);
     setBookings(scheduleData.bookings);
     if (locsData.length > 0 && selectedBranchIds.length === 0) {
       setSelectedBranchIds(locsData.map(l => l.id));
@@ -79,24 +93,43 @@ export default function AvailabilityScreen() {
     setRefreshing(false);
   };
 
-  const getDates = () => {
-    const dates: string[] = [];
-    const today = new Date();
-    for (let i = 0; i < 14; i++) {
-      const date = new Date(today);
-      date.setDate(date.getDate() + i);
-      dates.push(date.toISOString().split("T")[0]);
+  const getMonthDays = (year: number, month: number) => {
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    
+    let startWeekday = firstDay.getDay();
+    startWeekday = startWeekday === 0 ? 6 : startWeekday - 1;
+    
+    const days: { date: string; dayNum: number; isCurrentMonth: boolean }[] = [];
+    
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    for (let i = startWeekday - 1; i >= 0; i--) {
+      const prevMonth = month === 0 ? 11 : month - 1;
+      const prevYear = month === 0 ? year - 1 : year;
+      const day = prevMonthLastDay - i;
+      const dateStr = `${prevYear}-${String(prevMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      days.push({ date: dateStr, dayNum: day, isCurrentMonth: false });
     }
-    return dates;
+    
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      days.push({ date: dateStr, dayNum: d, isCurrentMonth: true });
+    }
+    
+    const remainingDays = 42 - days.length;
+    for (let d = 1; d <= remainingDays; d++) {
+      const nextMonth = month === 11 ? 0 : month + 1;
+      const nextYear = month === 11 ? year + 1 : year;
+      const dateStr = `${nextYear}-${String(nextMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      days.push({ date: dateStr, dayNum: d, isCurrentMonth: false });
+    }
+    
+    return days;
   };
 
-  const formatDateShort = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const days = ["Ne", "Po", "Ut", "St", "Ct", "Pa", "So"];
-    return {
-      day: days[date.getDay()],
-      date: date.getDate(),
-    };
+  const getBlockCountForDate = (dateStr: string) => {
+    return allBlocks.filter(b => b.date === dateStr).length;
   };
 
   const formatDateFull = (dateStr: string) => {
@@ -129,7 +162,27 @@ export default function AvailabilityScreen() {
     return locations.find(l => l.id === branchId)?.name || "Neznama pobocka";
   };
 
+  const handlePrevMonth = () => {
+    setCurrentMonth(prev => {
+      if (prev.month === 0) {
+        return { year: prev.year - 1, month: 11 };
+      }
+      return { year: prev.year, month: prev.month - 1 };
+    });
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(prev => {
+      if (prev.month === 11) {
+        return { year: prev.year + 1, month: 0 };
+      }
+      return { year: prev.year, month: prev.month + 1 };
+    });
+  };
+
   const handleOpenAddModal = () => {
+    const now = new Date();
+    setModalMonth({ year: now.getFullYear(), month: now.getMonth() });
     setSelectedDates([selectedDate]);
     setStartTime("09:00");
     setEndTime("17:00");
@@ -138,12 +191,85 @@ export default function AvailabilityScreen() {
   };
 
   const handleToggleDate = (dateStr: string) => {
+    const today = new Date().toISOString().split("T")[0];
+    if (dateStr < today) return;
+    
     setSelectedDates(prev => {
       if (prev.includes(dateStr)) {
         return prev.filter(d => d !== dateStr);
       }
       return [...prev, dateStr];
     });
+    Haptics.selectionAsync();
+  };
+
+  const handleSelectAllWeekday = (weekday: number) => {
+    const days = getMonthDays(modalMonth.year, modalMonth.month);
+    const today = new Date().toISOString().split("T")[0];
+    
+    const weekdayDates = days
+      .filter(d => d.isCurrentMonth)
+      .filter(d => {
+        const date = new Date(d.date);
+        let dayOfWeek = date.getDay();
+        dayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        return dayOfWeek === weekday && d.date >= today;
+      })
+      .map(d => d.date);
+    
+    const allSelected = weekdayDates.every(d => selectedDates.includes(d));
+    
+    if (allSelected) {
+      setSelectedDates(prev => prev.filter(d => !weekdayDates.includes(d)));
+    } else {
+      setSelectedDates(prev => [...new Set([...prev, ...weekdayDates])]);
+    }
+    Haptics.selectionAsync();
+  };
+
+  const handleSelectWholeMonth = () => {
+    const days = getMonthDays(modalMonth.year, modalMonth.month);
+    const today = new Date().toISOString().split("T")[0];
+    
+    const monthDates = days
+      .filter(d => d.isCurrentMonth && d.date >= today)
+      .map(d => d.date);
+    
+    const allSelected = monthDates.every(d => selectedDates.includes(d));
+    
+    if (allSelected) {
+      setSelectedDates(prev => prev.filter(d => !monthDates.includes(d)));
+    } else {
+      setSelectedDates(prev => [...new Set([...prev, ...monthDates])]);
+    }
+    Haptics.selectionAsync();
+  };
+
+  const handleSelectWorkdays = () => {
+    const days = getMonthDays(modalMonth.year, modalMonth.month);
+    const today = new Date().toISOString().split("T")[0];
+    
+    const workdayDates = days
+      .filter(d => d.isCurrentMonth && d.date >= today)
+      .filter(d => {
+        const date = new Date(d.date);
+        const dayOfWeek = date.getDay();
+        return dayOfWeek >= 1 && dayOfWeek <= 5;
+      })
+      .map(d => d.date);
+    
+    const allSelected = workdayDates.every(d => selectedDates.includes(d));
+    
+    if (allSelected) {
+      setSelectedDates(prev => prev.filter(d => !workdayDates.includes(d)));
+    } else {
+      setSelectedDates(prev => [...new Set([...prev, ...workdayDates])]);
+    }
+    Haptics.selectionAsync();
+  };
+
+  const handleClearSelection = () => {
+    setSelectedDates([]);
     Haptics.selectionAsync();
   };
 
@@ -226,14 +352,14 @@ export default function AvailabilityScreen() {
   const getAvailableStartTimesForBlock = (block: AvailabilityBlock): string[] => {
     const blockStart = timeToMinutes(block.startTime);
     const blockEnd = timeToMinutes(block.endTime);
-    const blockBookings = getBlockBookings(block);
+    const allDayBookings = bookings;
     
     const availableTimes: string[] = [];
     
     for (let start = blockStart; start + TRAINING_DURATION <= blockEnd; start += 15) {
       const end = start + TRAINING_DURATION;
       
-      const hasCollision = blockBookings.some(b => {
+      const hasCollision = allDayBookings.some(b => {
         const bStart = timeToMinutes(b.startTime);
         const bEnd = timeToMinutes(b.endTime);
         return start < bEnd && end > bStart;
@@ -297,11 +423,33 @@ export default function AvailabilityScreen() {
     );
   };
 
-  const dayBlocks = blocks.sort((a, b) => {
+  const handleModalPrevMonth = () => {
+    setModalMonth(prev => {
+      if (prev.month === 0) {
+        return { year: prev.year - 1, month: 11 };
+      }
+      return { year: prev.year, month: prev.month - 1 };
+    });
+  };
+
+  const handleModalNextMonth = () => {
+    setModalMonth(prev => {
+      if (prev.month === 11) {
+        return { year: prev.year + 1, month: 0 };
+      }
+      return { year: prev.year, month: prev.month + 1 };
+    });
+  };
+
+  const sortedDayBlocks = dayBlocks.sort((a, b) => {
     const timeCompare = a.startTime.localeCompare(b.startTime);
     if (timeCompare !== 0) return timeCompare;
     return getBranchName(a.branchId).localeCompare(getBranchName(b.branchId));
   });
+
+  const calendarDays = useMemo(() => getMonthDays(currentMonth.year, currentMonth.month), [currentMonth]);
+  const modalCalendarDays = useMemo(() => getMonthDays(modalMonth.year, modalMonth.month), [modalMonth]);
+  const today = new Date().toISOString().split("T")[0];
 
   const availableStartTimes = selectedBlockForManual 
     ? getAvailableStartTimesForBlock(selectedBlockForManual)
@@ -314,38 +462,74 @@ export default function AvailabilityScreen() {
         contentContainerStyle={{ paddingTop: headerHeight + Spacing.lg, paddingBottom: insets.bottom + Spacing.xl }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
       >
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.datesScroll} contentContainerStyle={styles.datesContent}>
-          {getDates().map(dateStr => {
-            const { day, date } = formatDateShort(dateStr);
-            const isSelected = dateStr === selectedDate;
-            return (
-              <Pressable
-                key={dateStr}
-                onPress={() => {
-                  setSelectedDate(dateStr);
-                  Haptics.selectionAsync();
-                }}
-                style={[
-                  styles.dateCard,
-                  { backgroundColor: isSelected ? theme.primary : theme.backgroundSecondary },
-                ]}
-              >
-                <ThemedText
-                  type="small"
-                  style={{ color: isSelected ? "#FFFFFF" : theme.textSecondary, fontWeight: "600" }}
-                >
+        <View style={styles.monthHeader}>
+          <Pressable onPress={handlePrevMonth} style={[styles.monthNavButton, { backgroundColor: theme.backgroundSecondary }]}>
+            <Feather name="chevron-left" size={24} color={theme.text} />
+          </Pressable>
+          <ThemedText type="h3">
+            {MONTH_NAMES[currentMonth.month]} {currentMonth.year}
+          </ThemedText>
+          <Pressable onPress={handleNextMonth} style={[styles.monthNavButton, { backgroundColor: theme.backgroundSecondary }]}>
+            <Feather name="chevron-right" size={24} color={theme.text} />
+          </Pressable>
+        </View>
+
+        <View style={styles.calendarContainer}>
+          <View style={styles.weekdayHeader}>
+            {WEEKDAY_NAMES.map(day => (
+              <View key={day} style={styles.weekdayCell}>
+                <ThemedText type="small" style={{ color: theme.textSecondary, fontWeight: "600" }}>
                   {day}
                 </ThemedText>
-                <ThemedText
-                  type="h3"
-                  style={{ color: isSelected ? "#FFFFFF" : theme.text }}
+              </View>
+            ))}
+          </View>
+          
+          <View style={styles.calendarGrid}>
+            {calendarDays.map((day, index) => {
+              const isSelected = day.date === selectedDate;
+              const isToday = day.date === today;
+              const blockCount = getBlockCountForDate(day.date);
+              const isPast = day.date < today;
+              
+              return (
+                <Pressable
+                  key={`${day.date}_${index}`}
+                  onPress={() => {
+                    if (day.isCurrentMonth) {
+                      setSelectedDate(day.date);
+                      Haptics.selectionAsync();
+                    }
+                  }}
+                  style={[
+                    styles.calendarDay,
+                    { 
+                      backgroundColor: isSelected ? theme.primary : "transparent",
+                      opacity: day.isCurrentMonth ? (isPast ? 0.5 : 1) : 0.3,
+                    },
+                  ]}
                 >
-                  {date}
-                </ThemedText>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+                  <ThemedText
+                    type="body"
+                    style={{ 
+                      color: isSelected ? "#FFFFFF" : (isToday ? theme.primary : theme.text),
+                      fontWeight: isToday || isSelected ? "700" : "400",
+                    }}
+                  >
+                    {day.dayNum}
+                  </ThemedText>
+                  {blockCount > 0 && day.isCurrentMonth ? (
+                    <View style={[styles.blockIndicator, { backgroundColor: isSelected ? "#FFFFFF" : theme.primary }]}>
+                      <ThemedText type="small" style={{ color: isSelected ? theme.primary : "#FFFFFF", fontSize: 10, fontWeight: "600" }}>
+                        {blockCount}
+                      </ThemedText>
+                    </View>
+                  ) : null}
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
 
         <View style={styles.headerRow}>
           <View>
@@ -362,8 +546,8 @@ export default function AvailabilityScreen() {
           </Pressable>
         </View>
 
-        {dayBlocks.length > 0 ? (
-          dayBlocks.map(block => {
+        {sortedDayBlocks.length > 0 ? (
+          sortedDayBlocks.map(block => {
             const blockBookings = getBlockBookings(block);
             const availableSlotsCount = getAvailableStartTimesForBlock(block).length;
             
@@ -458,33 +642,98 @@ export default function AvailabilityScreen() {
             </View>
 
             <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-              <ThemedText type="h4" style={styles.modalLabel}>Dny</ThemedText>
-              <View style={styles.datesGrid}>
-                {getDates().map(dateStr => {
-                  const { day, date } = formatDateShort(dateStr);
-                  const isSelected = selectedDates.includes(dateStr);
-                  return (
-                    <Pressable
-                      key={dateStr}
-                      onPress={() => handleToggleDate(dateStr)}
-                      style={[
-                        styles.dateOption,
-                        { 
-                          backgroundColor: isSelected ? theme.primary : theme.backgroundSecondary,
-                          borderColor: isSelected ? theme.primary : theme.border,
-                        },
-                      ]}
-                    >
-                      <ThemedText type="small" style={{ color: isSelected ? "#FFFFFF" : theme.textSecondary }}>
+              <View style={styles.monthHeader}>
+                <Pressable onPress={handleModalPrevMonth} style={[styles.monthNavButton, { backgroundColor: theme.backgroundSecondary }]}>
+                  <Feather name="chevron-left" size={20} color={theme.text} />
+                </Pressable>
+                <ThemedText type="h4">
+                  {MONTH_NAMES[modalMonth.month]} {modalMonth.year}
+                </ThemedText>
+                <Pressable onPress={handleModalNextMonth} style={[styles.monthNavButton, { backgroundColor: theme.backgroundSecondary }]}>
+                  <Feather name="chevron-right" size={20} color={theme.text} />
+                </Pressable>
+              </View>
+
+              <View style={styles.quickSelectRow}>
+                <Pressable 
+                  onPress={handleSelectWholeMonth}
+                  style={[styles.quickSelectButton, { backgroundColor: theme.primary + "20", borderColor: theme.primary }]}
+                >
+                  <ThemedText type="small" style={{ color: theme.primary, fontWeight: "600" }}>Cely mesic</ThemedText>
+                </Pressable>
+                <Pressable 
+                  onPress={handleSelectWorkdays}
+                  style={[styles.quickSelectButton, { backgroundColor: theme.primary + "20", borderColor: theme.primary }]}
+                >
+                  <ThemedText type="small" style={{ color: theme.primary, fontWeight: "600" }}>Pracovni dny</ThemedText>
+                </Pressable>
+                <Pressable 
+                  onPress={handleClearSelection}
+                  style={[styles.quickSelectButton, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}
+                >
+                  <ThemedText type="small" style={{ color: theme.textSecondary }}>Zrusit vyber</ThemedText>
+                </Pressable>
+              </View>
+
+              <View style={styles.weekdaySelectRow}>
+                {WEEKDAY_NAMES.map((day, index) => (
+                  <Pressable
+                    key={day}
+                    onPress={() => handleSelectAllWeekday(index)}
+                    style={[styles.weekdaySelectButton, { backgroundColor: theme.backgroundSecondary }]}
+                  >
+                    <ThemedText type="small" style={{ color: theme.text, fontWeight: "600" }}>{day}</ThemedText>
+                  </Pressable>
+                ))}
+              </View>
+
+              <View style={styles.calendarContainer}>
+                <View style={styles.weekdayHeader}>
+                  {WEEKDAY_NAMES.map(day => (
+                    <View key={day} style={styles.weekdayCell}>
+                      <ThemedText type="small" style={{ color: theme.textSecondary, fontWeight: "600" }}>
                         {day}
                       </ThemedText>
-                      <ThemedText type="body" style={{ color: isSelected ? "#FFFFFF" : theme.text, fontWeight: "600" }}>
-                        {date}
-                      </ThemedText>
-                    </Pressable>
-                  );
-                })}
+                    </View>
+                  ))}
+                </View>
+                
+                <View style={styles.calendarGrid}>
+                  {modalCalendarDays.map((day, index) => {
+                    const isSelected = selectedDates.includes(day.date);
+                    const isPast = day.date < today;
+                    const isDisabled = !day.isCurrentMonth || isPast;
+                    
+                    return (
+                      <Pressable
+                        key={`modal_${day.date}_${index}`}
+                        onPress={() => !isDisabled && handleToggleDate(day.date)}
+                        style={[
+                          styles.calendarDay,
+                          { 
+                            backgroundColor: isSelected ? theme.primary : "transparent",
+                            opacity: isDisabled ? 0.3 : 1,
+                          },
+                        ]}
+                      >
+                        <ThemedText
+                          type="body"
+                          style={{ 
+                            color: isSelected ? "#FFFFFF" : theme.text,
+                            fontWeight: isSelected ? "700" : "400",
+                          }}
+                        >
+                          {day.dayNum}
+                        </ThemedText>
+                      </Pressable>
+                    );
+                  })}
+                </View>
               </View>
+
+              <ThemedText type="small" style={{ color: theme.primary, textAlign: "center", marginTop: Spacing.md }}>
+                Vybrano: {selectedDates.length} dnu
+              </ThemedText>
 
               <ThemedText type="h4" style={styles.modalLabel}>Cas od</ThemedText>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeScroll}>
@@ -585,74 +834,59 @@ export default function AvailabilityScreen() {
               <View style={[styles.selectedBlockInfo, { backgroundColor: theme.backgroundSecondary }]}>
                 <Feather name="clock" size={18} color={theme.primary} />
                 <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
-                  Blok: {selectedBlockForManual.startTime} - {selectedBlockForManual.endTime}
+                  {selectedBlockForManual.startTime} - {selectedBlockForManual.endTime}
                 </ThemedText>
               </View>
             ) : null}
 
-            <ThemedText type="h4" style={styles.modalLabel}>Jmeno klienta</ThemedText>
-            <TextInput
-              value={manualClientName}
-              onChangeText={setManualClientName}
-              placeholder="Napr. Klient z WhatsAppu"
-              placeholderTextColor={theme.textSecondary}
-              style={[
-                styles.textInput,
-                {
-                  backgroundColor: theme.backgroundSecondary,
-                  color: theme.text,
-                  borderColor: theme.border,
-                },
-              ]}
-            />
+            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+              <ThemedText type="h4" style={styles.modalLabel}>Jmeno klienta</ThemedText>
+              <TextInput
+                value={manualClientName}
+                onChangeText={setManualClientName}
+                placeholder="Zadejte jmeno klienta"
+                placeholderTextColor={theme.textSecondary}
+                style={[styles.input, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
+              />
 
-            <ThemedText type="h4" style={styles.modalLabel}>Start treninku ({TRAINING_DURATION} min)</ThemedText>
-            {availableStartTimes.length > 0 ? (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeScroll}>
-                {availableStartTimes.map(time => (
-                  <Pressable
-                    key={time}
-                    onPress={() => {
-                      setManualStartTime(time);
-                      Haptics.selectionAsync();
-                    }}
-                    style={[
-                      styles.timeOption,
-                      { backgroundColor: manualStartTime === time ? theme.primary : theme.backgroundSecondary },
-                    ]}
-                  >
-                    <ThemedText
-                      type="body"
-                      style={{ color: manualStartTime === time ? "#FFFFFF" : theme.text, fontWeight: "600" }}
+              <ThemedText type="h4" style={styles.modalLabel}>Cas zacatku treninku</ThemedText>
+              {availableStartTimes.length > 0 ? (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeScroll}>
+                  {availableStartTimes.map(time => (
+                    <Pressable
+                      key={`manual_${time}`}
+                      onPress={() => {
+                        setManualStartTime(time);
+                        Haptics.selectionAsync();
+                      }}
+                      style={[
+                        styles.timeOption,
+                        { backgroundColor: manualStartTime === time ? theme.primary : theme.backgroundSecondary },
+                      ]}
                     >
-                      {time}
-                    </ThemedText>
-                  </Pressable>
-                ))}
-              </ScrollView>
-            ) : (
-              <View style={[styles.noSlotsMessage, { backgroundColor: theme.error + "20" }]}>
-                <ThemedText type="body" style={{ color: theme.error, textAlign: "center" }}>
+                      <ThemedText
+                        type="body"
+                        style={{ color: manualStartTime === time ? "#FFFFFF" : theme.text, fontWeight: "600" }}
+                      >
+                        {time}
+                      </ThemedText>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              ) : (
+                <ThemedText type="body" style={{ color: theme.error }}>
                   Zadne volne casy v tomto bloku
                 </ThemedText>
-              </View>
-            )}
+              )}
+            </ScrollView>
 
-            <View style={styles.buttonRow}>
-              <Pressable
-                onPress={() => setShowManualModal(false)}
-                style={[styles.cancelButton, { backgroundColor: theme.backgroundSecondary }]}
-              >
-                <ThemedText type="body" style={{ fontWeight: "600" }}>Zrusit</ThemedText>
-              </Pressable>
-              <Button
-                onPress={handleManualBooking}
-                style={{ backgroundColor: theme.primary, flex: 1 }}
-                disabled={availableStartTimes.length === 0}
-              >
-                Potvrdit
-              </Button>
-            </View>
+            <Button 
+              onPress={handleManualBooking} 
+              disabled={availableStartTimes.length === 0}
+              style={{ backgroundColor: availableStartTimes.length > 0 ? theme.primary : theme.textSecondary, marginTop: Spacing.xl }}
+            >
+              Vytvorit rezervaci ({TRAINING_DURATION} min)
+            </Button>
           </View>
         </View>
       </Modal>
@@ -665,21 +899,53 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: Spacing.xl,
+    flex: 1,
+    paddingHorizontal: Spacing.lg,
   },
-  datesScroll: {
-    marginHorizontal: -Spacing.xl,
+  monthHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: Spacing.lg,
+  },
+  monthNavButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  calendarContainer: {
     marginBottom: Spacing.xl,
   },
-  datesContent: {
-    paddingHorizontal: Spacing.xl,
+  weekdayHeader: {
+    flexDirection: "row",
+    marginBottom: Spacing.sm,
   },
-  dateCard: {
-    width: 60,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.sm,
+  weekdayCell: {
+    flex: 1,
     alignItems: "center",
-    marginRight: Spacing.sm,
+    paddingVertical: Spacing.xs,
+  },
+  calendarGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  calendarDay: {
+    width: "14.28%",
+    aspectRatio: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: BorderRadius.xs,
+  },
+  blockIndicator: {
+    position: "absolute",
+    bottom: 2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerRow: {
     flexDirection: "row",
@@ -701,7 +967,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   blockTime: {
     flexDirection: "row",
@@ -720,41 +986,41 @@ const styles = StyleSheet.create({
   },
   blockMeta: {
     flexDirection: "row",
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
+    gap: Spacing.md,
+    flexWrap: "wrap",
   },
   branchBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.xs,
   },
   statusBadge: {
-    paddingHorizontal: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.xs,
   },
   bookingsList: {
-    borderTopWidth: 1,
-    borderTopColor: "#E5E5E5",
+    marginTop: Spacing.lg,
     paddingTop: Spacing.md,
-    marginTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.1)",
   },
   bookingItem: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    padding: Spacing.sm,
+    justifyContent: "space-between",
+    padding: Spacing.md,
     borderRadius: BorderRadius.xs,
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.sm,
   },
   bookingInfo: {
     flex: 1,
   },
   emptyCard: {
+    padding: Spacing.xl,
     alignItems: "center",
-    paddingVertical: Spacing.xl,
   },
   modalOverlay: {
     flex: 1,
@@ -765,10 +1031,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: BorderRadius.lg,
     borderTopRightRadius: BorderRadius.lg,
     padding: Spacing.xl,
-    maxHeight: "85%",
-  },
-  modalScroll: {
-    maxHeight: 400,
+    maxHeight: "90%",
   },
   modalHeader: {
     flexDirection: "row",
@@ -776,47 +1039,60 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: Spacing.xl,
   },
+  modalScroll: {
+    maxHeight: 500,
+  },
   modalLabel: {
-    marginBottom: Spacing.md,
     marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
   },
-  datesGrid: {
+  quickSelectRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
     gap: Spacing.sm,
+    marginBottom: Spacing.md,
+    flexWrap: "wrap",
   },
-  dateOption: {
-    width: 52,
+  quickSelectButton: {
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.xs,
-    alignItems: "center",
     borderWidth: 1,
+  },
+  weekdaySelectRow: {
+    flexDirection: "row",
+    gap: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+  weekdaySelectButton: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.xs,
   },
   timeScroll: {
     marginHorizontal: -Spacing.xl,
     paddingHorizontal: Spacing.xl,
-    marginBottom: Spacing.md,
   },
   timeOption: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
     borderRadius: BorderRadius.xs,
-    marginRight: Spacing.xs,
+    marginRight: Spacing.sm,
   },
   branchesContainer: {
-    gap: Spacing.sm,
+    gap: Spacing.md,
   },
   branchOption: {
     flexDirection: "row",
     alignItems: "center",
     padding: Spacing.md,
-    borderRadius: BorderRadius.xs,
+    borderRadius: BorderRadius.sm,
     borderWidth: 1,
   },
   checkbox: {
     width: 22,
     height: 22,
-    borderRadius: 4,
+    borderRadius: BorderRadius.xs,
     borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
@@ -825,31 +1101,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: Spacing.md,
-    borderRadius: BorderRadius.xs,
-    marginBottom: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    marginBottom: Spacing.lg,
   },
-  textInput: {
+  input: {
     padding: Spacing.md,
-    borderRadius: BorderRadius.xs,
+    borderRadius: BorderRadius.sm,
     borderWidth: 1,
     fontSize: 16,
-    marginBottom: Spacing.md,
-  },
-  noSlotsMessage: {
-    padding: Spacing.md,
-    borderRadius: BorderRadius.xs,
-    marginBottom: Spacing.xl,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    gap: Spacing.md,
-    marginTop: Spacing.xl,
-  },
-  cancelButton: {
-    flex: 1,
-    height: Spacing.buttonHeight,
-    borderRadius: BorderRadius.full,
-    alignItems: "center",
-    justifyContent: "center",
   },
 });

@@ -1,0 +1,101 @@
+Rozšiř sekci „Dostupnost“ tak, aby trenérka
+mohla plánovat pracovní bloky na celý měsíc
+a nebyla omezena limitem 14 dnů.
+
+====================================
+1) ODSTRANĚNÍ LIMITU 14 DNŮ
+====================================
+
+SOUČASNÝ STAV:
+- dostupnost je omezena pouze
+  na následujících 14 dnů
+
+NOVÝ POŽADAVEK:
+- zruš jakékoliv časové omezení na 14 dnů
+- dostupnost musí fungovat minimálně pro:
+  - celý aktuální měsíc
+  - celý následující měsíc
+
+VOLITELNĚ:
+- umožni i zobrazení dalších měsíců dopředu
+
+====================================
+2) MĚSÍČNÍ POHLED
+====================================
+
+V ADMIN SEKCI „Dostupnost“:
+
+ZOBRAZ:
+- měsíční kalendář
+- možnost přepínat:
+  - předchozí měsíc
+  - aktuální měsíc
+  - následující měsíc
+
+KAŽDÝ DEN ZOBRAZUJE:
+- počet pracovních bloků
+- indikaci, že je den „naplánovaný“
+
+====================================
+3) TVORBA BLOKŮ NA CELÝ MĚSÍC
+====================================
+
+Při kliknutí na „+“ (Přidat dostupnost):
+
+ADMIN MUSÍ MÍT MOŽNOST:
+- vybrat:
+  - jeden den
+  - více dnů
+  - NEBO celý měsíc
+
+PŘÍKLADY:
+- všechny pondělky v měsíci
+- celý měsíc
+- vybrané konkrétní dny
+
+====================================
+4) HROMADNÉ VYTVOŘENÍ PRACOVNÍCH BLOKŮ
+====================================
+
+ADMIN ZADÁ:
+- čas OD – DO
+- pobočku / pobočky
+
+SYSTÉM:
+- vytvoří pracovní bloky
+  pro všechny vybrané dny
+- bez duplicit
+- bez přepisování existujících bloků
+
+====================================
+5) ZOBRAZENÍ BLOKŮ
+====================================
+
+V administraci zobraz:
+- pracovní bloky v daném dni
+- jejich časový rozsah
+- rezervace uvnitř bloků
+
+====================================
+6) KOMPATIBILITA
+====================================
+
+Tato úprava:
+- je plně kompatibilní
+  s logikou:
+  - pracovních bloků
+  - 90min tréninků
+  - 15min kroků
+  - globální blokace času
+
+====================================
+7) UX CÍL
+====================================
+
+- trenérka může:
+  - naplánovat celý měsíc dopředu
+  - bez klikání den po dni
+- kalendář je:
+  - přehledný
+  - rychlý
+  - vhodný pro dlouhodobé plánování
