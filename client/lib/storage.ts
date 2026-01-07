@@ -322,7 +322,6 @@ export async function getAvailableStartTimes(date: string): Promise<AvailableSlo
       const end = start + TRAINING_DURATION;
       
       const hasCollision = dayBookings.some(b => {
-        if (b.branchId !== block.branchId) return false;
         const bStart = timeToMinutes(b.startTime);
         const bEnd = timeToMinutes(b.endTime);
         return start < bEnd && end > bStart;
@@ -422,6 +421,18 @@ export async function createManualBooking(
   const endTime = minutesToTime(endMinutes);
   
   const bookings = await getBookings();
+  const dayBookings = bookings.filter(b => b.date === date);
+  
+  const hasCollision = dayBookings.some(b => {
+    const bStart = timeToMinutes(b.startTime);
+    const bEnd = timeToMinutes(b.endTime);
+    return timeToMinutes(startTime) < bEnd && endMinutes > bStart;
+  });
+  
+  if (hasCollision) {
+    throw new Error("Tento cas je jiz obsazeny jinou rezervaci");
+  }
+  
   const newBooking: Booking = {
     id: `booking_${Date.now()}`,
     date,
