@@ -17,8 +17,8 @@ import { Client, Booking, MealPreference, AdminNote, Location, TrainerMealPlan }
 type TabType = "bookings" | "meal" | "notes";
 
 const GOALS_MAP: Record<string, string> = {
-  weight_loss: "Hubnuti",
-  muscle: "Narust svalu",
+  weight_loss: "Hubnutí",
+  muscle: "Nárůst svalů",
   fitness: "Kondice",
 };
 
@@ -250,7 +250,7 @@ export default function ClientDetailScreen() {
             {bookings.length > futureBookings.length ? (
               <>
                 <View style={styles.divider} />
-                <ThemedText type="h4" style={styles.sectionTitle}>Historie rezervaci</ThemedText>
+                <ThemedText type="h4" style={styles.sectionTitle}>Historie rezervací</ThemedText>
                 {bookings.filter(b => !futureBookings.find(fb => fb.id === b.id)).map(booking => (
                   <Card key={booking.id} elevation={1} style={styles.bookingCard}>
                     <View style={styles.bookingRow}>
@@ -284,8 +284,8 @@ export default function ClientDetailScreen() {
                       <Feather name="heart" size={16} color={theme.success} />
                     </View>
                     <View style={styles.prefContent}>
-                      <ThemedText type="small" style={{ color: theme.textSecondary }}>Ma rad/a</ThemedText>
-                      <ThemedText type="body">{mealPref.likes || "Nevyplneno"}</ThemedText>
+                      <ThemedText type="small" style={{ color: theme.textSecondary }}>Má rád/a</ThemedText>
+                      <ThemedText type="body">{mealPref.likes || "Nevyplněno"}</ThemedText>
                     </View>
                   </View>
                 </Card>
@@ -296,8 +296,8 @@ export default function ClientDetailScreen() {
                       <Feather name="x-circle" size={16} color={theme.error} />
                     </View>
                     <View style={styles.prefContent}>
-                      <ThemedText type="small" style={{ color: theme.textSecondary }}>Nesnasi</ThemedText>
-                      <ThemedText type="body">{mealPref.dislikes || "Nevyplneno"}</ThemedText>
+                      <ThemedText type="small" style={{ color: theme.textSecondary }}>Nesnáší</ThemedText>
+                      <ThemedText type="body">{mealPref.dislikes || "Nevyplněno"}</ThemedText>
                     </View>
                   </View>
                 </Card>
@@ -308,7 +308,7 @@ export default function ClientDetailScreen() {
                       <Feather name="clock" size={16} color={theme.primary} />
                     </View>
                     <View style={styles.prefContent}>
-                      <ThemedText type="small" style={{ color: theme.textSecondary }}>Jidel denne</ThemedText>
+                      <ThemedText type="small" style={{ color: theme.textSecondary }}>Jídel denně</ThemedText>
                       <ThemedText type="body">{mealPref.mealsPerDay}x</ThemedText>
                     </View>
                   </View>
@@ -320,9 +320,9 @@ export default function ClientDetailScreen() {
                       <Feather name="target" size={16} color={theme.warning} />
                     </View>
                     <View style={styles.prefContent}>
-                      <ThemedText type="small" style={{ color: theme.textSecondary }}>Cile</ThemedText>
+                      <ThemedText type="small" style={{ color: theme.textSecondary }}>Cíle</ThemedText>
                       <ThemedText type="body">
-                        {mealPref.goals.map(g => GOALS_MAP[g] || g).join(", ") || "Nevyplneno"}
+                        {mealPref.goals.map(g => GOALS_MAP[g] || g).join(", ") || "Nevyplněno"}
                       </ThemedText>
                     </View>
                   </View>

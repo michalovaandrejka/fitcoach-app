@@ -133,7 +133,7 @@ export default function MealPlanScreen() {
               type="small"
               style={{ color: viewMode === "mealplan" ? "#FFFFFF" : theme.text, fontWeight: "600" }}
             >
-              Jidelnicek
+              Jídelníček
             </ThemedText>
           </Pressable>
           <Pressable
@@ -171,9 +171,9 @@ export default function MealPlanScreen() {
                       <Feather name="clipboard" size={24} color={theme.primary} />
                     </View>
                     <View style={styles.mealPlanHeaderText}>
-                      <ThemedText type="h4">Vas jidelnicek</ThemedText>
+                      <ThemedText type="h4">Váš jídelníček</ThemedText>
                       <ThemedText type="small" style={{ color: theme.textSecondary }}>
-                        od trenerky Andrea
+                        od trenérky Andrey
                       </ThemedText>
                     </View>
                   </View>

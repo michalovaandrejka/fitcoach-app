@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { StoredUser, UserRole } from "@/types";
-import { authenticateUser, createUser, updateUser, getUserById } from "@/lib/storage";
+import { UserRole } from "@/types";
+import { apiLogin, apiRegister, apiLogout, apiGetMe, apiUpdateUser, getStoredUser, AuthUser } from "@/lib/api";
 
 export type { UserRole };
 
@@ -26,15 +25,13 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AUTH_STORAGE_KEY = "@fitcoach_auth_v2";
-
-function storedUserToUser(stored: StoredUser): User {
+function authUserToUser(authUser: AuthUser): User {
   return {
-    id: stored.id,
-    email: stored.email,
-    name: stored.name,
-    role: stored.role,
-    onboardingCompleted: stored.onboardingCompleted,
+    id: authUser.id,
+    email: authUser.email,
+    name: authUser.name,
+    role: authUser.role,
+    onboardingCompleted: authUser.onboardingCompleted,
   };
 }
 
@@ -48,48 +45,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadStoredAuth = async () => {
     try {
-      const stored = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
-      if (stored) {
-        const parsedUser = JSON.parse(stored) as User;
-        const freshUser = await getUserById(parsedUser.id);
+      const storedUser = await getStoredUser();
+      if (storedUser) {
+        const freshUser = await apiGetMe();
         if (freshUser) {
-          setUser(storedUserToUser(freshUser));
+          setUser(authUserToUser(freshUser));
         } else {
-          await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+          await apiLogout();
         }
       }
     } catch (error) {
       console.error("Failed to load auth:", error);
+      await apiLogout();
     } finally {
       setIsLoading(false);
     }
   };
 
-  const login = async (loginOrEmail: string, password: string) => {
-    const storedUser = await authenticateUser(loginOrEmail, password);
-    const userData = storedUserToUser(storedUser);
-    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userData));
-    setUser(userData);
+  const login = async (email: string, password: string) => {
+    const result = await apiLogin(email, password);
+    setUser(authUserToUser(result.user));
   };
 
   const register = async (email: string, password: string, name: string) => {
-    const storedUser = await createUser(email, password, name);
-    const userData = storedUserToUser(storedUser);
-    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userData));
-    setUser(userData);
+    const result = await apiRegister(email, password, name);
+    setUser(authUserToUser(result.user));
   };
 
   const logout = async () => {
-    await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+    await apiLogout();
     setUser(null);
   };
 
   const completeOnboarding = async () => {
     if (!user) return;
-    await updateUser(user.id, { onboardingCompleted: true });
-    const updatedUser = { ...user, onboardingCompleted: true };
-    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedUser));
-    setUser(updatedUser);
+    await apiUpdateUser(user.id, { onboardingCompleted: true });
+    setUser({ ...user, onboardingCompleted: true });
   };
 
   return (

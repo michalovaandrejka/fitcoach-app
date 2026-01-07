@@ -124,7 +124,7 @@ export async function createUser(
   
   const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
   if (existing) {
-    throw new Error("Uzivatel s timto emailem jiz existuje");
+    throw new Error("Uživatel s tímto emailem již existuje");
   }
   
   const newUser: StoredUser = {
@@ -167,21 +167,21 @@ export async function authenticateUser(
     const users = await getUsers();
     const admin = users.find(u => u.id === "admin_andrea");
     if (!admin) {
-      throw new Error("Admin ucet neexistuje");
+      throw new Error("Admin účet neexistuje");
     }
     if (!verifyPassword(password, admin.passwordHash)) {
-      throw new Error("Nespravne heslo");
+      throw new Error("Nesprávné heslo");
     }
     return admin;
   }
   
   const user = await getUserByEmail(loginOrEmail);
   if (!user) {
-    throw new Error("Uzivatel s timto emailem neexistuje");
+    throw new Error("Uživatel s tímto emailem neexistuje");
   }
   
   if (!verifyPassword(password, user.passwordHash)) {
-    throw new Error("Nespravne heslo");
+    throw new Error("Nesprávné heslo");
   }
   
   return user;
@@ -422,7 +422,7 @@ export async function createBooking(
   const location = locations.find(l => l.id === branchId);
   
   if (!location) {
-    throw new Error("Pobocka neexistuje");
+    throw new Error("Pobočka neexistuje");
   }
   
   const availableSlots = await getAvailableStartTimes(date);
@@ -431,7 +431,7 @@ export async function createBooking(
   );
   
   if (!isAvailable) {
-    throw new Error("Tento cas neni dostupny");
+    throw new Error("Tento čas není dostupný");
   }
   
   const endMinutes = timeToMinutes(startTime) + TRAINING_DURATION;
@@ -468,7 +468,7 @@ export async function createManualBooking(
   const location = locations.find(l => l.id === branchId);
   
   if (!location) {
-    throw new Error("Pobocka neexistuje");
+    throw new Error("Pobočka neexistuje");
   }
   
   const endMinutes = timeToMinutes(startTime) + TRAINING_DURATION;
@@ -484,7 +484,7 @@ export async function createManualBooking(
   });
   
   if (hasCollision) {
-    throw new Error("Tento cas je jiz obsazeny jinou rezervaci");
+    throw new Error("Tento čas je již obsazený jinou rezervací");
   }
   
   const newBooking: Booking = {
