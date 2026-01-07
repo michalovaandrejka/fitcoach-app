@@ -5,8 +5,9 @@ FitCoach is a mobile application for a personal fitness trainer and her clients.
 
 ## Tech Stack
 - **Frontend**: React Native with Expo
-- **Backend**: Express.js (Node.js)
-- **Data Storage**: AsyncStorage (local persistence for MVP)
+- **Backend**: Express.js (Node.js) with RESTful API
+- **Database**: PostgreSQL (Neon-backed) for multi-user data sync
+- **Authentication**: JWT-based (7-day expiration)
 - **Navigation**: React Navigation 7+
 - **State Management**: React Context + TanStack Query
 
@@ -93,6 +94,9 @@ The app runs on port 8081 (Expo) with the Express backend on port 5000.
 - **Monthly calendar view**: Admin can plan availability for entire month with month navigation
 - **Bulk block creation**: Select whole month, workdays only, or specific weekdays (all Mondays, etc.)
 - **90-minute trainings**: Fixed training duration with 15-minute interval booking start times
+- **PostgreSQL Migration** (January 2026): All screens migrated from AsyncStorage to REST API with PostgreSQL backend for multi-user support
+- **Multi-user sync**: Bookings, availability, and all data now synchronized across devices via centralized backend
+- **Comprehensive error handling**: All API calls wrapped with try/catch and user-friendly error alerts
 
 ## User Preferences
 - Language: Czech (UI text in Czech)
