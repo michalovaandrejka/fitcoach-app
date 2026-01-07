@@ -21,6 +21,7 @@ import ClientDetailScreen from "@/screens/admin/ClientDetailScreen";
 import CalendarScreen from "@/screens/admin/CalendarScreen";
 import AvailabilityScreen from "@/screens/admin/AvailabilityScreen";
 import AdminProfileScreen from "@/screens/admin/AdminProfileScreen";
+import LocationsScreen from "@/screens/admin/LocationsScreen";
 
 export type AdminStackParamList = {
   AdminDashboard: undefined;
@@ -28,6 +29,7 @@ export type AdminStackParamList = {
   AdminClientDetail: { client: Client };
   AdminCalendar: undefined;
   AdminAvailability: undefined;
+  AdminLocations: undefined;
   AdminProfile: undefined;
 };
 
@@ -36,6 +38,7 @@ export type AdminDrawerParamList = {
   ClientsStack: undefined;
   CalendarStack: undefined;
   AvailabilityStack: undefined;
+  LocationsStack: undefined;
   ProfileStack: undefined;
 };
 
@@ -100,6 +103,15 @@ function AvailabilityStack() {
   );
 }
 
+function LocationsStack() {
+  const screenOptions = useAdminScreenOptions();
+  return (
+    <Stack.Navigator screenOptions={screenOptions}>
+      <Stack.Screen name="AdminLocations" component={LocationsScreen} options={{ headerTitle: "Pobocky" }} />
+    </Stack.Navigator>
+  );
+}
+
 function ProfileStack() {
   const screenOptions = useAdminScreenOptions();
   return (
@@ -120,6 +132,7 @@ const drawerItems: DrawerItem[] = [
   { name: "ClientsStack", label: "Klienti", icon: "users" },
   { name: "CalendarStack", label: "Kalendar", icon: "calendar" },
   { name: "AvailabilityStack", label: "Dostupnost", icon: "clock" },
+  { name: "LocationsStack", label: "Pobocky", icon: "map-pin" },
   { name: "ProfileStack", label: "Profil", icon: "user" },
 ];
 
@@ -200,6 +213,7 @@ export default function AdminDrawerNavigator() {
       <Drawer.Screen name="ClientsStack" component={ClientsStack} />
       <Drawer.Screen name="CalendarStack" component={CalendarStack} />
       <Drawer.Screen name="AvailabilityStack" component={AvailabilityStack} />
+      <Drawer.Screen name="LocationsStack" component={LocationsStack} />
       <Drawer.Screen name="ProfileStack" component={ProfileStack} />
     </Drawer.Navigator>
   );

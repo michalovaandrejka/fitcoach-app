@@ -77,6 +77,27 @@ export async function getLocations(): Promise<Location[]> {
   return data ? JSON.parse(data) : DEFAULT_LOCATIONS;
 }
 
+export async function updateLocation(locationId: string, updates: Partial<Omit<Location, "id">>): Promise<void> {
+  const locations = await getLocations();
+  const updated = locations.map(loc => 
+    loc.id === locationId ? { ...loc, ...updates } : loc
+  );
+  await AsyncStorage.setItem(KEYS.LOCATIONS, JSON.stringify(updated));
+}
+
+export async function addLocation(name: string, address: string): Promise<Location> {
+  const locations = await getLocations();
+  const newLocation: Location = {
+    id: `loc_${Date.now()}`,
+    name,
+    address,
+    isActive: true,
+  };
+  locations.push(newLocation);
+  await AsyncStorage.setItem(KEYS.LOCATIONS, JSON.stringify(locations));
+  return newLocation;
+}
+
 export async function getAvailability(): Promise<TimeSlot[]> {
   const data = await AsyncStorage.getItem(KEYS.AVAILABILITY);
   return data ? JSON.parse(data) : [];
