@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { StyleSheet, View, ScrollView, RefreshControl, Pressable } from "react-native";
+import { StyleSheet, View, ScrollView, RefreshControl, Pressable, Modal } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -9,6 +9,7 @@ import * as Haptics from "expo-haptics";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Card } from "@/components/Card";
+import { Onboarding } from "@/components/Onboarding";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
@@ -27,6 +28,7 @@ export default function DashboardScreen() {
     availableSlots: 0,
   });
   const [refreshing, setRefreshing] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const loadData = async () => {
     const [clients, bookings, availability] = await Promise.all([
@@ -147,16 +149,45 @@ export default function DashboardScreen() {
                 <Feather name="users" size={24} color={theme.primary} />
               </View>
               <View style={styles.clientsText}>
-                <ThemedText type="h4">Zobrazit všechny klienty</ThemedText>
+                <ThemedText type="h4">Zobrazit vsechny klienty</ThemedText>
                 <ThemedText type="small" style={{ color: theme.textSecondary }}>
-                  Správa klientů a jejich rezervací
+                  Sprava klientu a jejich rezervaci
                 </ThemedText>
               </View>
               <Feather name="chevron-right" size={24} color={theme.textSecondary} />
             </View>
           </Card>
         </Pressable>
+
+        <Pressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setShowTutorial(true);
+          }}
+          style={styles.tutorialLink}
+        >
+          <Card elevation={1} style={styles.tutorialCard}>
+            <View style={styles.tutorialCardContent}>
+              <View style={[styles.tutorialIcon, { backgroundColor: theme.secondary + "20" }]}>
+                <Feather name="help-circle" size={24} color={theme.secondary} />
+              </View>
+              <View style={styles.tutorialText}>
+                <ThemedText type="h4">Spustit tutorial</ThemedText>
+                <ThemedText type="small" style={{ color: theme.textSecondary }}>
+                  Zobrazit pruvodce aplikaci
+                </ThemedText>
+              </View>
+              <Feather name="play" size={24} color={theme.secondary} />
+            </View>
+          </Card>
+        </Pressable>
       </ScrollView>
+
+      {showTutorial ? (
+        <Modal visible animationType="slide" presentationStyle="fullScreen">
+          <Onboarding isManual onComplete={() => setShowTutorial(false)} />
+        </Modal>
+      ) : null}
     </ThemedView>
   );
 }
@@ -233,6 +264,25 @@ const styles = StyleSheet.create({
     marginRight: Spacing.md,
   },
   clientsText: {
+    flex: 1,
+  },
+  tutorialLink: {
+    marginBottom: Spacing.lg,
+  },
+  tutorialCard: {},
+  tutorialCardContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  tutorialIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: Spacing.md,
+  },
+  tutorialText: {
     flex: 1,
   },
 });

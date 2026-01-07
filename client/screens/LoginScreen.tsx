@@ -22,15 +22,18 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async () => {
+    setErrorMessage("");
+    
     if (!loginOrEmail || !password) {
-      Alert.alert("Chyba", "Vyplnte vsechna pole");
+      setErrorMessage("Vyplnte vsechna pole");
       return;
     }
     
     if (!isLogin && !name) {
-      Alert.alert("Chyba", "Vyplnte jmeno");
+      setErrorMessage("Vyplnte jmeno");
       return;
     }
 
@@ -43,7 +46,8 @@ export default function LoginScreen() {
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error: any) {
-      Alert.alert("Chyba", error.message || "Prihlaseni se nezdarilo");
+      setErrorMessage(error.message || "Prihlaseni se nezdarilo");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsLoading(false);
     }
@@ -68,6 +72,12 @@ export default function LoginScreen() {
             {isLogin ? "Prihlaste se do aplikace" : "Vytvorte si ucet"}
           </ThemedText>
         </View>
+
+        {errorMessage ? (
+          <View style={[styles.errorContainer, { backgroundColor: theme.error + "20", borderColor: theme.error }]}>
+            <ThemedText type="body" style={{ color: theme.error }}>{errorMessage}</ThemedText>
+          </View>
+        ) : null}
 
         <View style={styles.form}>
           {!isLogin ? (
@@ -150,6 +160,12 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     textAlign: "center",
+  },
+  errorContainer: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.xs,
+    marginBottom: Spacing.lg,
+    borderWidth: 1,
   },
   form: {
     gap: Spacing.lg,
