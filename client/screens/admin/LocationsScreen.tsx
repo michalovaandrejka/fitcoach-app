@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { StyleSheet, View, ScrollView, RefreshControl, Pressable, TextInput, Modal } from "react-native";
+import { StyleSheet, View, ScrollView, RefreshControl, Pressable, TextInput, Modal, Alert } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -12,7 +12,7 @@ import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getLocations, updateLocation, addLocation } from "@/lib/storage";
+import { apiGetLocations, apiUpdateLocation, apiCreateLocation } from "@/lib/api";
 import { Location } from "@/types";
 
 export default function LocationsScreen() {
@@ -30,8 +30,12 @@ export default function LocationsScreen() {
   const [newAddress, setNewAddress] = useState("");
 
   const loadData = async () => {
-    const locs = await getLocations();
-    setLocations(locs);
+    try {
+      const locs = await apiGetLocations(true);
+      setLocations(locs);
+    } catch (error) {
+      Alert.alert("Chyba", "Nepodařilo se načíst pobočky. Zkuste to prosím znovu.");
+    }
   };
 
   useFocusEffect(
@@ -55,30 +59,45 @@ export default function LocationsScreen() {
 
   const handleSave = async () => {
     if (editingLocation && editName.trim()) {
-      await updateLocation(editingLocation.id, {
-        name: editName.trim(),
-        address: editAddress.trim(),
-      });
-      await loadData();
-      setEditingLocation(null);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      try {
+        await apiUpdateLocation(editingLocation.id, {
+          name: editName.trim(),
+          address: editAddress.trim(),
+        });
+        await loadData();
+        setEditingLocation(null);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } catch (error) {
+        Alert.alert("Chyba", "Nepodařilo se uložit změny. Zkuste to prosím znovu.");
+      }
     }
   };
 
   const handleToggleActive = async (location: Location) => {
-    await updateLocation(location.id, { isActive: !location.isActive });
-    await loadData();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      await apiUpdateLocation(location.id, { isActive: !location.isActive });
+      await loadData();
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch (error) {
+      Alert.alert("Chyba", "Nepodařilo se změnit stav pobočky. Zkuste to prosím znovu.");
+    }
   };
 
   const handleAddLocation = async () => {
     if (newName.trim() && newAddress.trim()) {
-      await addLocation(newName.trim(), newAddress.trim());
-      await loadData();
-      setShowAddModal(false);
-      setNewName("");
-      setNewAddress("");
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      try {
+        await apiCreateLocation({
+          name: newName.trim(),
+          address: newAddress.trim(),
+        });
+        await loadData();
+        setShowAddModal(false);
+        setNewName("");
+        setNewAddress("");
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } catch (error) {
+        Alert.alert("Chyba", "Nepodařilo se přidat pobočku. Zkuste to prosím znovu.");
+      }
     }
   };
 

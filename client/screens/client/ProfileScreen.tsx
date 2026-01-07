@@ -11,7 +11,7 @@ import { Card } from "@/components/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { deleteClient } from "@/lib/storage";
+import { apiDeleteUser } from "@/lib/api";
 
 const AVATARS = [
   { id: 1, icon: "user" as const, color: "#FF6B35" },
@@ -57,11 +57,11 @@ export default function ProfileScreen() {
           onPress: async () => {
             if (user?.id) {
               try {
-                await deleteClient(user.id);
+                await apiDeleteUser(user.id);
                 await logout();
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               } catch (error) {
-                Alert.alert("Chyba", "Nepodarilo se smazat ucet");
+                Alert.alert("Chyba", "Nepodarilo se smazat ucet. Zkuste to prosim znovu.");
               }
             }
           },

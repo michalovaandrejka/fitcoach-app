@@ -112,8 +112,9 @@ export async function apiLogout(): Promise<void> {
   await clearToken();
 }
 
-export async function apiGetLocations() {
-  return apiRequest<Array<{ id: string; name: string; address: string; isActive: boolean }>>("GET", "/api/locations");
+export async function apiGetLocations(includeInactive = false) {
+  const endpoint = includeInactive ? "/api/locations?includeInactive=true" : "/api/locations";
+  return apiRequest<Array<{ id: string; name: string; address: string; isActive: boolean }>>("GET", endpoint);
 }
 
 export async function apiGetAvailability(date?: string, branchId?: string) {

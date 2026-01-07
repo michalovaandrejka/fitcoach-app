@@ -6,6 +6,7 @@ import { useHeaderHeight } from "@react-navigation/elements";
 import { Feather } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Haptics from "expo-haptics";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -13,8 +14,10 @@ import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getClients, getLocations, getBookedClientsForFilter, saveNotification } from "@/lib/storage";
+import { apiGetUsers, apiGetLocations, apiGetBookings } from "@/lib/api";
 import { Location, Client, Notification } from "@/types";
+
+const NOTIFICATIONS_KEY = "@fitcoach_notifications";
 
 type TargetType = "all" | "booked";
 type TimeFilter = "today" | "week" | "custom";
@@ -38,39 +41,83 @@ export default function NotificationsScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const loadData = async () => {
-    const [locs, clients] = await Promise.all([
-      getLocations(),
-      getClients(),
-    ]);
-    setLocations(locs.filter(l => l.isActive));
-    setAllClients(clients);
-    updateFilteredClients();
+    try {
+      const [locs, users] = await Promise.all([
+        apiGetLocations(),
+        apiGetUsers(),
+      ]);
+      setLocations(locs.filter(l => l.isActive));
+      const clients: Client[] = users
+        .filter(u => u.role === "CLIENT")
+        .map(u => ({
+          id: u.id,
+          email: u.email,
+          name: u.name,
+          bookingsCount: 0,
+        }));
+      setAllClients(clients);
+    } catch (error) {
+      Alert.alert("Chyba", "Nepodařilo se načíst data. Zkuste to prosím znovu.");
+    }
   };
 
-  const updateFilteredClients = async () => {
+  const updateFilteredClients = useCallback(async () => {
     if (targetType === "all") {
       setFilteredClients(allClients);
       return;
     }
 
-    let dateFilter: string | undefined;
-    let weekFilter: boolean | undefined;
+    try {
+      let dateFilter: string | undefined;
+      let weekFilter: boolean = false;
 
-    if (timeFilter === "today") {
-      dateFilter = new Date().toISOString().split("T")[0];
-    } else if (timeFilter === "week") {
-      weekFilter = true;
-    } else if (timeFilter === "custom") {
-      dateFilter = customDate.toISOString().split("T")[0];
+      if (timeFilter === "today") {
+        dateFilter = new Date().toISOString().split("T")[0];
+      } else if (timeFilter === "week") {
+        weekFilter = true;
+      } else if (timeFilter === "custom") {
+        dateFilter = customDate.toISOString().split("T")[0];
+      }
+
+      const bookings = await apiGetBookings();
+      
+      const today = new Date();
+      const weekEnd = new Date(today);
+      weekEnd.setDate(weekEnd.getDate() + 7);
+
+      const matchingBookings = bookings.filter((booking: any) => {
+        if (weekFilter) {
+          const bookingDate = new Date(booking.date);
+          if (bookingDate < today || bookingDate > weekEnd) {
+            return false;
+          }
+        } else if (dateFilter) {
+          if (booking.date !== dateFilter) {
+            return false;
+          }
+        }
+
+        if (selectedLocationId && booking.branchId !== selectedLocationId) {
+          return false;
+        }
+
+        return true;
+      });
+
+      const clientIds = new Set<string>();
+      matchingBookings.forEach((booking: any) => {
+        if (booking.userId) {
+          clientIds.add(booking.userId);
+        }
+      });
+
+      const matchedClients = allClients.filter(client => clientIds.has(client.id));
+      setFilteredClients(matchedClients);
+    } catch (error) {
+      Alert.alert("Chyba", "Nepodařilo se načíst rezervace. Zkuste to prosím znovu.");
+      setFilteredClients([]);
     }
-
-    const clients = await getBookedClientsForFilter(
-      dateFilter,
-      weekFilter,
-      selectedLocationId || undefined
-    );
-    setFilteredClients(clients);
-  };
+  }, [targetType, timeFilter, selectedLocationId, customDate, allClients]);
 
   useFocusEffect(
     useCallback(() => {
@@ -81,7 +128,7 @@ export default function NotificationsScreen() {
   useFocusEffect(
     useCallback(() => {
       updateFilteredClients();
-    }, [targetType, timeFilter, selectedLocationId, customDate, allClients])
+    }, [updateFilteredClients])
   );
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
@@ -95,6 +142,17 @@ export default function NotificationsScreen() {
 
   const formatDate = (date: Date) => {
     return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+  };
+
+  const saveNotificationLocally = async (notification: Notification): Promise<void> => {
+    try {
+      const data = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
+      const notifications: Notification[] = data ? JSON.parse(data) : [];
+      notifications.unshift(notification);
+      await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifications));
+    } catch (error) {
+      throw new Error("Nepodařilo se uložit oznámení");
+    }
   };
 
   const handleSend = async () => {
@@ -128,7 +186,7 @@ export default function NotificationsScreen() {
         recipientCount: filteredClients.length,
       };
 
-      await saveNotification(notification);
+      await saveNotificationLocally(notification);
 
       Alert.alert(
         "Odesláno",
@@ -145,7 +203,7 @@ export default function NotificationsScreen() {
       
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
-      Alert.alert("Chyba", "Oznámení se nepodařilo odeslat");
+      Alert.alert("Chyba", "Oznámení se nepodařilo odeslat. Zkuste to prosím znovu.");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsLoading(false);
@@ -224,7 +282,7 @@ export default function NotificationsScreen() {
             <OptionButton
               selected={targetType === "booked"}
               onPress={() => setTargetType("booked")}
-              label="S rezervaci"
+              label="S rezervací"
             />
           </View>
         </Card>

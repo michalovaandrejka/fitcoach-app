@@ -169,7 +169,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/locations", async (req, res) => {
     try {
-      const locs = await storage.getLocations();
+      const { includeInactive } = req.query;
+      const locs = includeInactive === "true" 
+        ? await storage.getAllLocations()
+        : await storage.getLocations();
       res.json(locs);
     } catch (error) {
       res.status(500).json({ error: "Chyba" });

@@ -30,6 +30,7 @@ export interface IStorage {
   deleteUser(id: string): Promise<void>;
 
   getLocations(): Promise<Location[]>;
+  getAllLocations(): Promise<Location[]>;
   getLocation(id: string): Promise<Location | undefined>;
   createLocation(location: InsertLocation): Promise<Location>;
   updateLocation(id: string, data: Partial<Location>): Promise<Location | undefined>;
@@ -103,6 +104,10 @@ export class DatabaseStorage implements IStorage {
 
   async getLocations(): Promise<Location[]> {
     return db.select().from(locations).where(eq(locations.isActive, true));
+  }
+
+  async getAllLocations(): Promise<Location[]> {
+    return db.select().from(locations);
   }
 
   async getLocation(id: string): Promise<Location | undefined> {

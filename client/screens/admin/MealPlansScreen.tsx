@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { StyleSheet, View, FlatList, RefreshControl } from "react-native";
+import { StyleSheet, View, FlatList, RefreshControl, Alert } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -11,7 +11,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { Card } from "@/components/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing } from "@/constants/theme";
-import { getClients, getTrainerMealPlan, getMealPreference } from "@/lib/storage";
+import { apiGetUsers, apiGetMealPlan, apiGetMealPreference } from "@/lib/api";
 import { Client, TrainerMealPlan, MealPreference } from "@/types";
 
 interface ClientMealInfo {
@@ -30,17 +30,44 @@ export default function MealPlansScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
-    const clients = await getClients();
-    const infos: ClientMealInfo[] = await Promise.all(
-      clients.map(async (client) => {
-        const [mealPlan, preferences] = await Promise.all([
-          getTrainerMealPlan(client.id),
-          getMealPreference(client.id),
-        ]);
-        return { client, mealPlan, preferences };
-      })
-    );
-    setClientMealInfos(infos);
+    try {
+      const users = await apiGetUsers();
+      const clients = users.filter((user) => user.role === "CLIENT");
+      
+      const infos: ClientMealInfo[] = await Promise.all(
+        clients.map(async (user) => {
+          const client: Client = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            bookingsCount: 0,
+          };
+          
+          let mealPlan: TrainerMealPlan | null = null;
+          let preferences: MealPreference | null = null;
+          
+          try {
+            mealPlan = await apiGetMealPlan(user.id);
+          } catch {
+            mealPlan = null;
+          }
+          
+          try {
+            preferences = await apiGetMealPreference(user.id);
+          } catch {
+            preferences = null;
+          }
+          
+          return { client, mealPlan, preferences };
+        })
+      );
+      setClientMealInfos(infos);
+    } catch (error) {
+      Alert.alert(
+        "Chyba",
+        "Nepodařilo se načíst seznam klientů. Zkuste to prosím znovu."
+      );
+    }
   };
 
   useFocusEffect(
