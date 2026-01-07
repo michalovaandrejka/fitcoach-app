@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { StyleSheet, View, ScrollView, Pressable, RefreshControl } from "react-native";
+import { StyleSheet, View, ScrollView, Pressable, RefreshControl, Alert } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -11,8 +11,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { Card } from "@/components/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getBookings, getLocations, getClients } from "@/lib/storage";
-import { Booking, Location, Client } from "@/types";
+import { getBookings, getClients, cancelBooking } from "@/lib/storage";
+import { Booking, Client, TRAINING_DURATION } from "@/types";
 
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
@@ -20,19 +20,16 @@ export default function CalendarScreen() {
   const { theme } = useTheme();
   
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [locations, setLocations] = useState<Location[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
-    const [bookingsData, locsData, clientsData] = await Promise.all([
+    const [bookingsData, clientsData] = await Promise.all([
       getBookings(),
-      getLocations(),
       getClients(),
     ]);
     setBookings(bookingsData);
-    setLocations(locsData);
     setClients(clientsData);
   };
 
@@ -61,7 +58,7 @@ export default function CalendarScreen() {
 
   const formatDateShort = (dateStr: string) => {
     const date = new Date(dateStr);
-    const days = ["Ne", "Po", "Út", "St", "Čt", "Pá", "So"];
+    const days = ["Ne", "Po", "Ut", "St", "Ct", "Pa", "So"];
     return {
       day: days[date.getDay()],
       date: date.getDate(),
@@ -70,22 +67,48 @@ export default function CalendarScreen() {
 
   const formatDateFull = (dateStr: string) => {
     const date = new Date(dateStr);
-    const months = ["ledna", "února", "března", "dubna", "května", "června", "července", "srpna", "září", "října", "listopadu", "prosince"];
+    const months = ["ledna", "unora", "brezna", "dubna", "kvetna", "cervna", "cervence", "srpna", "zari", "rijna", "listopadu", "prosince"];
     return `${date.getDate()}. ${months[date.getMonth()]} ${date.getFullYear()}`;
   };
 
   const getBookingsForDate = () => {
     return bookings
       .filter(b => b.date === selectedDate)
-      .sort((a, b) => a.time.localeCompare(b.time));
+      .sort((a, b) => a.startTime.localeCompare(b.startTime));
   };
 
-  const getLocationName = (locationId: string) => {
-    return locations.find(l => l.id === locationId)?.name || "Pobočka";
+  const getClientName = (booking: Booking) => {
+    if (booking.bookingType === "manual") {
+      return booking.manualClientName || "Manualni klient";
+    }
+    if (booking.userName) {
+      return booking.userName;
+    }
+    return clients.find(c => c.id === booking.userId)?.name || "Klient";
   };
 
-  const getClientName = (userId: string) => {
-    return clients.find(c => c.id === userId)?.name || "Klient";
+  const handleCancelBooking = (booking: Booking) => {
+    const clientName = getClientName(booking);
+    Alert.alert(
+      "Zrusit rezervaci",
+      `Opravdu chcete zrusit rezervaci?\n\nKlient: ${clientName}\nCas: ${booking.startTime} - ${booking.endTime}`,
+      [
+        { text: "Ne", style: "cancel" },
+        {
+          text: "Zrusit",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await cancelBooking(booking.id);
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              loadData();
+            } catch (error) {
+              Alert.alert("Chyba", error instanceof Error ? error.message : "Nepodarilo se zrusit rezervaci");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const dayBookings = getBookingsForDate();
@@ -163,19 +186,39 @@ export default function CalendarScreen() {
 
         {dayBookings.length > 0 ? (
           dayBookings.map(booking => (
-            <Card key={booking.id} elevation={1} style={styles.bookingCard}>
+            <Card 
+              key={booking.id} 
+              elevation={1} 
+              style={styles.bookingCard}
+              onPress={() => handleCancelBooking(booking)}
+            >
               <View style={styles.bookingHeader}>
                 <View style={[styles.timeBadge, { backgroundColor: theme.primary }]}>
                   <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-                    {booking.time}
+                    {booking.startTime}
                   </ThemedText>
                 </View>
                 <View style={styles.bookingInfo}>
-                  <ThemedText type="h4">{getClientName(booking.userId)}</ThemedText>
-                  <View style={styles.locationRow}>
-                    <Feather name="map-pin" size={14} color={theme.textSecondary} />
-                    <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
-                      {getLocationName(booking.locationId)}
+                  <View style={styles.clientRow}>
+                    <ThemedText type="h4">{getClientName(booking)}</ThemedText>
+                    {booking.bookingType === "manual" ? (
+                      <View style={[styles.manualBadge, { backgroundColor: theme.warning + "20" }]}>
+                        <ThemedText type="small" style={{ color: theme.warning, fontWeight: "600" }}>
+                          Manualni
+                        </ThemedText>
+                      </View>
+                    ) : null}
+                  </View>
+                  <View style={styles.detailsRow}>
+                    <Feather name="clock" size={12} color={theme.textSecondary} />
+                    <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: 4 }}>
+                      {booking.startTime} - {booking.endTime} ({TRAINING_DURATION} min)
+                    </ThemedText>
+                  </View>
+                  <View style={styles.detailsRow}>
+                    <Feather name="map-pin" size={12} color={theme.textSecondary} />
+                    <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: 4 }}>
+                      {booking.branchName}
                     </ThemedText>
                   </View>
                 </View>
@@ -187,7 +230,7 @@ export default function CalendarScreen() {
             <View style={styles.emptyContent}>
               <Feather name="calendar" size={48} color={theme.textSecondary} />
               <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.lg, textAlign: "center" }}>
-                Na tento den nemáte žádné rezervované tréninky
+                Na tento den nemate zadne rezervovane treninky
               </ThemedText>
             </View>
           </Card>
@@ -236,7 +279,7 @@ const styles = StyleSheet.create({
   },
   bookingHeader: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   timeBadge: {
     paddingHorizontal: Spacing.md,
@@ -247,10 +290,21 @@ const styles = StyleSheet.create({
   bookingInfo: {
     flex: 1,
   },
-  locationRow: {
+  clientRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: Spacing.xs,
+    gap: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  manualBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.xs,
+  },
+  detailsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
   },
   emptyCard: {
     padding: Spacing["2xl"],

@@ -12,8 +12,8 @@ import { Card } from "@/components/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getBookings, cancelBooking, getLocations } from "@/lib/storage";
-import { Booking, Location } from "@/types";
+import { getFutureBookings, cancelBooking } from "@/lib/storage";
+import { Booking, TRAINING_DURATION } from "@/types";
 
 export default function TrainingsScreen() {
   const { theme } = useTheme();
@@ -22,20 +22,12 @@ export default function TrainingsScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [locations, setLocations] = useState<Location[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
     if (user) {
-      const [bookingsData, locationsData] = await Promise.all([
-        getBookings(user.id),
-        getLocations(),
-      ]);
-      const sortedBookings = bookingsData.sort((a, b) => 
-        new Date(`${a.date} ${a.time}`).getTime() - new Date(`${b.date} ${b.time}`).getTime()
-      );
-      setBookings(sortedBookings);
-      setLocations(locationsData);
+      const bookingsData = await getFutureBookings(user.id);
+      setBookings(bookingsData);
     }
   };
 
@@ -53,12 +45,12 @@ export default function TrainingsScreen() {
 
   const handleCancel = (booking: Booking) => {
     Alert.alert(
-      "Zrušit rezervaci",
-      `Opravdu chcete zrušit trénink ${formatDate(booking.date)} v ${booking.time}?`,
+      "Zrusit rezervaci",
+      `Opravdu chcete zrusit trenink ${formatDate(booking.date)} v ${booking.startTime}?`,
       [
         { text: "Ne", style: "cancel" },
         {
-          text: "Ano, zrušit",
+          text: "Ano, zrusit",
           style: "destructive",
           onPress: async () => {
             await cancelBooking(booking.id);
@@ -72,16 +64,10 @@ export default function TrainingsScreen() {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    const days = ["Ne", "Po", "Út", "St", "Čt", "Pá", "So"];
-    const months = ["ledna", "února", "března", "dubna", "května", "června", "července", "srpna", "září", "října", "listopadu", "prosince"];
+    const days = ["Ne", "Po", "Ut", "St", "Ct", "Pa", "So"];
+    const months = ["ledna", "unora", "brezna", "dubna", "kvetna", "cervna", "cervence", "srpna", "zari", "rijna", "listopadu", "prosince"];
     return `${days[date.getDay()]} ${date.getDate()}. ${months[date.getMonth()]}`;
   };
-
-  const getLocationName = (locationId: string) => {
-    return locations.find(l => l.id === locationId)?.name || "Pobočka";
-  };
-
-  const upcomingBookings = bookings.filter(b => new Date(`${b.date} ${b.time}`) >= new Date());
 
   const renderBooking = ({ item }: { item: Booking }) => (
     <Card elevation={1} style={styles.bookingCard}>
@@ -92,23 +78,33 @@ export default function TrainingsScreen() {
           </View>
           <View>
             <ThemedText type="h4">{formatDate(item.date)}</ThemedText>
-            <ThemedText type="body" style={{ color: theme.textSecondary }}>{item.time}</ThemedText>
+            <ThemedText type="body" style={{ color: theme.textSecondary }}>
+              {item.startTime} - {item.endTime}
+            </ThemedText>
           </View>
         </View>
       </View>
       
-      <View style={styles.locationRow}>
-        <Feather name="map-pin" size={16} color={theme.textSecondary} />
-        <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
-          {getLocationName(item.locationId)}
-        </ThemedText>
+      <View style={styles.detailsSection}>
+        <View style={styles.detailRow}>
+          <Feather name="clock" size={14} color={theme.textSecondary} />
+          <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
+            Delka: {TRAINING_DURATION} minut
+          </ThemedText>
+        </View>
+        <View style={styles.detailRow}>
+          <Feather name="map-pin" size={14} color={theme.textSecondary} />
+          <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
+            {item.branchName}
+          </ThemedText>
+        </View>
       </View>
 
       <Pressable
         onPress={() => handleCancel(item)}
         style={[styles.cancelButton, { borderColor: theme.error }]}
       >
-        <ThemedText type="small" style={{ color: theme.error }}>Zrušit rezervaci</ThemedText>
+        <ThemedText type="small" style={{ color: theme.error }}>Zrusit rezervaci</ThemedText>
       </Pressable>
     </Card>
   );
@@ -118,9 +114,9 @@ export default function TrainingsScreen() {
       <View style={[styles.emptyIcon, { backgroundColor: theme.backgroundSecondary }]}>
         <Feather name="calendar" size={48} color={theme.textSecondary} />
       </View>
-      <ThemedText type="h3" style={styles.emptyTitle}>Zatím nemáte žádné rezervace</ThemedText>
+      <ThemedText type="h3" style={styles.emptyTitle}>Zatim nemate zadne rezervace</ThemedText>
       <ThemedText type="body" style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
-        Rezervujte si trénink v záložce Rezervace
+        Rezervujte si trenink v zalozce Rezervace
       </ThemedText>
     </View>
   );
@@ -128,7 +124,7 @@ export default function TrainingsScreen() {
   return (
     <ThemedView style={styles.container}>
       <FlatList
-        data={upcomingBookings}
+        data={bookings}
         renderItem={renderBooking}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[
@@ -143,7 +139,7 @@ export default function TrainingsScreen() {
             <ThemedText type="body" style={{ color: theme.textSecondary }}>
               Ahoj, {user?.name}
             </ThemedText>
-            <ThemedText type="h2">Nadcházející tréninky</ThemedText>
+            <ThemedText type="h2">Nadchazejici treninky</ThemedText>
           </View>
         }
         ListEmptyComponent={EmptyState}
@@ -186,10 +182,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  locationRow: {
+  detailsSection: {
+    marginBottom: Spacing.lg,
+    gap: Spacing.xs,
+  },
+  detailRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: Spacing.lg,
   },
   cancelButton: {
     alignItems: "center",
