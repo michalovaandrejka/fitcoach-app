@@ -57,37 +57,39 @@ export default function ClientsScreen() {
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
   };
 
+  const handleClientPress = (client: Client) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    navigation.navigate("AdminClientDetail", { client });
+  };
+
   const renderClient = ({ item }: { item: Client }) => (
-    <Pressable
-      onPress={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        navigation.navigate("AdminClientDetail", { client: item });
-      }}
+    <Card 
+      elevation={1} 
+      style={styles.clientCard}
+      onPress={() => handleClientPress(item)}
     >
-      <Card elevation={1} style={styles.clientCard}>
-        <View style={styles.clientContent}>
-          <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
-            <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-              {getInitials(item.name)}
+      <View style={styles.clientContent}>
+        <View style={[styles.avatar, { backgroundColor: theme.primary }]}>
+          <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
+            {getInitials(item.name)}
+          </ThemedText>
+        </View>
+        <View style={styles.clientInfo}>
+          <ThemedText type="h4">{item.name}</ThemedText>
+          <View style={styles.clientMeta}>
+            <Feather name="calendar" size={12} color={theme.textSecondary} />
+            <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
+              Posledni: {formatDate(item.lastTrainingDate)}
             </ThemedText>
           </View>
-          <View style={styles.clientInfo}>
-            <ThemedText type="h4">{item.name}</ThemedText>
-            <View style={styles.clientMeta}>
-              <Feather name="calendar" size={12} color={theme.textSecondary} />
-              <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
-                Poslední: {formatDate(item.lastTrainingDate)}
-              </ThemedText>
-            </View>
-          </View>
-          <View style={styles.bookingsCount}>
-            <ThemedText type="h4" style={{ color: theme.primary }}>{item.bookingsCount}</ThemedText>
-            <ThemedText type="small" style={{ color: theme.textSecondary }}>tréninků</ThemedText>
-          </View>
-          <Feather name="chevron-right" size={20} color={theme.textSecondary} />
         </View>
-      </Card>
-    </Pressable>
+        <View style={styles.bookingsCount}>
+          <ThemedText type="h4" style={{ color: theme.primary }}>{item.bookingsCount}</ThemedText>
+          <ThemedText type="small" style={{ color: theme.textSecondary }}>treninku</ThemedText>
+        </View>
+        <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+      </View>
+    </Card>
   );
 
   return (
@@ -137,7 +139,7 @@ export default function ClientsScreen() {
           <View style={styles.emptyState}>
             <Feather name="users" size={48} color={theme.textSecondary} />
             <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.lg }}>
-              {searchQuery ? "Žádní klienti nenalezeni" : "Zatím nemáte žádné klienty"}
+              {searchQuery ? "Zadni klienti nenalezeni" : "Zatim nemate zadne klienty"}
             </ThemedText>
           </View>
         }

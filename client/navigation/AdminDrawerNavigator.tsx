@@ -23,6 +23,7 @@ import AvailabilityScreen from "@/screens/admin/AvailabilityScreen";
 import AdminProfileScreen from "@/screens/admin/AdminProfileScreen";
 import LocationsScreen from "@/screens/admin/LocationsScreen";
 import NotificationsScreen from "@/screens/admin/NotificationsScreen";
+import MealPlansScreen from "@/screens/admin/MealPlansScreen";
 
 export type AdminStackParamList = {
   AdminDashboard: undefined;
@@ -32,6 +33,7 @@ export type AdminStackParamList = {
   AdminAvailability: undefined;
   AdminLocations: undefined;
   AdminNotifications: undefined;
+  AdminMealPlans: undefined;
   AdminProfile: undefined;
 };
 
@@ -41,6 +43,7 @@ export type AdminDrawerParamList = {
   CalendarStack: undefined;
   AvailabilityStack: undefined;
   NotificationsStack: undefined;
+  MealPlansStack: undefined;
   LocationsStack: undefined;
   ProfileStack: undefined;
 };
@@ -124,6 +127,16 @@ function NotificationsStack() {
   );
 }
 
+function MealPlansStack() {
+  const screenOptions = useAdminScreenOptions();
+  return (
+    <Stack.Navigator screenOptions={screenOptions}>
+      <Stack.Screen name="AdminMealPlans" component={MealPlansScreen} options={{ headerTitle: "Jidelnicky" }} />
+      <Stack.Screen name="AdminClientDetail" component={ClientDetailScreen} options={({ route }) => ({ headerTitle: route.params?.client?.name || "Detail klienta", headerLeft: undefined })} />
+    </Stack.Navigator>
+  );
+}
+
 function ProfileStack() {
   const screenOptions = useAdminScreenOptions();
   return (
@@ -145,6 +158,7 @@ const drawerItems: DrawerItem[] = [
   { name: "CalendarStack", label: "Kalendar", icon: "calendar" },
   { name: "AvailabilityStack", label: "Dostupnost", icon: "clock" },
   { name: "NotificationsStack", label: "Oznameni", icon: "bell" },
+  { name: "MealPlansStack", label: "Jidelnicky", icon: "clipboard" },
   { name: "LocationsStack", label: "Pobocky", icon: "map-pin" },
   { name: "ProfileStack", label: "Profil", icon: "user" },
 ];
@@ -227,6 +241,7 @@ export default function AdminDrawerNavigator() {
       <Drawer.Screen name="CalendarStack" component={CalendarStack} />
       <Drawer.Screen name="AvailabilityStack" component={AvailabilityStack} />
       <Drawer.Screen name="NotificationsStack" component={NotificationsStack} />
+      <Drawer.Screen name="MealPlansStack" component={MealPlansStack} />
       <Drawer.Screen name="LocationsStack" component={LocationsStack} />
       <Drawer.Screen name="ProfileStack" component={ProfileStack} />
     </Drawer.Navigator>

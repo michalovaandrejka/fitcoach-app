@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from "react";
-import { StyleSheet, View, ScrollView, TextInput, Pressable, Alert, Platform } from "react-native";
+import { StyleSheet, View, ScrollView, TextInput, Pressable, Alert, Platform, Modal } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { Feather } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Haptics from "expo-haptics";
 
 import { ThemedView } from "@/components/ThemedView";
@@ -28,7 +29,8 @@ export default function NotificationsScreen() {
   const [targetType, setTargetType] = useState<TargetType>("all");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("today");
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
-  const [customDate, setCustomDate] = useState("");
+  const [customDate, setCustomDate] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   
   const [locations, setLocations] = useState<Location[]>([]);
   const [allClients, setAllClients] = useState<Client[]>([]);
@@ -58,8 +60,8 @@ export default function NotificationsScreen() {
       dateFilter = new Date().toISOString().split("T")[0];
     } else if (timeFilter === "week") {
       weekFilter = true;
-    } else if (timeFilter === "custom" && customDate) {
-      dateFilter = customDate;
+    } else if (timeFilter === "custom") {
+      dateFilter = customDate.toISOString().split("T")[0];
     }
 
     const clients = await getBookedClientsForFilter(
@@ -81,6 +83,19 @@ export default function NotificationsScreen() {
       updateFilteredClients();
     }, [targetType, timeFilter, selectedLocationId, customDate, allClients])
   );
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === "android") {
+      setShowDatePicker(false);
+    }
+    if (selectedDate) {
+      setCustomDate(selectedDate);
+    }
+  };
+
+  const formatDate = (date: Date) => {
+    return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
+  };
 
   const handleSend = async () => {
     if (!message.trim()) {
@@ -105,7 +120,7 @@ export default function NotificationsScreen() {
         dateFilter: timeFilter === "today" 
           ? new Date().toISOString().split("T")[0] 
           : timeFilter === "custom" 
-            ? customDate 
+            ? customDate.toISOString().split("T")[0]
             : undefined,
         weekFilter: timeFilter === "week" || undefined,
         locationId: selectedLocationId || undefined,
@@ -124,7 +139,7 @@ export default function NotificationsScreen() {
           setTargetType("all");
           setTimeFilter("today");
           setSelectedLocationId(null);
-          setCustomDate("");
+          setCustomDate(new Date());
         }}]
       );
       
@@ -232,19 +247,24 @@ export default function NotificationsScreen() {
                 />
                 <OptionButton
                   selected={timeFilter === "custom"}
-                  onPress={() => setTimeFilter("custom")}
+                  onPress={() => {
+                    setTimeFilter("custom");
+                    setShowDatePicker(true);
+                  }}
                   label="Vybrat den"
                 />
               </View>
 
               {timeFilter === "custom" ? (
-                <TextInput
-                  style={[styles.input, styles.dateInput, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
-                  placeholder="RRRR-MM-DD"
-                  placeholderTextColor={theme.textSecondary}
-                  value={customDate}
-                  onChangeText={setCustomDate}
-                />
+                <Pressable 
+                  onPress={() => setShowDatePicker(true)}
+                  style={[styles.dateButton, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}
+                >
+                  <Feather name="calendar" size={20} color={theme.primary} />
+                  <ThemedText type="body" style={{ marginLeft: Spacing.sm }}>
+                    {formatDate(customDate)}
+                  </ThemedText>
+                </Pressable>
               ) : null}
             </Card>
 
@@ -294,6 +314,41 @@ export default function NotificationsScreen() {
           </View>
         </Button>
       </ScrollView>
+
+      {Platform.OS === "ios" ? (
+        <Modal
+          visible={showDatePicker}
+          transparent
+          animationType="slide"
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]}>
+              <View style={styles.modalHeader}>
+                <ThemedText type="h4">Vyberte datum</ThemedText>
+                <Pressable onPress={() => setShowDatePicker(false)}>
+                  <ThemedText type="body" style={{ color: theme.primary }}>Hotovo</ThemedText>
+                </Pressable>
+              </View>
+              <DateTimePicker
+                value={customDate}
+                mode="date"
+                display="spinner"
+                onChange={handleDateChange}
+                locale="cs"
+              />
+            </View>
+          </View>
+        </Modal>
+      ) : (
+        showDatePicker ? (
+          <DateTimePicker
+            value={customDate}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+          />
+        ) : null
+      )}
     </ThemedView>
   );
 }
@@ -319,10 +374,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: Spacing.md,
   },
-  dateInput: {
-    marginTop: Spacing.md,
-    marginBottom: 0,
-  },
   textArea: {
     minHeight: 100,
     borderRadius: BorderRadius.xs,
@@ -342,6 +393,14 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.xs,
     borderWidth: 1,
   },
+  dateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: Spacing.md,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.xs,
+    borderWidth: 1,
+  },
   previewSection: {
     marginBottom: Spacing.xl,
   },
@@ -353,5 +412,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    borderTopLeftRadius: BorderRadius.lg,
+    borderTopRightRadius: BorderRadius.lg,
+    paddingBottom: Spacing["3xl"],
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
   },
 });
