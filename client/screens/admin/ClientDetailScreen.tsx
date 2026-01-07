@@ -99,7 +99,7 @@ export default function ClientDetailScreen() {
   const handleCancelBooking = (booking: Booking) => {
     Alert.alert(
       "Zrušit trénink",
-      `Opravdu chcete zrušit trénink ${formatDate(booking.date)} v ${booking.time}?`,
+      `Opravdu chcete zrušit trénink ${formatDate(booking.date)} v ${booking.startTime}?`,
       [
         { text: "Ne", style: "cancel" },
         {
@@ -220,10 +220,10 @@ export default function ClientDetailScreen() {
                       </View>
                       <View style={styles.bookingInfo}>
                         <ThemedText type="body" style={{ fontWeight: "600" }}>
-                          {formatDate(booking.date)} v {booking.time}
+                          {formatDate(booking.date)} v {booking.startTime}
                         </ThemedText>
                         <ThemedText type="small" style={{ color: theme.textSecondary }}>
-                          {getLocationName(booking.locationId)}
+                          {booking.branchName || getLocationName(booking.branchId)}
                         </ThemedText>
                       </View>
                       <Pressable
@@ -259,10 +259,10 @@ export default function ClientDetailScreen() {
                       </View>
                       <View style={styles.bookingInfo}>
                         <ThemedText type="body" style={{ fontWeight: "600", color: theme.textSecondary }}>
-                          {formatDate(booking.date)} v {booking.time}
+                          {formatDate(booking.date)} v {booking.startTime}
                         </ThemedText>
                         <ThemedText type="small" style={{ color: theme.textSecondary }}>
-                          {getLocationName(booking.locationId)}
+                          {booking.branchName || getLocationName(booking.branchId)}
                         </ThemedText>
                       </View>
                     </View>
