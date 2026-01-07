@@ -11,7 +11,7 @@ import { Card } from "@/components/Card";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getBookings, getMealPreference, getAdminNote, saveAdminNote, getLocations, getTrainerMealPlan, saveTrainerMealPlan, getFutureBookings, cancelBooking, deleteClient } from "@/lib/storage";
+import { apiGetBookings, apiGetMealPreference, apiGetAdminNote, apiUpdateAdminNote, apiGetLocations, apiGetMealPlan, apiUpdateMealPlan, apiDeleteBooking, apiDeleteUser } from "@/lib/api";
 import { Client, Booking, MealPreference, AdminNote, Location, TrainerMealPlan } from "@/types";
 
 type TabType = "bookings" | "meal" | "notes";
@@ -49,15 +49,16 @@ export default function ClientDetailScreen() {
 
   const loadData = async () => {
     setIsLoading(true);
-    const [bookingsData, mealData, noteData, locsData, mealPlanData, futureData] = await Promise.all([
-      getBookings(client.id),
-      getMealPreference(client.id),
-      getAdminNote(client.id),
-      getLocations(),
-      getTrainerMealPlan(client.id),
-      getFutureBookings(client.id),
+    const today = new Date().toISOString().split("T")[0];
+    const [bookingsData, mealData, noteData, locsData, mealPlanData] = await Promise.all([
+      apiGetBookings(undefined, client.id),
+      apiGetMealPreference(client.id).catch(() => null),
+      apiGetAdminNote(client.id).catch(() => ({ note: "" })),
+      apiGetLocations(),
+      apiGetMealPlan(client.id).catch(() => null),
     ]);
     setBookings(bookingsData);
+    const futureData = bookingsData.filter(b => b.date >= today).sort((a, b) => a.date.localeCompare(b.date));
     setFutureBookings(futureData);
     setMealPref(mealData);
     setAdminNote(noteData?.note || "");
@@ -69,28 +70,15 @@ export default function ClientDetailScreen() {
 
   const handleSaveNote = async () => {
     setIsSaving(true);
-    await saveAdminNote({
-      userId: client.id,
-      note: adminNote,
-      updatedAt: new Date().toISOString(),
-    });
+    await apiUpdateAdminNote(client.id, { note: adminNote });
     setIsSaving(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
   const handleSaveMealPlan = async () => {
     setIsSavingMealPlan(true);
-    const now = new Date().toISOString();
-    const plan: TrainerMealPlan = {
-      id: trainerMealPlan?.id || `mealplan_${Date.now()}`,
-      userId: client.id,
-      content: mealPlanText,
-      fileType: "text",
-      createdAt: trainerMealPlan?.createdAt || now,
-      updatedAt: now,
-    };
-    await saveTrainerMealPlan(plan);
-    setTrainerMealPlan(plan);
+    const result = await apiUpdateMealPlan(client.id, { content: mealPlanText, fileType: "text" });
+    setTrainerMealPlan(result);
     setIsSavingMealPlan(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     Alert.alert("Uloženo", "Jídelníček byl uložen");
@@ -107,7 +95,7 @@ export default function ClientDetailScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              await cancelBooking(booking.id);
+              await apiDeleteBooking(booking.id);
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               Alert.alert("Zrušeno", "Trénink byl zrušen a termín je znovu volný.");
               loadData();
@@ -131,7 +119,7 @@ export default function ClientDetailScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              await deleteClient(client.id);
+              await apiDeleteUser(client.id);
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               navigation.goBack();
             } catch (error) {

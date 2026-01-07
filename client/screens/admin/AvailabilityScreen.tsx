@@ -13,14 +13,14 @@ import { Button } from "@/components/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { 
-  getAvailabilityBlocks, 
-  getLocations, 
-  addAvailabilityBlocks, 
-  deleteAvailabilityBlock, 
-  createManualBooking, 
-  cancelBooking,
-  getDaySchedule
-} from "@/lib/storage";
+  apiGetAvailability,
+  apiGetLocations,
+  apiCreateAvailabilityBlock,
+  apiDeleteAvailabilityBlock,
+  apiCreateBooking,
+  apiDeleteBooking,
+  apiGetBookings
+} from "@/lib/api";
 import { AvailabilityBlock, Location, Booking, TRAINING_DURATION } from "@/types";
 
 const TIME_OPTIONS = [
@@ -67,15 +67,19 @@ export default function AvailabilityScreen() {
   const [selectedBlockForManual, setSelectedBlockForManual] = useState<AvailabilityBlock | null>(null);
 
   const loadData = async () => {
-    const [locsData, blocksData, scheduleData] = await Promise.all([
-      getLocations(),
-      getAvailabilityBlocks(),
-      getDaySchedule(selectedDate),
+    const [locsData, blocksData, daySchedule] = await Promise.all([
+      apiGetLocations(),
+      apiGetAvailability(),
+      Promise.all([
+        apiGetAvailability(selectedDate),
+        apiGetBookings(selectedDate),
+      ]),
     ]);
     setLocations(locsData);
     setAllBlocks(blocksData);
-    setDayBlocks(scheduleData.blocks);
-    setBookings(scheduleData.bookings);
+    const [dayBlocksData, dayBookingsData] = daySchedule;
+    setDayBlocks(dayBlocksData);
+    setBookings(dayBookingsData);
     if (locsData.length > 0 && selectedBranchIds.length === 0) {
       setSelectedBranchIds(locsData.map(l => l.id));
     }
@@ -303,7 +307,11 @@ export default function AvailabilityScreen() {
     }
 
     try {
-      await addAvailabilityBlocks(selectedDates, startTime, endTime, selectedBranchIds);
+      for (const date of selectedDates) {
+        for (const branchId of selectedBranchIds) {
+          await apiCreateAvailabilityBlock({ date, startTime, endTime, branchId });
+        }
+      }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setShowAddModal(false);
       loadData();
@@ -329,7 +337,7 @@ export default function AvailabilityScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              await deleteAvailabilityBlock(block.id);
+              await apiDeleteAvailabilityBlock(block.id);
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               loadData();
             } catch (error) {
@@ -382,10 +390,11 @@ export default function AvailabilityScreen() {
     }
 
     try {
-      await createManualBooking(
+      await apiCreateBooking(
         selectedDate,
         manualStartTime,
         manualBranchId,
+        getBranchName(manualBranchId),
         manualClientName.trim()
       );
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -411,7 +420,7 @@ export default function AvailabilityScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              await cancelBooking(booking.id);
+              await apiDeleteBooking(booking.id);
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               loadData();
             } catch (error) {

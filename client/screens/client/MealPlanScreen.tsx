@@ -13,7 +13,7 @@ import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollV
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getMealPreference, saveMealPreference, getTrainerMealPlan } from "@/lib/storage";
+import { apiGetMealPreference, apiUpdateMealPreference, apiGetMealPlan } from "@/lib/api";
 import { MealPreference, TrainerMealPlan } from "@/types";
 
 const GOALS = [
@@ -51,15 +51,15 @@ export default function MealPlanScreen() {
     if (user) {
       setIsLoading(true);
       const [pref, mealPlan] = await Promise.all([
-        getMealPreference(user.id),
-        getTrainerMealPlan(user.id),
+        apiGetMealPreference(user.id).catch(() => null),
+        apiGetMealPlan(user.id).catch(() => null),
       ]);
       if (pref) {
-        setLikes(pref.likes);
-        setDislikes(pref.dislikes);
-        setMealsPerDay(pref.mealsPerDay);
-        setSelectedGoals(pref.goals);
-        setNotes(pref.notes);
+        setLikes(pref.likes || "");
+        setDislikes(pref.dislikes || "");
+        setMealsPerDay(pref.mealsPerDay || 3);
+        setSelectedGoals(pref.goals || []);
+        setNotes(pref.notes || "");
       }
       setTrainerMealPlan(mealPlan);
       setIsLoading(false);
@@ -70,8 +70,7 @@ export default function MealPlanScreen() {
     if (!user) return;
     
     setIsSaving(true);
-    await saveMealPreference({
-      userId: user.id,
+    await apiUpdateMealPreference(user.id, {
       likes,
       dislikes,
       mealsPerDay,

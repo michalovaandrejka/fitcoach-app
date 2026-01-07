@@ -11,7 +11,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { Card } from "@/components/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getBookings, getClients, cancelBooking } from "@/lib/storage";
+import { apiGetBookings, apiGetUsers, apiDeleteBooking } from "@/lib/api";
 import { Booking, Client, TRAINING_DURATION } from "@/types";
 
 export default function CalendarScreen() {
@@ -25,12 +25,13 @@ export default function CalendarScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
-    const [bookingsData, clientsData] = await Promise.all([
-      getBookings(),
-      getClients(),
+    const [bookingsData, usersData] = await Promise.all([
+      apiGetBookings(),
+      apiGetUsers(),
     ]);
     setBookings(bookingsData);
-    setClients(clientsData);
+    const clientUsers = usersData.filter(u => u.role === "CLIENT");
+    setClients(clientUsers.map(u => ({ id: u.id, name: u.name, email: u.email, bookingsCount: 0, lastTrainingDate: undefined })));
   };
 
   useFocusEffect(
@@ -99,7 +100,7 @@ export default function CalendarScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              await cancelBooking(booking.id);
+              await apiDeleteBooking(booking.id);
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               loadData();
             } catch (error) {
