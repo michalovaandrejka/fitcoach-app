@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { StyleSheet, View, ScrollView, TextInput, Pressable, ActivityIndicator } from "react-native";
+import React, { useState, useCallback } from "react";
+import { StyleSheet, View, TextInput, Pressable, ActivityIndicator, Alert } from "react-native";
 import { useFocusEffect, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -11,14 +11,14 @@ import { Card } from "@/components/Card";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { getBookings, getMealPreference, getAdminNote, saveAdminNote, getLocations } from "@/lib/storage";
-import { Client, Booking, MealPreference, AdminNote, Location } from "@/types";
+import { getBookings, getMealPreference, getAdminNote, saveAdminNote, getLocations, getTrainerMealPlan, saveTrainerMealPlan } from "@/lib/storage";
+import { Client, Booking, MealPreference, AdminNote, Location, TrainerMealPlan } from "@/types";
 
 type TabType = "bookings" | "meal" | "notes";
 
 const GOALS_MAP: Record<string, string> = {
-  weight_loss: "Hubnutí",
-  muscle: "Nárůst svalů",
+  weight_loss: "Hubnuti",
+  muscle: "Narust svalu",
   fitness: "Kondice",
 };
 
@@ -31,10 +31,13 @@ export default function ClientDetailScreen() {
   const [activeTab, setActiveTab] = useState<TabType>("bookings");
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [mealPref, setMealPref] = useState<MealPreference | null>(null);
+  const [trainerMealPlan, setTrainerMealPlan] = useState<TrainerMealPlan | null>(null);
   const [adminNote, setAdminNote] = useState("");
+  const [mealPlanText, setMealPlanText] = useState("");
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingMealPlan, setIsSavingMealPlan] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -44,16 +47,19 @@ export default function ClientDetailScreen() {
 
   const loadData = async () => {
     setIsLoading(true);
-    const [bookingsData, mealData, noteData, locsData] = await Promise.all([
+    const [bookingsData, mealData, noteData, locsData, mealPlanData] = await Promise.all([
       getBookings(client.id),
       getMealPreference(client.id),
       getAdminNote(client.id),
       getLocations(),
+      getTrainerMealPlan(client.id),
     ]);
     setBookings(bookingsData);
     setMealPref(mealData);
     setAdminNote(noteData?.note || "");
     setLocations(locsData);
+    setTrainerMealPlan(mealPlanData);
+    setMealPlanText(mealPlanData?.content || "");
     setIsLoading(false);
   };
 
@@ -68,13 +74,31 @@ export default function ClientDetailScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
+  const handleSaveMealPlan = async () => {
+    setIsSavingMealPlan(true);
+    const now = new Date().toISOString();
+    const plan: TrainerMealPlan = {
+      id: trainerMealPlan?.id || `mealplan_${Date.now()}`,
+      userId: client.id,
+      content: mealPlanText,
+      fileType: "text",
+      createdAt: trainerMealPlan?.createdAt || now,
+      updatedAt: now,
+    };
+    await saveTrainerMealPlan(plan);
+    setTrainerMealPlan(plan);
+    setIsSavingMealPlan(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Alert.alert("Ulozeno", "Jidelnicek byl ulozen");
+  };
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
   };
 
   const getLocationName = (locationId: string) => {
-    return locations.find(l => l.id === locationId)?.name || "Pobočka";
+    return locations.find(l => l.id === locationId)?.name || "Pobocka";
   };
 
   const TabButton = ({ tab, label }: { tab: TabType; label: string }) => (
@@ -128,8 +152,8 @@ export default function ClientDetailScreen() {
 
         <View style={styles.tabs}>
           <TabButton tab="bookings" label="Rezervace" />
-          <TabButton tab="meal" label="Jídelníček" />
-          <TabButton tab="notes" label="Poznámky" />
+          <TabButton tab="meal" label="Jidelnicek" />
+          <TabButton tab="notes" label="Poznamky" />
         </View>
 
         {activeTab === "bookings" ? (
@@ -155,7 +179,7 @@ export default function ClientDetailScreen() {
             ) : (
               <Card elevation={1}>
                 <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
-                  Klient nemá žádné rezervace
+                  Klient nema zadne rezervace
                 </ThemedText>
               </Card>
             )}
@@ -164,50 +188,117 @@ export default function ClientDetailScreen() {
 
         {activeTab === "meal" ? (
           <View style={styles.tabContent}>
+            <ThemedText type="h4" style={styles.sectionTitle}>Preference klienta</ThemedText>
             {mealPref ? (
               <>
                 <Card elevation={1} style={styles.mealCard}>
-                  <ThemedText type="h4" style={styles.mealLabel}>Co má rád/a</ThemedText>
-                  <ThemedText type="body" style={{ color: theme.textSecondary }}>
-                    {mealPref.likes || "Nevyplněno"}
-                  </ThemedText>
+                  <View style={styles.prefRow}>
+                    <View style={[styles.prefIcon, { backgroundColor: theme.success + "20" }]}>
+                      <Feather name="heart" size={16} color={theme.success} />
+                    </View>
+                    <View style={styles.prefContent}>
+                      <ThemedText type="small" style={{ color: theme.textSecondary }}>Ma rad/a</ThemedText>
+                      <ThemedText type="body">{mealPref.likes || "Nevyplneno"}</ThemedText>
+                    </View>
+                  </View>
                 </Card>
                 
                 <Card elevation={1} style={styles.mealCard}>
-                  <ThemedText type="h4" style={styles.mealLabel}>Co nesnáší</ThemedText>
-                  <ThemedText type="body" style={{ color: theme.textSecondary }}>
-                    {mealPref.dislikes || "Nevyplněno"}
-                  </ThemedText>
+                  <View style={styles.prefRow}>
+                    <View style={[styles.prefIcon, { backgroundColor: theme.error + "20" }]}>
+                      <Feather name="x-circle" size={16} color={theme.error} />
+                    </View>
+                    <View style={styles.prefContent}>
+                      <ThemedText type="small" style={{ color: theme.textSecondary }}>Nesnasi</ThemedText>
+                      <ThemedText type="body">{mealPref.dislikes || "Nevyplneno"}</ThemedText>
+                    </View>
+                  </View>
                 </Card>
                 
                 <Card elevation={1} style={styles.mealCard}>
-                  <ThemedText type="h4" style={styles.mealLabel}>Jídel denně</ThemedText>
-                  <ThemedText type="body" style={{ color: theme.textSecondary }}>
-                    {mealPref.mealsPerDay}x
-                  </ThemedText>
+                  <View style={styles.prefRow}>
+                    <View style={[styles.prefIcon, { backgroundColor: theme.primary + "20" }]}>
+                      <Feather name="clock" size={16} color={theme.primary} />
+                    </View>
+                    <View style={styles.prefContent}>
+                      <ThemedText type="small" style={{ color: theme.textSecondary }}>Jidel denne</ThemedText>
+                      <ThemedText type="body">{mealPref.mealsPerDay}x</ThemedText>
+                    </View>
+                  </View>
                 </Card>
                 
                 <Card elevation={1} style={styles.mealCard}>
-                  <ThemedText type="h4" style={styles.mealLabel}>Cíle</ThemedText>
-                  <ThemedText type="body" style={{ color: theme.textSecondary }}>
-                    {mealPref.goals.map(g => GOALS_MAP[g] || g).join(", ") || "Nevyplněno"}
-                  </ThemedText>
+                  <View style={styles.prefRow}>
+                    <View style={[styles.prefIcon, { backgroundColor: theme.warning + "20" }]}>
+                      <Feather name="target" size={16} color={theme.warning} />
+                    </View>
+                    <View style={styles.prefContent}>
+                      <ThemedText type="small" style={{ color: theme.textSecondary }}>Cile</ThemedText>
+                      <ThemedText type="body">
+                        {mealPref.goals.map(g => GOALS_MAP[g] || g).join(", ") || "Nevyplneno"}
+                      </ThemedText>
+                    </View>
+                  </View>
                 </Card>
-                
-                <Card elevation={1} style={styles.mealCard}>
-                  <ThemedText type="h4" style={styles.mealLabel}>Poznámky klienta</ThemedText>
-                  <ThemedText type="body" style={{ color: theme.textSecondary }}>
-                    {mealPref.notes || "Žádné poznámky"}
-                  </ThemedText>
-                </Card>
+
+                {mealPref.notes ? (
+                  <Card elevation={1} style={styles.mealCard}>
+                    <View style={styles.prefRow}>
+                      <View style={[styles.prefIcon, { backgroundColor: theme.secondary + "20" }]}>
+                        <Feather name="message-circle" size={16} color={theme.secondary} />
+                      </View>
+                      <View style={styles.prefContent}>
+                        <ThemedText type="small" style={{ color: theme.textSecondary }}>Poznamky klienta</ThemedText>
+                        <ThemedText type="body">{mealPref.notes}</ThemedText>
+                      </View>
+                    </View>
+                  </Card>
+                ) : null}
               </>
             ) : (
               <Card elevation={1}>
                 <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
-                  Klient nevyplnil jídelníček
+                  Klient nevyplnil preference
                 </ThemedText>
               </Card>
             )}
+
+            <View style={styles.divider} />
+
+            <ThemedText type="h4" style={styles.sectionTitle}>Jidelnicek od trenerky</ThemedText>
+            <Card elevation={1}>
+              <TextInput
+                style={[styles.mealPlanInput, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
+                placeholder="Napiste jidelnicek pro klienta..."
+                placeholderTextColor={theme.textSecondary}
+                value={mealPlanText}
+                onChangeText={setMealPlanText}
+                multiline
+                numberOfLines={10}
+                textAlignVertical="top"
+              />
+              <Pressable
+                onPress={handleSaveMealPlan}
+                disabled={isSavingMealPlan}
+                style={[styles.saveButton, { backgroundColor: theme.primary }]}
+              >
+                {isSavingMealPlan ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Feather name="save" size={18} color="#FFFFFF" />
+                    <ThemedText type="body" style={{ color: "#FFFFFF", marginLeft: Spacing.sm, fontWeight: "600" }}>
+                      Ulozit jidelnicek
+                    </ThemedText>
+                  </>
+                )}
+              </Pressable>
+              {trainerMealPlan ? (
+                <ThemedText type="small" style={{ color: theme.textSecondary, marginTop: Spacing.md, textAlign: "center" }}>
+                  Posledni uprava: {formatDate(trainerMealPlan.updatedAt)}
+                </ThemedText>
+              ) : null}
+            </Card>
           </View>
         ) : null}
 
@@ -215,11 +306,11 @@ export default function ClientDetailScreen() {
           <View style={styles.tabContent}>
             <Card elevation={1}>
               <ThemedText type="h4" style={styles.noteLabel}>
-                Interní poznámka (nevidí klient)
+                Interni poznamka (nevidi klient)
               </ThemedText>
               <TextInput
                 style={[styles.noteInput, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
-                placeholder="Vaše poznámky ke klientovi..."
+                placeholder="Vase poznamky ke klientovi..."
                 placeholderTextColor={theme.textSecondary}
                 value={adminNote}
                 onChangeText={setAdminNote}
@@ -238,7 +329,7 @@ export default function ClientDetailScreen() {
                   <>
                     <Feather name="save" size={18} color="#FFFFFF" />
                     <ThemedText type="body" style={{ color: "#FFFFFF", marginLeft: Spacing.sm, fontWeight: "600" }}>
-                      Uložit poznámku
+                      Ulozit poznamku
                     </ThemedText>
                   </>
                 )}
@@ -292,6 +383,14 @@ const styles = StyleSheet.create({
   tabContent: {
     gap: Spacing.md,
   },
+  sectionTitle: {
+    marginBottom: Spacing.sm,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#E0E0E0",
+    marginVertical: Spacing.lg,
+  },
   bookingCard: {
     padding: Spacing.lg,
   },
@@ -313,8 +412,28 @@ const styles = StyleSheet.create({
   mealCard: {
     padding: Spacing.lg,
   },
-  mealLabel: {
-    marginBottom: Spacing.sm,
+  prefRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  prefIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: Spacing.md,
+  },
+  prefContent: {
+    flex: 1,
+  },
+  mealPlanInput: {
+    borderRadius: BorderRadius.xs,
+    padding: Spacing.md,
+    fontSize: 16,
+    borderWidth: 1,
+    minHeight: 200,
+    marginBottom: Spacing.lg,
   },
   noteLabel: {
     marginBottom: Spacing.md,
