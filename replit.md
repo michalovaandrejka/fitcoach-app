@@ -21,7 +21,8 @@ client/
 │   └── index.ts            # TypeScript type definitions
 ├── lib/
 │   ├── query-client.ts     # TanStack Query configuration
-│   └── storage.ts          # AsyncStorage data layer
+│   ├── api.ts              # REST API client functions
+│   └── storage.ts          # Legacy storage (only for auth tokens)
 ├── constants/
 │   └── theme.ts            # Design tokens (colors, spacing, typography)
 ├── hooks/                  # Custom React hooks
@@ -97,6 +98,21 @@ The app runs on port 8081 (Expo) with the Express backend on port 5000.
 - **PostgreSQL Migration** (January 2026): All screens migrated from AsyncStorage to REST API with PostgreSQL backend for multi-user support
 - **Multi-user sync**: Bookings, availability, and all data now synchronized across devices via centralized backend
 - **Comprehensive error handling**: All API calls wrapped with try/catch and user-friendly error alerts
+- **Complete API migration** (January 2026): All 12 screens now use REST API exclusively. No business data in AsyncStorage.
+- **Railway deployment ready**: Backend uses DATABASE_URL environment variable, no hardcoded URLs
+
+## Deployment
+
+### Railway Deployment
+1. Create PostgreSQL database on Railway
+2. Set environment variable `DATABASE_URL` to Railway connection string
+3. Set `SESSION_SECRET` for JWT signing
+4. Deploy Express backend (port 5000)
+5. Update `EXPO_PUBLIC_DOMAIN` to point to deployed backend URL
+
+### Admin Credentials
+- Email/Username: `Andrea`
+- Password: `Andrea`
 
 ## User Preferences
 - Language: Czech (UI text in Czech)
