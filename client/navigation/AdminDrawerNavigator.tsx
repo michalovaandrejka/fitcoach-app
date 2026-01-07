@@ -191,7 +191,7 @@ export default function AdminDrawerNavigator() {
       screenOptions={{
         headerShown: false,
         drawerStyle: {
-          backgroundColor: theme.background,
+          backgroundColor: theme.backgroundRoot,
           width: 280,
         },
       }}
