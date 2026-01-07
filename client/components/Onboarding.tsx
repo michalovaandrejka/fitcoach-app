@@ -125,7 +125,7 @@ const CLIENT_STEPS: OnboardingStep[] = [
   {
     icon: "plus-circle",
     title: "Rezervace treninku",
-    description: "Jednoduse si zarezervujte novy trening v par krocich.",
+    description: "Jednoduše si zarezervujte nový trénink v pár krocích.",
     tip: "Vyberete datum, cas a pobocku",
     action: "Kliknete na + ve spodni liste",
     mockElements: [
@@ -137,12 +137,12 @@ const CLIENT_STEPS: OnboardingStep[] = [
   {
     icon: "x-circle",
     title: "Zruseni treninku",
-    description: "Pokud nemusite prijit, zruste trening vcas.",
+    description: "Pokud nemůžete přijít, zrušte trénink včas.",
     tip: "Rusit lze nejpozdeji 24 hodin predem",
     action: "Podrzeni prstu na treninku zobrazi moznosti",
     mockElements: [
       { type: "card", label: "Pondeli 10:00", icon: "calendar" },
-      { type: "button", label: "Zrusit trening", color: "warning" },
+      { type: "button", label: "Zrušit trénink", color: "warning" },
     ],
   },
   {

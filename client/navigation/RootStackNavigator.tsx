@@ -63,7 +63,7 @@ export default function RootStackNavigator() {
               component={BookingScreen}
               options={{
                 presentation: "modal",
-                headerTitle: "Rezervace treninku",
+                headerTitle: "Rezervace tréninku",
               }}
             />
           </>
