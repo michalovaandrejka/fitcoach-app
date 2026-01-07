@@ -66,10 +66,11 @@ client/
 - Manage availability (add/toggle time slots)
 
 ## Design System
-- Primary Color: #FF6B35 (energetic coral)
-- Secondary Color: #004E89 (deep blue)
-- Background: #F7F9FC (light gray)
+- Primary Color: #E91E63 (pink)
+- Secondary Color: #000000 (black)
+- Background: #FFFFFF (white)
 - Surface: #FFFFFF (white cards)
+- Minimalist, feminine fitness aesthetic
 
 ## Running the App
 The app runs on port 8081 (Expo) with the Express backend on port 5000.
@@ -82,7 +83,12 @@ The app runs on port 8081 (Expo) with the Express backend on port 5000.
 - AsyncStorage data persistence with idempotent initialization
 - Admin drawer navigator with hamburger menu
 - Fixed data persistence to prevent data loss on app restart
+- **New design theme** (January 2026): Minimalist pink/black/white color scheme
+- **Trainer branding**: Login screen with trainer profile photo and name (Andrea Michalova)
+- **Push notifications system**: Admin can send targeted notifications to clients (all or by booking filters)
+- **Meal plan system**: Trainer can create meal plans for clients, clients can view their personalized meal plan
 
 ## User Preferences
 - Language: Czech (UI text in Czech)
-- Focus on clean, modern iOS-style design
+- Focus on clean, modern iOS-style design with minimalist aesthetic
+- Trainer: Andrea Michalova
