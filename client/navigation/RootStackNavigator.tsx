@@ -1,11 +1,12 @@
-import React from "react";
-import { ActivityIndicator, View, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { ActivityIndicator, View, StyleSheet, Modal } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import ClientTabNavigator from "@/navigation/ClientTabNavigator";
 import AdminDrawerNavigator from "@/navigation/AdminDrawerNavigator";
 import LoginScreen from "@/screens/LoginScreen";
 import BookingScreen from "@/screens/client/BookingScreen";
+import { Onboarding } from "@/components/Onboarding";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
@@ -21,8 +22,9 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootStackNavigator() {
   const screenOptions = useScreenOptions();
-  const { user, isLoading, isAuthenticated } = useAuth();
+  const { user, isLoading, isAuthenticated, needsOnboarding } = useAuth();
   const { theme } = useTheme();
+  const [showOnboarding, setShowOnboarding] = useState(true);
 
   if (isLoading) {
     return (
@@ -32,38 +34,48 @@ export default function RootStackNavigator() {
     );
   }
 
+  const shouldShowOnboarding = isAuthenticated && needsOnboarding && showOnboarding;
+
   return (
-    <Stack.Navigator screenOptions={screenOptions}>
-      {!isAuthenticated ? (
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{ headerShown: false }}
-        />
-      ) : user?.role === "ADMIN" ? (
-        <Stack.Screen
-          name="AdminMain"
-          component={AdminDrawerNavigator}
-          options={{ headerShown: false }}
-        />
-      ) : (
-        <>
+    <>
+      <Stack.Navigator screenOptions={screenOptions}>
+        {!isAuthenticated ? (
           <Stack.Screen
-            name="ClientMain"
-            component={ClientTabNavigator}
+            name="Login"
+            component={LoginScreen}
             options={{ headerShown: false }}
           />
+        ) : user?.role === "ADMIN" ? (
           <Stack.Screen
-            name="BookingModal"
-            component={BookingScreen}
-            options={{
-              presentation: "modal",
-              headerTitle: "Rezervace tréninku",
-            }}
+            name="AdminMain"
+            component={AdminDrawerNavigator}
+            options={{ headerShown: false }}
           />
-        </>
-      )}
-    </Stack.Navigator>
+        ) : (
+          <>
+            <Stack.Screen
+              name="ClientMain"
+              component={ClientTabNavigator}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="BookingModal"
+              component={BookingScreen}
+              options={{
+                presentation: "modal",
+                headerTitle: "Rezervace treninku",
+              }}
+            />
+          </>
+        )}
+      </Stack.Navigator>
+
+      {shouldShowOnboarding ? (
+        <Modal visible animationType="slide" presentationStyle="fullScreen">
+          <Onboarding onComplete={() => setShowOnboarding(false)} />
+        </Modal>
+      ) : null}
+    </>
   );
 }
 
