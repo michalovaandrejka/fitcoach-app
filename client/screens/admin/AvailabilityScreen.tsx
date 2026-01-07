@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import { StyleSheet, View, ScrollView, Pressable, RefreshControl, Alert, Modal } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
@@ -18,6 +19,7 @@ const TIME_OPTIONS = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:
 
 export default function AvailabilityScreen() {
   const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
   const { theme } = useTheme();
   
   const [slots, setSlots] = useState<Availability[]>([]);
@@ -155,7 +157,7 @@ export default function AvailabilityScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.content,
-          { paddingTop: Spacing.xl, paddingBottom: insets.bottom + Spacing.xl },
+          { paddingTop: headerHeight + Spacing.xl, paddingBottom: insets.bottom + Spacing.xl },
         ]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />

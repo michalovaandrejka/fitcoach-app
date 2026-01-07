@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import { StyleSheet, View, ScrollView, Pressable, RefreshControl } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
@@ -15,6 +16,7 @@ import { Booking, Location, Client } from "@/types";
 
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
   const { theme } = useTheme();
   
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -94,7 +96,7 @@ export default function CalendarScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.content,
-          { paddingTop: Spacing.xl, paddingBottom: insets.bottom + Spacing.xl },
+          { paddingTop: headerHeight + Spacing.xl, paddingBottom: insets.bottom + Spacing.xl },
         ]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />

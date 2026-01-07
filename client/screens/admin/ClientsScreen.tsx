@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import { StyleSheet, View, FlatList, RefreshControl, Pressable, TextInput } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
@@ -15,6 +16,7 @@ import { Client } from "@/types";
 
 export default function ClientsScreen() {
   const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
   const navigation = useNavigation<any>();
   const { theme } = useTheme();
   
@@ -80,7 +82,7 @@ export default function ClientsScreen() {
           </View>
           <View style={styles.bookingsCount}>
             <ThemedText type="h4" style={{ color: theme.primary }}>{item.bookingsCount}</ThemedText>
-            <ThemedText type="caption" style={{ color: theme.textSecondary }}>tréninků</ThemedText>
+            <ThemedText type="small" style={{ color: theme.textSecondary }}>tréninků</ThemedText>
           </View>
           <Feather name="chevron-right" size={20} color={theme.textSecondary} />
         </View>
@@ -113,7 +115,7 @@ export default function ClientsScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={[
           styles.listContent,
-          { paddingTop: showSearch ? Spacing.md : Spacing.xl, paddingBottom: insets.bottom + Spacing.xl },
+          { paddingTop: showSearch ? headerHeight + Spacing.md : headerHeight + Spacing.xl, paddingBottom: insets.bottom + Spacing.xl },
         ]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />

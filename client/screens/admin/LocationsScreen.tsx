@@ -83,7 +83,7 @@ export default function LocationsScreen() {
   };
 
   const LocationCard = ({ location }: { location: Location }) => (
-    <Card elevation={1} style={[styles.locationCard, !location.isActive ? styles.inactiveCard : null]}>
+    <Card elevation={1} style={{ ...styles.locationCard, ...(!location.isActive ? styles.inactiveCard : {}) }}>
       <View style={styles.locationHeader}>
         <View style={[styles.statusDot, { backgroundColor: location.isActive ? theme.success : theme.textSecondary }]} />
         <View style={styles.locationInfo}>

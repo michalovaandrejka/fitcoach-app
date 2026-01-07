@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { StyleSheet, View, TextInput, Pressable, ActivityIndicator } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
@@ -25,6 +26,7 @@ export default function MealPlanScreen() {
   const { theme } = useTheme();
   const { user } = useAuth();
   const tabBarHeight = useBottomTabBarHeight();
+  const headerHeight = useHeaderHeight();
   
   const [likes, setLikes] = useState("");
   const [dislikes, setDislikes] = useState("");
@@ -94,7 +96,7 @@ export default function MealPlanScreen() {
       <KeyboardAwareScrollViewCompat
         contentContainerStyle={[
           styles.content,
-          { paddingTop: Spacing.xl, paddingBottom: tabBarHeight + Spacing.xl },
+          { paddingTop: headerHeight + Spacing.xl, paddingBottom: tabBarHeight + Spacing.xl },
         ]}
       >
         <Card elevation={1} style={styles.card}>
