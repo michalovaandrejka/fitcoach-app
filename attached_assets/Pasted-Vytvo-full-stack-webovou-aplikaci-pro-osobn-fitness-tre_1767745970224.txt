@@ -1,0 +1,78 @@
+Vytvoř full-stack webovou aplikaci pro osobní fitness trenérku.
+
+CÍL APLIKACE:
+Aplikace slouží fitness trenérce (admin) a jejím klientům.
+Klienti si přes aplikaci rezervují osobní tréninky, vybírají pobočku fitka,
+vyplňují informace o jídelníčku a komunikují s trenérkou.
+Trenérka má admin rozhraní pro správu klientů, kalendáře a jídelníčků.
+
+TECH STACK:
+- Backend: Node.js + Express
+- Frontend: React
+- Autentizace: JWT
+- Databáze: PostgreSQL (nebo MongoDB, pokud je jednodušší)
+- Stylování: moderní UI knihovna (Material UI / Ant Design)
+- Architektura: REST API
+
+ROLE:
+1) CLIENT – běžný klient
+2) ADMIN – trenérka
+
+FUNKCE PRO KLIENTA:
+- registrace a přihlášení
+- přehled vlastních tréninků
+- rezervace tréninku:
+  - výběr data
+  - výběr času
+  - výběr pobočky (2 pobočky)
+  - klient vidí pouze volné termíny
+- zrušení rezervace
+- sekce „Jídelníček“:
+  - co mám rád
+  - co nesnáším
+  - kolikrát denně jím
+  - cíle (hubnutí / svaly / kondice)
+  - poznámky trenérce
+- profil uživatele
+
+FUNKCE PRO ADMINA (TRENÉRKU):
+- admin dashboard
+- přehled všech klientů
+- detail klienta:
+  - rezervace
+  - jídelníček
+  - poznámky klienta
+- kalendář tréninků
+- správa dostupnosti:
+  - přidání volných termínů
+  - odebrání termínů
+- správa poboček (2 fitka)
+- interní poznámky ke klientovi (neviditelné pro klienta)
+
+PRAVIDLA:
+- klient nevidí cenu tréninků
+- žádné platby v aplikaci
+- žádný realtime chat
+- jednoduché, přehledné UI
+- aplikace je připravená jako MVP
+
+STRUKTURA ENTIT:
+- User (id, role, email, password)
+- Booking (user_id, date, time, location_id)
+- Availability (date, time, is_available)
+- Location (id, name)
+- MealPreference (user_id, likes, dislikes, meals_per_day, goal, notes)
+- AdminNote (user_id, note)
+
+DALŠÍ POŽADAVKY:
+- role-based přístup (CLIENT / ADMIN)
+- chráněné endpointy
+- základní validace dat
+- projekt strukturovat přehledně (controllers, routes, services)
+- připravit projekt tak, aby šel později rozšířit na mobilní aplikaci (React Native)
+
+VÝSTUP:
+- funkční backend API
+- funkční React frontend
+- základní UI
+- README s instrukcemi, jak projekt spustit
