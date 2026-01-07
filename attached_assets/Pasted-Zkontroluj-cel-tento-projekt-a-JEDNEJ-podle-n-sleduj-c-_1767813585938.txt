@@ -1,0 +1,92 @@
+Zkontroluj celý tento projekt a JEDNEJ podle následujících pravidel:
+
+====================================
+1) KONTROLA ULOŽENÍ DAT
+====================================
+
+Zjisti, zda se data (uživatelé, rezervace, dostupnost, klienti)
+ukládají pouze lokálně, např.:
+- v paměti aplikace
+- v proměnných / polích
+- v useState
+- v Key Value Store
+- nebo jiném lokálním úložišti
+
+====================================
+2) AUTOMATICKÁ OPRAVA (POVINNÁ)
+====================================
+
+POKUD zjistíš, že se data ukládají lokálně,
+NEVYPISUJ ANALÝZU,
+ALE PROVEĎ TYTO KROKY:
+
+A) Vytvoř nebo doplň backend (API server):
+- Node.js + Express
+- samostatný server oddělený od Expo aplikace
+
+B) Připrav projekt tak, aby:
+- všechna data byla ukládána centrálně
+- backend sloužil jako jediný zdroj pravdy
+
+C) Nahraď lokální ukládání dat:
+- registrace uživatelů
+- přihlášení
+- rezervace
+- dostupnost
+- dashboard data
+→ voláním backend API
+
+====================================
+3) DATABÁZE
+====================================
+
+Připrav projekt tak, aby:
+- používal skutečnou databázi
+- připojení bylo řešeno přes:
+  process.env.DATABASE_URL
+- byl kompatibilní s PostgreSQL
+  (pro pozdější nasazení na Railway)
+
+NENASTAVUJ:
+- žádné lokální soubory
+- žádnou dočasnou paměť
+
+====================================
+4) AUTENTIZACE
+====================================
+
+Zajisti, aby:
+- přihlášení probíhalo přes backend
+- byl použit token (např. JWT)
+- uživatel měl jednoznačné ID
+- přihlášení fungovalo na více zařízeních
+
+====================================
+5) REZERVACE A SDÍLENÍ DAT
+====================================
+
+Zajisti, aby:
+- když jeden klient vytvoří rezervaci,
+  ostatní ji okamžitě neviděli jako volnou
+- Andrejka (admin) viděla:
+  - všechny klienty
+  - všechny rezervace
+  - reálná data na dashboardu
+
+====================================
+6) STRUKTURA PRO DALŠÍ KROKY
+====================================
+
+Uprav projekt tak, aby:
+- byl připravený k migraci na Railway
+- backend mohl běžet samostatně
+- mobilní aplikace používala pouze API
+
+====================================
+7) DŮLEŽITÉ PRAVIDLO
+====================================
+
+- pokud je něco lokální → přepiš to na backend
+- neptej se mě na potvrzení
+- jednej tak, aby aplikace byla připravená
+  pro reálné testování více uživateli
