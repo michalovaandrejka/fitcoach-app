@@ -46,3 +46,15 @@ export interface AdminNote {
   note: string;
   updatedAt: string;
 }
+
+export type UserRole = "CLIENT" | "ADMIN";
+
+export interface StoredUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  passwordHash: string;
+  onboardingCompleted: boolean;
+  createdAt: string;
+}

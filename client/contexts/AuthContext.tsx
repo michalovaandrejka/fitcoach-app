@@ -1,27 +1,42 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { StoredUser, UserRole } from "@/types";
+import { authenticateUser, createUser, updateUser, getUserById } from "@/lib/storage";
 
-export type UserRole = "CLIENT" | "ADMIN";
+export type { UserRole };
 
 export interface User {
   id: string;
   email: string;
   name: string;
   role: UserRole;
+  onboardingCompleted: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string, role: UserRole) => Promise<void>;
+  login: (loginOrEmail: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
+  completeOnboarding: () => Promise<void>;
   isAuthenticated: boolean;
+  needsOnboarding: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AUTH_STORAGE_KEY = "@fitcoach_auth";
+const AUTH_STORAGE_KEY = "@fitcoach_auth_v2";
+
+function storedUserToUser(stored: StoredUser): User {
+  return {
+    id: stored.id,
+    email: stored.email,
+    name: stored.name,
+    role: stored.role,
+    onboardingCompleted: stored.onboardingCompleted,
+  };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -35,7 +50,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const stored = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
       if (stored) {
-        setUser(JSON.parse(stored));
+        const parsedUser = JSON.parse(stored) as User;
+        const freshUser = await getUserById(parsedUser.id);
+        if (freshUser) {
+          setUser(storedUserToUser(freshUser));
+        } else {
+          await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+        }
       }
     } catch (error) {
       console.error("Failed to load auth:", error);
@@ -44,31 +65,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = async (email: string, _password: string, role: UserRole) => {
-    const mockUser: User = {
-      id: `user_${Date.now()}`,
-      email,
-      name: email.split("@")[0],
-      role,
-    };
-    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mockUser));
-    setUser(mockUser);
+  const login = async (loginOrEmail: string, password: string) => {
+    const storedUser = await authenticateUser(loginOrEmail, password);
+    const userData = storedUserToUser(storedUser);
+    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userData));
+    setUser(userData);
   };
 
-  const register = async (email: string, _password: string, name: string) => {
-    const mockUser: User = {
-      id: `user_${Date.now()}`,
-      email,
-      name,
-      role: "CLIENT",
-    };
-    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(mockUser));
-    setUser(mockUser);
+  const register = async (email: string, password: string, name: string) => {
+    const storedUser = await createUser(email, password, name);
+    const userData = storedUserToUser(storedUser);
+    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userData));
+    setUser(userData);
   };
 
   const logout = async () => {
     await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
     setUser(null);
+  };
+
+  const completeOnboarding = async () => {
+    if (!user) return;
+    await updateUser(user.id, { onboardingCompleted: true });
+    const updatedUser = { ...user, onboardingCompleted: true };
+    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedUser));
+    setUser(updatedUser);
   };
 
   return (
@@ -79,7 +100,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
+        completeOnboarding,
         isAuthenticated: !!user,
+        needsOnboarding: !!user && !user.onboardingCompleted,
       }}
     >
       {children}

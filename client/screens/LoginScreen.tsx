@@ -9,24 +9,23 @@ import { ThemedText } from "@/components/ThemedText";
 import { Button } from "@/components/Button";
 import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollViewCompat";
 import { useTheme } from "@/hooks/useTheme";
-import { useAuth, UserRole } from "@/contexts/AuthContext";
-import { Spacing, BorderRadius, Colors } from "@/constants/theme";
+import { useAuth } from "@/contexts/AuthContext";
+import { Spacing, BorderRadius } from "@/constants/theme";
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
   const { login, register } = useAuth();
   
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
+  const [loginOrEmail, setLoginOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [selectedRole, setSelectedRole] = useState<UserRole>("CLIENT");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!email || !password) {
-      Alert.alert("Chyba", "Vyplnte email a heslo");
+    if (!loginOrEmail || !password) {
+      Alert.alert("Chyba", "Vyplnte vsechna pole");
       return;
     }
     
@@ -38,42 +37,17 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       if (isLogin) {
-        await login(email, password, selectedRole);
+        await login(loginOrEmail, password);
       } else {
-        await register(email, password, name);
+        await register(loginOrEmail, password, name);
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
-      Alert.alert("Chyba", "Prihlaseni se nezdarilo");
+    } catch (error: any) {
+      Alert.alert("Chyba", error.message || "Prihlaseni se nezdarilo");
     } finally {
       setIsLoading(false);
     }
   };
-
-  const RoleButton = ({ role, label }: { role: UserRole; label: string }) => (
-    <Pressable
-      onPress={() => {
-        setSelectedRole(role);
-        Haptics.selectionAsync();
-      }}
-      style={[
-        styles.roleButton,
-        { 
-          backgroundColor: selectedRole === role ? theme.primary : theme.backgroundSecondary,
-          borderColor: selectedRole === role ? theme.primary : theme.border,
-        },
-      ]}
-    >
-      <ThemedText
-        style={[
-          styles.roleButtonText,
-          { color: selectedRole === role ? "#FFFFFF" : theme.text },
-        ]}
-      >
-        {label}
-      </ThemedText>
-    </Pressable>
-  );
 
   return (
     <ThemedView style={styles.container}>
@@ -95,18 +69,6 @@ export default function LoginScreen() {
           </ThemedText>
         </View>
 
-        {isLogin ? (
-          <View style={styles.roleSelector}>
-            <ThemedText type="small" style={[styles.roleLabel, { color: theme.textSecondary }]}>
-              Prihlasit jako:
-            </ThemedText>
-            <View style={styles.roleButtons}>
-              <RoleButton role="CLIENT" label="Klient" />
-              <RoleButton role="ADMIN" label="Trenerka" />
-            </View>
-          </View>
-        ) : null}
-
         <View style={styles.form}>
           {!isLogin ? (
             <TextInput
@@ -121,11 +83,11 @@ export default function LoginScreen() {
           
           <TextInput
             style={[styles.input, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
-            placeholder="Email"
+            placeholder={isLogin ? "Email nebo login" : "Email"}
             placeholderTextColor={theme.textSecondary}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
+            value={loginOrEmail}
+            onChangeText={setLoginOrEmail}
+            keyboardType={isLogin ? "default" : "email-address"}
             autoCapitalize="none"
           />
           
@@ -149,10 +111,18 @@ export default function LoginScreen() {
 
         <Pressable onPress={() => setIsLogin(!isLogin)} style={styles.switchButton}>
           <ThemedText type="body" style={{ color: theme.textSecondary }}>
-            {isLogin ? "Nemáte účet? " : "Máte účet? "}
+            {isLogin ? "Nemate ucet? " : "Mate ucet? "}
             <ThemedText type="link">{isLogin ? "Registrovat" : "Prihlasit se"}</ThemedText>
           </ThemedText>
         </Pressable>
+
+        {isLogin ? (
+          <View style={styles.hint}>
+            <ThemedText type="small" style={{ color: theme.textSecondary, textAlign: "center" }}>
+              Trenerka: login "Andrea", heslo "Andrea"
+            </ThemedText>
+          </View>
+        ) : null}
       </KeyboardAwareScrollViewCompat>
     </ThemedView>
   );
@@ -181,28 +151,6 @@ const styles = StyleSheet.create({
   subtitle: {
     textAlign: "center",
   },
-  roleSelector: {
-    marginBottom: Spacing["2xl"],
-  },
-  roleLabel: {
-    marginBottom: Spacing.sm,
-    textAlign: "center",
-  },
-  roleButtons: {
-    flexDirection: "row",
-    gap: Spacing.md,
-  },
-  roleButton: {
-    flex: 1,
-    height: Spacing.inputHeight,
-    borderRadius: BorderRadius.sm,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-  },
-  roleButtonText: {
-    fontWeight: "600",
-  },
   form: {
     gap: Spacing.lg,
   },
@@ -216,6 +164,10 @@ const styles = StyleSheet.create({
   switchButton: {
     alignItems: "center",
     marginTop: Spacing["2xl"],
+    padding: Spacing.md,
+  },
+  hint: {
+    marginTop: Spacing.lg,
     padding: Spacing.md,
   },
 });

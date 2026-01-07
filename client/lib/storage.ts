@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Booking, MealPreference, Availability, Location, Client, AdminNote } from "@/types";
+import { Booking, MealPreference, Availability, Location, Client, AdminNote, StoredUser, UserRole } from "@/types";
 
 const KEYS = {
   BOOKINGS: "@fitcoach_bookings",
@@ -8,7 +8,36 @@ const KEYS = {
   LOCATIONS: "@fitcoach_locations",
   CLIENTS: "@fitcoach_clients",
   ADMIN_NOTES: "@fitcoach_admin_notes",
-  DATA_INITIALIZED: "@fitcoach_initialized_v2",
+  USERS: "@fitcoach_users",
+  DATA_INITIALIZED: "@fitcoach_initialized_v3",
+};
+
+function simpleHash(password: string): string {
+  let hash = 0;
+  for (let i = 0; i < password.length; i++) {
+    const char = password.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return `hash_${Math.abs(hash).toString(16)}`;
+}
+
+export function hashPassword(password: string): string {
+  return simpleHash(password);
+}
+
+export function verifyPassword(password: string, hash: string): boolean {
+  return simpleHash(password) === hash;
+}
+
+const DEFAULT_ADMIN: StoredUser = {
+  id: "admin_andrea",
+  email: "Andrea",
+  name: "Andrea",
+  role: "ADMIN",
+  passwordHash: simpleHash("Andrea"),
+  onboardingCompleted: false,
+  createdAt: new Date().toISOString(),
 };
 
 const DEFAULT_LOCATIONS: Location[] = [
@@ -62,9 +91,97 @@ export async function initializeData(): Promise<boolean> {
   await AsyncStorage.setItem(KEYS.AVAILABILITY, JSON.stringify(generateMockAvailability()));
   await AsyncStorage.setItem(KEYS.CLIENTS, JSON.stringify(MOCK_CLIENTS));
   await AsyncStorage.setItem(KEYS.BOOKINGS, JSON.stringify([]));
+  await AsyncStorage.setItem(KEYS.USERS, JSON.stringify([DEFAULT_ADMIN]));
   
   await AsyncStorage.setItem(KEYS.DATA_INITIALIZED, "true");
   return true;
+}
+
+export async function getUsers(): Promise<StoredUser[]> {
+  const data = await AsyncStorage.getItem(KEYS.USERS);
+  return data ? JSON.parse(data) : [DEFAULT_ADMIN];
+}
+
+export async function getUserByEmail(email: string): Promise<StoredUser | null> {
+  const users = await getUsers();
+  return users.find(u => u.email.toLowerCase() === email.toLowerCase()) || null;
+}
+
+export async function getUserById(id: string): Promise<StoredUser | null> {
+  const users = await getUsers();
+  return users.find(u => u.id === id) || null;
+}
+
+export async function createUser(
+  email: string,
+  password: string,
+  name: string
+): Promise<StoredUser> {
+  const users = await getUsers();
+  
+  const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  if (existing) {
+    throw new Error("Uzivatel s timto emailem jiz existuje");
+  }
+  
+  const newUser: StoredUser = {
+    id: `user_${Date.now()}`,
+    email,
+    name,
+    role: "CLIENT",
+    passwordHash: hashPassword(password),
+    onboardingCompleted: false,
+    createdAt: new Date().toISOString(),
+  };
+  
+  users.push(newUser);
+  await AsyncStorage.setItem(KEYS.USERS, JSON.stringify(users));
+  
+  const clients = await getClients();
+  const newClient: Client = {
+    id: newUser.id,
+    email: newUser.email,
+    name: newUser.name,
+    bookingsCount: 0,
+  };
+  clients.push(newClient);
+  await AsyncStorage.setItem(KEYS.CLIENTS, JSON.stringify(clients));
+  
+  return newUser;
+}
+
+export async function updateUser(userId: string, updates: Partial<Omit<StoredUser, "id">>): Promise<void> {
+  const users = await getUsers();
+  const updated = users.map(u => u.id === userId ? { ...u, ...updates } : u);
+  await AsyncStorage.setItem(KEYS.USERS, JSON.stringify(updated));
+}
+
+export async function authenticateUser(
+  loginOrEmail: string,
+  password: string
+): Promise<StoredUser> {
+  if (loginOrEmail.toLowerCase() === "andrea") {
+    const users = await getUsers();
+    const admin = users.find(u => u.id === "admin_andrea");
+    if (!admin) {
+      throw new Error("Admin ucet neexistuje");
+    }
+    if (!verifyPassword(password, admin.passwordHash)) {
+      throw new Error("Nespravne heslo");
+    }
+    return admin;
+  }
+  
+  const user = await getUserByEmail(loginOrEmail);
+  if (!user) {
+    throw new Error("Uzivatel s timto emailem neexistuje");
+  }
+  
+  if (!verifyPassword(password, user.passwordHash)) {
+    throw new Error("Nespravne heslo");
+  }
+  
+  return user;
 }
 
 export async function getLocations(): Promise<Location[]> {
