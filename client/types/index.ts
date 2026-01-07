@@ -47,6 +47,28 @@ export interface AdminNote {
   updatedAt: string;
 }
 
+export interface TrainerMealPlan {
+  id: string;
+  userId: string;
+  content: string;
+  fileType: "pdf" | "text";
+  fileName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Notification {
+  id: string;
+  title?: string;
+  body: string;
+  targetType: "all" | "booked";
+  dateFilter?: string;
+  weekFilter?: boolean;
+  locationId?: string;
+  sentAt: string;
+  recipientCount: number;
+}
+
 export type UserRole = "CLIENT" | "ADMIN";
 
 export interface StoredUser {

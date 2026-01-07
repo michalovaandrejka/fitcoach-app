@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Booking, MealPreference, Availability, Location, Client, AdminNote, StoredUser, UserRole } from "@/types";
+import { Booking, MealPreference, Availability, Location, Client, AdminNote, StoredUser, UserRole, TrainerMealPlan, Notification } from "@/types";
 
 const KEYS = {
   BOOKINGS: "@fitcoach_bookings",
@@ -10,6 +10,8 @@ const KEYS = {
   ADMIN_NOTES: "@fitcoach_admin_notes",
   USERS: "@fitcoach_users",
   DATA_INITIALIZED: "@fitcoach_initialized_v3",
+  TRAINER_MEAL_PLANS: "@fitcoach_trainer_meal_plans",
+  NOTIFICATIONS: "@fitcoach_notifications",
 };
 
 function simpleHash(password: string): string {
@@ -368,6 +370,68 @@ export async function saveAdminNote(note: AdminNote): Promise<void> {
     notes.push(note);
   }
   await AsyncStorage.setItem(KEYS.ADMIN_NOTES, JSON.stringify(notes));
+}
+
+export async function getTrainerMealPlan(userId: string): Promise<TrainerMealPlan | null> {
+  const data = await AsyncStorage.getItem(KEYS.TRAINER_MEAL_PLANS);
+  const plans: TrainerMealPlan[] = data ? JSON.parse(data) : [];
+  return plans.find(p => p.userId === userId) || null;
+}
+
+export async function saveTrainerMealPlan(plan: TrainerMealPlan): Promise<void> {
+  const data = await AsyncStorage.getItem(KEYS.TRAINER_MEAL_PLANS);
+  const plans: TrainerMealPlan[] = data ? JSON.parse(data) : [];
+  const existing = plans.findIndex(p => p.userId === plan.userId);
+  if (existing >= 0) {
+    plans[existing] = plan;
+  } else {
+    plans.push(plan);
+  }
+  await AsyncStorage.setItem(KEYS.TRAINER_MEAL_PLANS, JSON.stringify(plans));
+}
+
+export async function getNotifications(): Promise<Notification[]> {
+  const data = await AsyncStorage.getItem(KEYS.NOTIFICATIONS);
+  return data ? JSON.parse(data) : [];
+}
+
+export async function saveNotification(notification: Notification): Promise<void> {
+  const notifications = await getNotifications();
+  notifications.unshift(notification);
+  await AsyncStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(notifications));
+}
+
+export async function getBookedClientsForFilter(
+  dateFilter?: string,
+  weekFilter?: boolean,
+  locationId?: string
+): Promise<Client[]> {
+  const bookings = await getBookings();
+  const clients = await getClients();
+  
+  let filteredBookings = bookings;
+  
+  if (dateFilter) {
+    filteredBookings = filteredBookings.filter(b => b.date === dateFilter);
+  } else if (weekFilter) {
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay() + 1);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    
+    const startStr = startOfWeek.toISOString().split("T")[0];
+    const endStr = endOfWeek.toISOString().split("T")[0];
+    
+    filteredBookings = filteredBookings.filter(b => b.date >= startStr && b.date <= endStr);
+  }
+  
+  if (locationId) {
+    filteredBookings = filteredBookings.filter(b => b.locationId === locationId);
+  }
+  
+  const uniqueClientIds = [...new Set(filteredBookings.map(b => b.userId))];
+  return clients.filter(c => uniqueClientIds.includes(c.id));
 }
 
 export async function clearAllData(): Promise<void> {

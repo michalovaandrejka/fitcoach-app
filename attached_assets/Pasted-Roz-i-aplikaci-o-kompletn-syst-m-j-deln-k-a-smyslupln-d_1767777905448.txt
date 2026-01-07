@@ -1,0 +1,140 @@
+Rozšiř aplikaci o kompletní systém jídelníčků
+a smysluplný detail klienta v administraci.
+
+====================================
+1) MENU „KLIENTI“ – CHOVÁNÍ
+====================================
+
+V ADMIN SEKCI existuje menu „Klienti“.
+
+POŽADAVEK:
+- po kliknutí na konkrétního klienta
+  se MUSÍ otevřít detail klienta
+- detail klienta je hlavní pracovní obrazovka trenérky
+
+====================================
+2) DETAIL KLIENTA – CO TAM CHCI VIDĚT
+====================================
+
+Po kliknutí na klienta zobraz DETAIL KLIENTA,
+který obsahuje tyto sekce:
+
+------------------------------------
+A) ZÁKLADNÍ INFORMACE
+------------------------------------
+- jméno klienta
+- email
+- (volitelně) poznámka trenérky
+
+------------------------------------
+B) STRAVOVACÍ PREFERENCE KLIENTA
+------------------------------------
+
+Sekce „Stravovací preference“:
+
+ZOBRAZIT:
+- co má klient rád
+- co nesnáší
+- kolikrát denně jí
+- cíle (hubnutí / svaly / udržení)
+- poznámky klienta
+
+CHOVÁNÍ:
+- data jsou read-only pro klienta
+- trenérka je může vidět a upravit
+
+POKUD KLIENT NEMÁ VYPLNĚNO:
+- zobraz text:
+  „Klient zatím nemá vyplněné stravovací preference“
+
+------------------------------------
+C) JÍDELNÍČEK OD TRENÉRKY
+------------------------------------
+
+Sekce „Jídelníček“:
+
+TRENÉRKA MUSÍ MÍT MOŽNOST:
+- nahrát jídelníček:
+  - PDF
+  - nebo textový jídelníček
+- upravit / nahradit existující jídelníček
+- vidět datum vytvoření
+
+CHOVÁNÍ:
+- jídelníček je vždy přiřazen ke konkrétnímu klientovi
+- může existovat více verzí (historie) nebo jen poslední (MVP varianta)
+
+------------------------------------
+D) NÁHLED PRO KLIENTA
+------------------------------------
+
+ZOBRAZ:
+- informaci:
+  „Takto jídelníček vidí klient“
+
+- tlačítka:
+  - „Zobrazit jídelníček“
+  - „Stáhnout jídelníček (PDF)“
+
+====================================
+3) KLIENTSKÁ ČÁST – JÍDELNÍČEK
+====================================
+
+V KLIENTSKÉ ČÁSTI aplikace:
+
+KLIENT VIDÍ:
+- sekci „Můj jídelníček“
+- jídelníček nahraný trenérkou
+- možnost:
+  - otevřít
+  - stáhnout
+
+KLIENT NEMŮŽE:
+- jídelníček upravovat
+- mazat
+
+====================================
+4) KLIENT – VYPLNĚNÍ PREFERENCÍ
+====================================
+
+KLIENT MUSÍ MÍT:
+- formulář „Stravovací preference“
+- pole:
+  - co mám rád
+  - co nesnáším
+  - kolikrát denně jím
+  - cíle
+  - poznámky
+
+POVINNÉ:
+- tlačítko „Uložit“
+
+CHOVÁNÍ:
+- data se ukládají do databáze
+- trenérka je vidí v detailu klienta
+
+====================================
+5) DATOVÝ MODEL (NÁVRH)
+====================================
+
+MealPreferences:
+- user_id
+- likes
+- dislikes
+- meals_per_day
+- goals
+- notes
+
+TrainerMealPlan:
+- user_id
+- file_url nebo content
+- created_at
+
+====================================
+6) UX CÍL
+====================================
+
+- kliknutí na klienta má smysl
+- trenérka má vše důležité na jednom místě
+- jídelníčky jsou přehledné
+- práce s klientem je rychlá a intuitivní

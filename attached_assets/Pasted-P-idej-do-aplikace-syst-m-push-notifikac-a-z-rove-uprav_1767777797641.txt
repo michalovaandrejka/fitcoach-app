@@ -1,0 +1,132 @@
+Přidej do aplikace systém push notifikací
+a zároveň uprav základní design aplikace podle níže uvedených požadavků.
+
+====================================
+1) PUSH NOTIFIKACE – ZÁKLAD
+====================================
+
+ADMIN (trenérka) musí mít možnost:
+- vytvořit nové oznámení (push notifikaci)
+- zadat:
+  - název / předmět (volitelné)
+  - text zprávy (povinné)
+- odeslat notifikaci vybrané skupině klientů
+
+====================================
+2) CÍLENÍ NOTIFIKACÍ (KLÍČOVÁ LOGIKA)
+====================================
+
+Admin si musí vybrat, KOMU se notifikace odešle.
+
+MOŽNOSTI:
+- všem klientům
+- pouze klientům, kteří mají objednaný trénink
+
+POKUD ZVOLÍ „OBJEDNANÍ KLIENTI“,
+musí být dostupné filtry:
+
+ČAS:
+- konkrétní den (výběr data)
+- celý týden (aktuální nebo vybraný)
+
+POBOČKA:
+- všechny pobočky
+- pouze konkrétní pobočka (Fitko A / Fitko B)
+
+KOMBINACE FILTRŮ:
+- klienti objednaní DNES v Fitku A
+- klienti objednaní TENTO TÝDEN ve všech fitkách
+- klienti objednaní v konkrétní den v konkrétní pobočce
+
+====================================
+3) LOGIKA VÝBĚRU PŘÍJEMCŮ
+====================================
+
+PŘÍJEMCI:
+- jsou určeni na základě rezervací (bookings)
+
+POSTUP:
+1) admin nastaví filtry
+2) backend vyhledá odpovídající rezervace
+3) z rezervací vytvoří unikátní seznam klientů
+4) notifikace se odešle pouze těmto klientům
+
+PRAVIDLA:
+- žádné duplicitní notifikace
+- jeden klient = jedna notifikace
+
+====================================
+4) TECHNICKÁ IMPLEMENTACE PUSH
+====================================
+
+- používej Expo Push Notifications
+- každý klient má uložený push token
+- notifikace se odešle pouze klientům:
+  - s platným push tokenem
+  - kteří používají mobilní aplikaci
+
+====================================
+5) ADMIN ROZHRANÍ – OZNÁMENÍ
+====================================
+
+V ADMIN SEKCI VYTVOŘ:
+- obrazovku „Oznámení“
+- formulář obsahující:
+  - text oznámení
+  - výběr cílové skupiny
+  - výběr dne / týdne
+  - výběr pobočky
+- tlačítko:
+  - „Odeslat oznámení“
+
+VOLITELNĚ:
+- zobraz náhled:
+  - kolika klientům bude notifikace odeslána
+
+====================================
+6) ÚPRAVA DESIGNU A BRANDING
+====================================
+
+ZÁKLADNÍ STYL APLIKACE:
+- minimalistický, čistý, ženský fitness styl
+
+BAREVNÁ PALETA:
+- bílá (#FFFFFF)
+- černá (#000000)
+- růžová (např. #E91E63 nebo podobný jemný růžový odstín)
+
+POUŽITÍ:
+- bílá: pozadí
+- černá: texty
+- růžová: hlavní akce, tlačítka, zvýraznění
+
+====================================
+7) ÚVODNÍ OBRAZOVKA (LANDING / LOGIN)
+====================================
+
+Na úvodní obrazovce aplikace zobraz:
+- text:
+  „Andrea Michalová – fitness trenérka“
+- profilovou fotografii trenérky
+- moderní, čistý layout
+- zachovat jednotné přihlášení (email / admin login)
+
+Fotografie:
+- kruhový nebo jemně zaoblený rámeček
+- umístěná nad nebo pod názvem
+
+====================================
+8) PŘÍKLADY POUŽITÍ NOTIFIKACÍ
+====================================
+
+- „Dnes jsem nemocná, ruším všechny dnešní tréninky“
+- „Prosím klienty z Fitka A, aby se dnes přesunuli do Fitka B“
+- „Tento týden budou změny v rozvrhu“
+
+====================================
+9) CÍL
+====================================
+
+- umožnit trenérce rychle a cíleně informovat klienty
+- aplikace má působit profesionálně, přehledně a důvěryhodně
+- design má odpovídat osobní fitness značce trenérky

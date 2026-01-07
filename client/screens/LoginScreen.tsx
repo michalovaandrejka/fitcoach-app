@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, View, TextInput, Pressable, ActivityIndicator, Alert } from "react-native";
+import { StyleSheet, View, TextInput, Pressable, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import * as Haptics from "expo-haptics";
@@ -58,20 +58,30 @@ export default function LoginScreen() {
       <KeyboardAwareScrollViewCompat
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + Spacing["3xl"], paddingBottom: insets.bottom + Spacing.xl },
+          { paddingTop: insets.top + Spacing["4xl"], paddingBottom: insets.bottom + Spacing.xl },
         ]}
       >
         <View style={styles.header}>
-          <Image
-            source={require("@assets/images/icon.png")}
-            style={styles.logo}
-            contentFit="contain"
-          />
-          <ThemedText type="h1" style={styles.title}>FitCoach</ThemedText>
-          <ThemedText type="body" style={[styles.subtitle, { color: theme.textSecondary }]}>
-            {isLogin ? "Prihlaste se do aplikace" : "Vytvorte si ucet"}
+          <View style={[styles.photoContainer, { borderColor: theme.primary }]}>
+            <Image
+              source={require("@assets/generated_images/fitness_trainer_professional_portrait.png")}
+              style={styles.photo}
+              contentFit="cover"
+            />
+          </View>
+          <ThemedText type="h2" style={styles.trainerName}>Andrea Michalova</ThemedText>
+          <ThemedText type="body" style={[styles.trainerTitle, { color: theme.primary }]}>
+            fitness trenerka
           </ThemedText>
         </View>
+
+        <View style={styles.divider}>
+          <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+        </View>
+
+        <ThemedText type="h4" style={styles.formTitle}>
+          {isLogin ? "Prihlaseni" : "Registrace"}
+        </ThemedText>
 
         {errorMessage ? (
           <View style={[styles.errorContainer, { backgroundColor: theme.error + "20", borderColor: theme.error }]}>
@@ -148,18 +158,39 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
-    marginBottom: Spacing["3xl"],
+    marginBottom: Spacing["2xl"],
   },
-  logo: {
-    width: 100,
-    height: 100,
+  photoContainer: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    borderWidth: 3,
+    overflow: "hidden",
     marginBottom: Spacing.lg,
   },
-  title: {
-    marginBottom: Spacing.sm,
+  photo: {
+    width: "100%",
+    height: "100%",
   },
-  subtitle: {
+  trainerName: {
+    marginBottom: Spacing.xs,
     textAlign: "center",
+  },
+  trainerTitle: {
+    textAlign: "center",
+    fontWeight: "500",
+  },
+  divider: {
+    alignItems: "center",
+    marginBottom: Spacing["2xl"],
+  },
+  dividerLine: {
+    width: 60,
+    height: 2,
+  },
+  formTitle: {
+    textAlign: "center",
+    marginBottom: Spacing.lg,
   },
   errorContainer: {
     padding: Spacing.md,
