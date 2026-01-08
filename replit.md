@@ -105,10 +105,19 @@ The app runs on port 8081 (Expo) with the Express backend on port 5000.
 
 ### Railway Deployment
 1. Create PostgreSQL database on Railway
-2. Set environment variable `DATABASE_URL` to Railway connection string
-3. Set `SESSION_SECRET` for JWT signing
-4. Deploy Express backend (port 5000)
-5. Update `EXPO_PUBLIC_DOMAIN` to point to deployed backend URL
+2. Set these environment variables:
+   - `DATABASE_URL` - Railway PostgreSQL connection string
+   - `SESSION_SECRET` - Secret key for JWT signing
+   - `NODE_ENV` - Set to `production`
+   - `PORT` - Set to `5000` (or Railway's default)
+   - `RAILWAY_PUBLIC_DOMAIN` - Your Railway app domain (e.g., `fitcoach.up.railway.app`)
+   - `ALLOWED_ORIGINS` - Comma-separated list of allowed origins (optional)
+3. Deploy Express backend
+4. For Expo app: Set `EXPO_PUBLIC_DOMAIN` to your Railway backend URL (without protocol)
+
+### Health Check Endpoints
+- `/status` - Returns `{ status: "ok", timestamp: "..." }`
+- `/api/health` - Returns `{ status: "ok", timestamp: "..." }`
 
 ### Admin Credentials
 - Email/Username: `Andrea`

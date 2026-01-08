@@ -27,6 +27,16 @@ function setupCors(app: express.Application) {
       });
     }
 
+    if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+      origins.add(`https://${process.env.RAILWAY_PUBLIC_DOMAIN}`);
+    }
+
+    if (process.env.ALLOWED_ORIGINS) {
+      process.env.ALLOWED_ORIGINS.split(",").forEach((d) => {
+        origins.add(d.trim());
+      });
+    }
+
     const origin = req.header("origin");
 
     if (origin && origins.has(origin)) {
@@ -35,8 +45,17 @@ function setupCors(app: express.Application) {
         "Access-Control-Allow-Methods",
         "GET, POST, PUT, DELETE, OPTIONS",
       );
-      res.header("Access-Control-Allow-Headers", "Content-Type");
+      res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
       res.header("Access-Control-Allow-Credentials", "true");
+    }
+
+    if (!origin && process.env.NODE_ENV === "production") {
+      res.header("Access-Control-Allow-Origin", "*");
+      res.header(
+        "Access-Control-Allow-Methods",
+        "GET, POST, PUT, DELETE, OPTIONS",
+      );
+      res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
     }
 
     if (req.method === "OPTIONS") {
