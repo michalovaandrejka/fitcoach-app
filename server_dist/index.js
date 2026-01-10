@@ -1037,6 +1037,12 @@ function setupErrorHandler(app2) {
   });
 }
 (async () => {
+  app.get("/status", (req, res) => {
+    res.json({ status: "ok", timestamp: (/* @__PURE__ */ new Date()).toISOString() });
+  });
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", timestamp: (/* @__PURE__ */ new Date()).toISOString() });
+  });
   setupCors(app);
   setupBodyParsing(app);
   setupRequestLogging(app);

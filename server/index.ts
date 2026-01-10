@@ -236,6 +236,14 @@ function setupErrorHandler(app: express.Application) {
 }
 
 (async () => {
+  app.get("/status", (req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   setupCors(app);
   setupBodyParsing(app);
   setupRequestLogging(app);
