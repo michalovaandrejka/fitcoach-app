@@ -115,9 +115,14 @@ export async function apiRegister(email: string, password: string, name: string)
 export async function apiGetMe(): Promise<AuthUser | null> {
   try {
     const token = await getToken();
+    console.log("[API] apiGetMe - token:", token ? "exists" : "none");
     if (!token) return null;
-    return await apiRequest<AuthUser>("GET", "/api/auth/me");
-  } catch {
+    console.log("[API] apiGetMe - calling API...");
+    const result = await apiRequest<AuthUser>("GET", "/api/auth/me");
+    console.log("[API] apiGetMe - success:", result);
+    return result;
+  } catch (error) {
+    console.error("[API] apiGetMe - error:", error);
     return null;
   }
 }

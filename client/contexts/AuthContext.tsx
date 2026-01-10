@@ -44,20 +44,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadStoredAuth = async () => {
+    console.log("[Auth] Starting loadStoredAuth...");
     try {
       const storedUser = await getStoredUser();
+      console.log("[Auth] Stored user:", storedUser ? "found" : "none");
       if (storedUser) {
+        console.log("[Auth] Fetching fresh user from API...");
         const freshUser = await apiGetMe();
+        console.log("[Auth] Fresh user:", freshUser ? "received" : "null");
         if (freshUser) {
           setUser(authUserToUser(freshUser));
         } else {
+          console.log("[Auth] No fresh user, logging out");
           await apiLogout();
         }
       }
     } catch (error) {
-      console.error("Failed to load auth:", error);
+      console.error("[Auth] Failed to load auth:", error);
       await apiLogout();
     } finally {
+      console.log("[Auth] Setting isLoading to false");
       setIsLoading(false);
     }
   };

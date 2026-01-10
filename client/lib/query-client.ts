@@ -6,6 +6,7 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
  */
 export function getApiUrl(): string {
   let host = process.env.EXPO_PUBLIC_DOMAIN;
+  console.log("[API] Original EXPO_PUBLIC_DOMAIN:", host);
 
   // Remove port suffix if present (Replit doesn't expose raw ports)
   if (host && host.includes(":5000")) {
@@ -24,6 +25,7 @@ export function getApiUrl(): string {
   }
 
   let url = new URL(`https://${host}`);
+  console.log("[API] Final API URL:", url.href);
 
   return url.href;
 }
