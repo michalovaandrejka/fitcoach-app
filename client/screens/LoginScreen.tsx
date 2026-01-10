@@ -67,6 +67,7 @@ export default function LoginScreen() {
               source={require("@assets/trainer-photo.jpeg")}
               style={styles.photo}
               contentFit="cover"
+              contentPosition="top"
             />
           </View>
           <ThemedText type="h2" style={styles.trainerName}>Andrea Michalová</ThemedText>
