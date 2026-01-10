@@ -1,1 +1,1 @@
-web: npm run server:build && npm run server:prod
+web: NODE_ENV=production npx tsx server/index.ts
