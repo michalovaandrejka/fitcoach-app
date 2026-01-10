@@ -100,6 +100,9 @@ The app runs on port 8081 (Expo) with the Express backend on port 5000.
 - **Comprehensive error handling**: All API calls wrapped with try/catch and user-friendly error alerts
 - **Complete API migration** (January 2026): All 12 screens now use REST API exclusively. No business data in AsyncStorage.
 - **Railway deployment ready**: Backend uses DATABASE_URL environment variable, no hardcoded URLs
+- **Trainer contact info** (January 2026): Admin can add phone (required), email, WhatsApp; clients can tap to call/email/chat
+- **Improved booking UX**: Time slots now open confirmation modal on tap instead of scroll-to-bottom button
+- **Czech diacritics**: Fixed all missing diacritics in Czech text throughout the app
 
 ## Deployment
 
