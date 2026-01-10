@@ -162,6 +162,15 @@ export const trainerContact = pgTable("trainer_contact", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const trainerPhotos = pgTable("trainer_photos", {
+  id: varchar("id", { length: 36 })
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  mimeType: text("mime_type").notNull(),
+  data: text("data").notNull(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -220,6 +229,11 @@ export const insertTrainerContactSchema = createInsertSchema(trainerContact).omi
   updatedAt: true,
 });
 
+export const insertTrainerPhotoSchema = createInsertSchema(trainerPhotos).omit({
+  id: true,
+  updatedAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Location = typeof locations.$inferSelect;
@@ -238,3 +252,5 @@ export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type TrainerContact = typeof trainerContact.$inferSelect;
 export type InsertTrainerContact = z.infer<typeof insertTrainerContactSchema>;
+export type TrainerPhoto = typeof trainerPhotos.$inferSelect;
+export type InsertTrainerPhoto = z.infer<typeof insertTrainerPhotoSchema>;

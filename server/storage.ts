@@ -1,11 +1,12 @@
 import {
   users, locations, availabilityBlocks, bookings,
-  mealPreferences, adminNotes, trainerMealPlans, notifications, trainerContact,
+  mealPreferences, adminNotes, trainerMealPlans, notifications, trainerContact, trainerPhotos,
   type User, type InsertUser, type Location, type InsertLocation,
   type AvailabilityBlock, type InsertAvailabilityBlock,
   type Booking, type InsertBooking, type MealPreference, type InsertMealPreference,
   type AdminNote, type InsertAdminNote, type TrainerMealPlan, type InsertTrainerMealPlan,
-  type Notification, type InsertNotification, type TrainerContact, type InsertTrainerContact
+  type Notification, type InsertNotification, type TrainerContact, type InsertTrainerContact,
+  type TrainerPhoto, type InsertTrainerPhoto
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lte, or, desc, asc } from "drizzle-orm";
@@ -64,6 +65,9 @@ export interface IStorage {
 
   getTrainerContact(): Promise<TrainerContact | undefined>;
   saveTrainerContact(data: InsertTrainerContact): Promise<TrainerContact>;
+
+  getTrainerPhoto(): Promise<TrainerPhoto | undefined>;
+  saveTrainerPhoto(data: InsertTrainerPhoto): Promise<TrainerPhoto>;
 
   getAvailableStartTimes(date: string, branchId?: string): Promise<{ startTime: string; endTime: string; branchId: string; branchName: string; blockId: string; }[]>;
 }
@@ -327,6 +331,21 @@ export class DatabaseStorage implements IStorage {
       return updated;
     }
     const [created] = await db.insert(trainerContact).values(data).returning();
+    return created;
+  }
+
+  async getTrainerPhoto(): Promise<TrainerPhoto | undefined> {
+    const [photo] = await db.select().from(trainerPhotos).limit(1);
+    return photo || undefined;
+  }
+
+  async saveTrainerPhoto(data: InsertTrainerPhoto): Promise<TrainerPhoto> {
+    const existing = await this.getTrainerPhoto();
+    if (existing) {
+      const [updated] = await db.update(trainerPhotos).set({ ...data, updatedAt: new Date() }).where(eq(trainerPhotos.id, existing.id)).returning();
+      return updated;
+    }
+    const [created] = await db.insert(trainerPhotos).values(data).returning();
     return created;
   }
 

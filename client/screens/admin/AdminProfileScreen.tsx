@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, ScrollView, Pressable, Alert, TextInput, ActivityIndicator } from "react-native";
+import { StyleSheet, View, ScrollView, Pressable, Alert, TextInput, ActivityIndicator, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
+import { Image } from "expo-image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { ThemedView } from "@/components/ThemedView";
@@ -13,12 +15,20 @@ import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { apiRequest, getApiUrl } from "@/lib/query-client";
+import { getToken } from "@/lib/api";
 
 interface TrainerContact {
   id: string;
   phone: string;
   email: string | null;
   whatsapp: string | null;
+  updatedAt: string;
+}
+
+interface TrainerPhoto {
+  id: string;
+  mimeType: string;
+  data: string;
   updatedAt: string;
 }
 
@@ -33,9 +43,15 @@ export default function AdminProfileScreen() {
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const { data: contact, isLoading } = useQuery<TrainerContact | null>({
     queryKey: ["/api/trainer-contact"],
+  });
+
+  const { data: trainerPhoto, isLoading: isLoadingPhoto } = useQuery<TrainerPhoto | null>({
+    queryKey: ["/api/trainer-photo"],
+    retry: false,
   });
 
   useEffect(() => {
@@ -94,6 +110,64 @@ export default function AdminProfileScreen() {
     );
   };
 
+  const handlePickPhoto = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert("Oprávnění", "Pro výběr fotky je potřeba oprávnění k přístupu ke galerii.");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+        base64: true,
+      });
+
+      if (result.canceled || !result.assets?.[0]?.base64) {
+        return;
+      }
+
+      const asset = result.assets[0];
+      const mimeType = asset.mimeType || "image/jpeg";
+      const base64Data = `data:${mimeType};base64,${asset.base64}`;
+
+      setIsUploadingPhoto(true);
+      try {
+        const token = await getToken();
+        const baseUrl = getApiUrl();
+        const url = new URL("/api/trainer-photo", baseUrl);
+        
+        const response = await fetch(url.href, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({ mimeType, data: base64Data }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Chyba při nahrávání");
+        }
+
+        queryClient.invalidateQueries({ queryKey: ["/api/trainer-photo"] });
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        Alert.alert("Úspěch", "Profilová fotka byla změněna.");
+      } catch (error: any) {
+        Alert.alert("Chyba", error.message || "Nepodařilo se nahrát fotku.");
+      } finally {
+        setIsUploadingPhoto(false);
+      }
+    } catch (error) {
+      console.error("Pick photo error:", error);
+      Alert.alert("Chyba", "Nepodařilo se vybrat fotku.");
+    }
+  };
+
   return (
     <ThemedView style={styles.container}>
       <ScrollView
@@ -104,9 +178,29 @@ export default function AdminProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <View style={[styles.avatarContainer, { backgroundColor: theme.secondary }]}>
-            <Feather name="award" size={48} color="#FFFFFF" />
-          </View>
+          <Pressable onPress={handlePickPhoto} disabled={isUploadingPhoto} style={styles.photoWrapper}>
+            <View style={[styles.avatarContainer, { borderColor: theme.primary }]}>
+              {isUploadingPhoto || isLoadingPhoto ? (
+                <View style={[styles.avatarPlaceholder, { backgroundColor: theme.backgroundSecondary }]}>
+                  <ActivityIndicator size="large" color={theme.primary} />
+                </View>
+              ) : trainerPhoto?.data ? (
+                <Image
+                  source={{ uri: trainerPhoto.data }}
+                  style={styles.avatarImage}
+                  contentFit="cover"
+                  contentPosition="top"
+                />
+              ) : (
+                <View style={[styles.avatarPlaceholder, { backgroundColor: theme.secondary }]}>
+                  <Feather name="award" size={48} color="#FFFFFF" />
+                </View>
+              )}
+            </View>
+            <View style={[styles.editBadge, { backgroundColor: theme.primary }]}>
+              <Feather name="camera" size={14} color="#FFFFFF" />
+            </View>
+          </Pressable>
           <ThemedText type="h2" style={styles.name}>{user?.name}</ThemedText>
           <View style={[styles.roleBadge, { backgroundColor: theme.secondary + "20" }]}>
             <ThemedText type="small" style={{ color: theme.secondary, fontWeight: "600" }}>
@@ -260,13 +354,38 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: Spacing["2xl"],
   },
+  photoWrapper: {
+    position: "relative",
+    marginBottom: Spacing.lg,
+  },
   avatarContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: Spacing.lg,
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+  },
+  avatarPlaceholder: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  editBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
   name: {
     marginBottom: Spacing.sm,

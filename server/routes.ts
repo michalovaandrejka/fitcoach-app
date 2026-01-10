@@ -533,6 +533,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/trainer-photo", async (req, res) => {
+    try {
+      const photo = await storage.getTrainerPhoto();
+      if (!photo) {
+        return res.status(404).json({ error: "Foto nenalezeno" });
+      }
+      res.json(photo);
+    } catch (error) {
+      console.error("Get trainer photo error:", error);
+      res.status(500).json({ error: "Chyba" });
+    }
+  });
+
+  app.post("/api/trainer-photo", authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { mimeType, data } = req.body;
+      if (!mimeType || !data) {
+        return res.status(400).json({ error: "Chybí mimeType nebo data" });
+      }
+      const maxSizeBytes = 2 * 1024 * 1024;
+      const dataSize = Buffer.byteLength(data, "utf8");
+      if (dataSize > maxSizeBytes * 1.37) {
+        return res.status(400).json({ error: "Obrázek je příliš velký (max 2MB)" });
+      }
+      const photo = await storage.saveTrainerPhoto({ mimeType, data });
+      res.json(photo);
+    } catch (error) {
+      console.error("Save trainer photo error:", error);
+      res.status(500).json({ error: "Chyba při ukládání fotky" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

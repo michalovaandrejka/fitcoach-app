@@ -3,6 +3,7 @@ import { StyleSheet, View, TextInput, Pressable, ActivityIndicator } from "react
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import * as Haptics from "expo-haptics";
+import { useQuery } from "@tanstack/react-query";
 
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -11,6 +12,13 @@ import { KeyboardAwareScrollViewCompat } from "@/components/KeyboardAwareScrollV
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
+
+interface TrainerPhoto {
+  id: string;
+  mimeType: string;
+  data: string;
+  updatedAt: string;
+}
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -23,6 +31,12 @@ export default function LoginScreen() {
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const { data: trainerPhoto } = useQuery<TrainerPhoto | null>({
+    queryKey: ["/api/trainer-photo"],
+    retry: false,
+    staleTime: 1000 * 60 * 5,
+  });
 
   const handleSubmit = async () => {
     setErrorMessage("");
@@ -64,7 +78,7 @@ export default function LoginScreen() {
         <View style={styles.header}>
           <View style={[styles.photoContainer, { borderColor: theme.primary }]}>
             <Image
-              source={require("@assets/trainer-photo.jpeg")}
+              source={trainerPhoto?.data ? { uri: trainerPhoto.data } : require("@assets/trainer-photo.jpeg")}
               style={styles.photo}
               contentFit="cover"
               contentPosition="top"
