@@ -60,3 +60,4 @@ ensurePreviewReachable = "/status"
 [userenv]
 
 [userenv.shared]
+EXPO_PUBLIC_DOMAIN = "web-production-bd36.up.railway.app"
