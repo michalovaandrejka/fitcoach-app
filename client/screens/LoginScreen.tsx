@@ -64,7 +64,7 @@ export default function LoginScreen() {
         <View style={styles.header}>
           <View style={[styles.photoContainer, { borderColor: theme.primary }]}>
             <Image
-              source={require("@assets/att.JdhIntyc35EVswwZ_SMl7Lkb21L8eeXNL0mDnxGauD0_1768085255835.jpeg")}
+              source={require("@assets/trainer-photo.jpeg")}
               style={styles.photo}
               contentFit="cover"
             />
