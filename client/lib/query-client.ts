@@ -7,8 +7,20 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 export function getApiUrl(): string {
   let host = process.env.EXPO_PUBLIC_DOMAIN;
 
+  // Remove port suffix if present (Replit doesn't expose raw ports)
+  if (host && host.includes(":5000")) {
+    host = host.replace(":5000", "");
+  }
+
+  // For Replit dev domain, use Railway backend directly
+  // Replit dev domain serves Metro bundler, not Express API
+  if (host && host.includes(".worf.replit.dev")) {
+    host = "web-production-bd36.up.railway.app";
+  }
+
   if (!host) {
-    throw new Error("EXPO_PUBLIC_DOMAIN is not set");
+    // Fallback to Railway
+    host = "web-production-bd36.up.railway.app";
   }
 
   let url = new URL(`https://${host}`);

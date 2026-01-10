@@ -60,18 +60,32 @@ async function apiRequest<T>(
     }
   }
   
-  const res = await fetch(url.href, {
-    method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
   
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(errorData.error || `Request failed: ${res.status}`);
+  try {
+    const res = await fetch(url.href, {
+      method,
+      headers,
+      body: data ? JSON.stringify(data) : undefined,
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(errorData.error || `Request failed: ${res.status}`);
+    }
+    
+    return res.json();
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Připojení k serveru trvá příliš dlouho. Zkuste to znovu.');
+    }
+    throw error;
   }
-  
-  return res.json();
 }
 
 export async function apiLogin(email: string, password: string): Promise<{ token: string; user: AuthUser }> {
