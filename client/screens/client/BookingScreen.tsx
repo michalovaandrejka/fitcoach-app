@@ -287,24 +287,22 @@ export default function BookingScreen() {
             ) : availableSlots.length > 0 ? (
               <View style={styles.timesGrid}>
                 {availableSlots.map(slot => {
-                  const isSelected = selectedSlot?.startTime === slot.startTime;
-                  
                   return (
                     <Pressable
-                      key={`${slot.startTime}`}
+                      key={`${slot.startTime}-${slot.blockId}`}
                       onPress={() => handleSelectSlot(slot)}
                       style={[
                         styles.timeSlot,
                         {
-                          backgroundColor: isSelected ? theme.primary + "15" : theme.backgroundSecondary,
-                          borderColor: isSelected ? theme.primary : theme.border,
+                          backgroundColor: theme.backgroundSecondary,
+                          borderColor: theme.border,
                         },
                       ]}
                     >
                       <View style={styles.slotTimeRow}>
                         <ThemedText
                           type="h4"
-                          style={{ color: isSelected ? theme.primary : theme.text }}
+                          style={{ color: theme.text }}
                         >
                           {slot.startTime}
                         </ThemedText>
@@ -315,11 +313,6 @@ export default function BookingScreen() {
                           - {slot.endTime}
                         </ThemedText>
                       </View>
-                      {isSelected ? (
-                        <View style={[styles.selectedBadge, { backgroundColor: theme.primary }]}>
-                          <Feather name="check" size={12} color="#FFFFFF" />
-                        </View>
-                      ) : null}
                     </Pressable>
                   );
                 })}
