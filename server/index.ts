@@ -2,6 +2,7 @@ import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { initializeAdminUser } from "./storage";
+import { initializeDatabase } from "./db";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -253,6 +254,7 @@ function setupErrorHandler(app: express.Application) {
 
   const server = await registerRoutes(app);
 
+  await initializeDatabase();
   await initializeAdminUser();
 
   setupErrorHandler(app);
