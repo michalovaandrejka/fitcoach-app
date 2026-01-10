@@ -45,6 +45,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
+  app.get("/api/debug/admin-check", async (req, res) => {
+    try {
+      const admin = await storage.getUserByEmail("Andrea");
+      res.json({ 
+        adminExists: !!admin,
+        adminId: admin?.id || null,
+        adminRole: admin?.role || null,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Admin check error:", error);
+      res.status(500).json({ error: "Database error", details: String(error) });
+    }
+  });
+
   app.post("/api/auth/register", async (req, res) => {
     try {
       const data = registerSchema.parse(req.body);

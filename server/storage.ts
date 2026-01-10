@@ -309,7 +309,10 @@ export const storage = new DatabaseStorage();
 
 export async function initializeAdminUser(): Promise<void> {
   try {
-    const existing = await storage.getUserByEmail("Andrea");
+    let existing = await storage.getUserByEmail("Andrea");
+    if (!existing) {
+      existing = await storage.getUserByEmail("admin@fitcoach.cz");
+    }
     if (!existing) {
       console.log("Creating admin user Andrea...");
       await storage.createUser({
@@ -321,7 +324,7 @@ export async function initializeAdminUser(): Promise<void> {
       });
       console.log("Admin user Andrea created successfully");
     } else {
-      console.log("Admin user Andrea already exists");
+      console.log("Admin user already exists:", existing.email);
     }
   } catch (error) {
     console.error("Failed to initialize admin user:", error);
