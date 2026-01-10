@@ -306,3 +306,24 @@ export class DatabaseStorage implements IStorage {
 }
 
 export const storage = new DatabaseStorage();
+
+export async function initializeAdminUser(): Promise<void> {
+  try {
+    const existing = await storage.getUserByEmail("Andrea");
+    if (!existing) {
+      console.log("Creating admin user Andrea...");
+      await storage.createUser({
+        email: "Andrea",
+        name: "Andrea Michalová",
+        password: "Andrea",
+        role: "ADMIN",
+        onboardingCompleted: true,
+      });
+      console.log("Admin user Andrea created successfully");
+    } else {
+      console.log("Admin user Andrea already exists");
+    }
+  } catch (error) {
+    console.error("Failed to initialize admin user:", error);
+  }
+}
