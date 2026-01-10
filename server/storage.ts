@@ -85,6 +85,11 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async createUserWithHash(input: { id: string; email: string; name: string; passwordHash: string; role: "CLIENT" | "ADMIN"; onboardingCompleted: boolean }): Promise<User> {
+    const [user] = await db.insert(users).values(input).returning();
+    return user;
+  }
+
   async getUsers(): Promise<User[]> {
     return db.select().from(users).orderBy(desc(users.createdAt));
   }
@@ -120,6 +125,15 @@ export class DatabaseStorage implements IStorage {
     return loc;
   }
 
+  async getLocationById(id: string): Promise<Location | undefined> {
+    return this.getLocation(id);
+  }
+
+  async createLocationWithId(id: string, name: string, address: string, isActive: boolean): Promise<Location> {
+    const [loc] = await db.insert(locations).values({ id, name, address, isActive }).returning();
+    return loc;
+  }
+
   async updateLocation(id: string, data: Partial<Location>): Promise<Location | undefined> {
     const [loc] = await db.update(locations).set(data).where(eq(locations.id, id)).returning();
     return loc || undefined;
@@ -147,6 +161,11 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
+  async createAvailabilityBlockWithId(id: string, block: InsertAvailabilityBlock): Promise<AvailabilityBlock> {
+    const [created] = await db.insert(availabilityBlocks).values({ id, ...block }).returning();
+    return created;
+  }
+
   async deleteAvailabilityBlock(id: string): Promise<void> {
     await db.delete(availabilityBlocks).where(eq(availabilityBlocks.id, id));
   }
@@ -170,6 +189,11 @@ export class DatabaseStorage implements IStorage {
 
   async createBooking(booking: InsertBooking): Promise<Booking> {
     const [created] = await db.insert(bookings).values(booking).returning();
+    return created;
+  }
+
+  async createBookingWithId(id: string, booking: InsertBooking): Promise<Booking> {
+    const [created] = await db.insert(bookings).values({ id, ...booking }).returning();
     return created;
   }
 
