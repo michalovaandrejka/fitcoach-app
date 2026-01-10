@@ -792,7 +792,7 @@ export default function AvailabilityScreen() {
                 ))}
               </ScrollView>
 
-              <ThemedText type="h4" style={styles.modalLabel}>Pobocky</ThemedText>
+              <ThemedText type="h4" style={styles.modalLabel}>Pobočky</ThemedText>
               <View style={styles.branchesContainer}>
                 {locations.map(loc => {
                   const isSelected = selectedBranchIds.includes(loc.id);

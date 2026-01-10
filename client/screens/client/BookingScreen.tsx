@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, ScrollView, Pressable, Alert, ActivityIndicator } from "react-native";
+import { StyleSheet, View, ScrollView, Pressable, Alert, ActivityIndicator, Modal } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useNavigation } from "@react-navigation/native";
@@ -8,7 +8,6 @@ import * as Haptics from "expo-haptics";
 
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,11 +27,12 @@ export default function BookingScreen() {
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedSlot, setSelectedSlot] = useState<AvailableSlot | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingDates, setIsLoadingDates] = useState(false);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [slotToConfirm, setSlotToConfirm] = useState<AvailableSlot | null>(null);
 
   useEffect(() => {
     loadLocations();
@@ -73,7 +73,7 @@ export default function BookingScreen() {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    const days = ["Ne", "Po", "Ut", "St", "Ct", "Pa", "So"];
+    const days = ["Ne", "Po", "Út", "St", "Čt", "Pá", "So"];
     return {
       day: days[date.getDay()],
       date: date.getDate(),
@@ -83,15 +83,15 @@ export default function BookingScreen() {
 
   const formatDateFull = (dateStr: string) => {
     const date = new Date(dateStr);
-    const days = ["Nedele", "Pondeli", "Utery", "Streda", "Ctvrtek", "Patek", "Sobota"];
-    const months = ["ledna", "unora", "brezna", "dubna", "kvetna", "cervna", "cervence", "srpna", "zari", "rijna", "listopadu", "prosince"];
+    const days = ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"];
+    const months = ["ledna", "února", "března", "dubna", "května", "června", "července", "srpna", "září", "října", "listopadu", "prosince"];
     return `${days[date.getDay()]} ${date.getDate()}. ${months[date.getMonth()]}`;
   };
 
   const handleSelectLocation = (location: Location) => {
     setSelectedLocation(location);
     setSelectedDate(null);
-    setSelectedSlot(null);
+    setSlotToConfirm(null);
     setAvailableDates([]);
     setAvailableSlots([]);
     Haptics.selectionAsync();
@@ -99,17 +99,18 @@ export default function BookingScreen() {
 
   const handleSelectDate = (date: string) => {
     setSelectedDate(date);
-    setSelectedSlot(null);
+    setSlotToConfirm(null);
     Haptics.selectionAsync();
   };
 
   const handleSelectSlot = (slot: AvailableSlot) => {
-    setSelectedSlot(slot);
+    setSlotToConfirm(slot);
+    setShowConfirmModal(true);
     Haptics.selectionAsync();
   };
 
-  const handleSubmit = async () => {
-    if (!selectedSlot || !selectedDate || !user || !selectedLocation) {
+  const handleConfirmBooking = async () => {
+    if (!slotToConfirm || !selectedDate || !user || !selectedLocation) {
       Alert.alert("Chyba", "Vyberte prosím fitko, datum a čas tréninku");
       return;
     }
@@ -118,11 +119,12 @@ export default function BookingScreen() {
     try {
       await apiCreateBooking(
         selectedDate,
-        selectedSlot.startTime,
+        slotToConfirm.startTime,
         selectedLocation.id,
         selectedLocation.name
       );
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setShowConfirmModal(false);
       Alert.alert("Úspěch", "Trénink byl úspěšně rezervován", [
         { text: "OK", onPress: () => navigation.goBack() },
       ]);
@@ -131,6 +133,11 @@ export default function BookingScreen() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCancelModal = () => {
+    setShowConfirmModal(false);
+    setSlotToConfirm(null);
   };
 
   if (isLoading) {
@@ -328,42 +335,69 @@ export default function BookingScreen() {
           </View>
         ) : null}
 
-        {selectedSlot && selectedDate && selectedLocation ? (
-          <View style={styles.summarySection}>
-            <Card elevation={2} style={styles.summaryCard}>
-              <ThemedText type="h4" style={styles.summaryTitle}>Shrnutí rezervace</ThemedText>
-              <View style={styles.summaryRow}>
-                <Feather name="map-pin" size={18} color={theme.primary} />
-                <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
-                  {selectedLocation.name}
-                </ThemedText>
-              </View>
-              <View style={styles.summaryRow}>
-                <Feather name="calendar" size={18} color={theme.primary} />
-                <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
-                  {formatDateFull(selectedDate)}
-                </ThemedText>
-              </View>
-              <View style={styles.summaryRow}>
-                <Feather name="clock" size={18} color={theme.primary} />
-                <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
-                  {selectedSlot.startTime} - {selectedSlot.endTime} ({TRAINING_DURATION} min)
-                </ThemedText>
-              </View>
-            </Card>
-          </View>
-        ) : null}
-
-        <View style={styles.submitSection}>
-          <Button
-            onPress={handleSubmit}
-            disabled={!selectedSlot || !selectedDate || !selectedLocation || isSubmitting}
-            style={{ backgroundColor: theme.primary }}
-          >
-            {isSubmitting ? <ActivityIndicator color="#FFFFFF" /> : "Rezervovat trénink"}
-          </Button>
-        </View>
       </ScrollView>
+
+      <Modal
+        visible={showConfirmModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelModal}
+      >
+        <Pressable style={styles.modalOverlay} onPress={handleCancelModal}>
+          <Pressable style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]} onPress={(e) => e.stopPropagation()}>
+            <ThemedText type="h3" style={styles.modalTitle}>Potvrdit rezervaci</ThemedText>
+            
+            {slotToConfirm && selectedDate && selectedLocation ? (
+              <View style={styles.modalDetails}>
+                <View style={styles.modalRow}>
+                  <Feather name="map-pin" size={20} color={theme.primary} />
+                  <ThemedText type="body" style={styles.modalRowText}>
+                    {selectedLocation.name}
+                  </ThemedText>
+                </View>
+                <View style={styles.modalRow}>
+                  <Feather name="calendar" size={20} color={theme.primary} />
+                  <ThemedText type="body" style={styles.modalRowText}>
+                    {formatDateFull(selectedDate)}
+                  </ThemedText>
+                </View>
+                <View style={styles.modalRow}>
+                  <Feather name="clock" size={20} color={theme.primary} />
+                  <ThemedText type="body" style={styles.modalRowText}>
+                    {slotToConfirm.startTime} - {slotToConfirm.endTime}
+                  </ThemedText>
+                </View>
+                <View style={[styles.durationBadge, { backgroundColor: theme.primary + "20", alignSelf: "flex-start", marginTop: Spacing.md }]}>
+                  <Feather name="clock" size={14} color={theme.primary} />
+                  <ThemedText type="small" style={{ color: theme.primary, marginLeft: 6 }}>
+                    {TRAINING_DURATION} minut
+                  </ThemedText>
+                </View>
+              </View>
+            ) : null}
+
+            <View style={styles.modalButtons}>
+              <Pressable
+                style={[styles.modalButton, { backgroundColor: theme.backgroundSecondary }]}
+                onPress={handleCancelModal}
+              >
+                <ThemedText type="body">Zrušit</ThemedText>
+              </Pressable>
+              <Pressable
+                style={[styles.modalButton, { backgroundColor: theme.primary }]}
+                onPress={handleConfirmBooking}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <ThemedText type="body" style={{ color: "#FFFFFF" }}>Potvrdit</ThemedText>
+                )}
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ThemedView>
   );
 }
@@ -450,21 +484,43 @@ const styles = StyleSheet.create({
     padding: Spacing.xl,
     alignItems: "center",
   },
-  summarySection: {
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: Spacing.xl,
+  },
+  modalContent: {
+    width: "100%",
+    borderRadius: BorderRadius.md,
+    padding: Spacing.xl,
+  },
+  modalTitle: {
+    marginBottom: Spacing.xl,
+    textAlign: "center",
+  },
+  modalDetails: {
     marginBottom: Spacing.xl,
   },
-  summaryCard: {
-    padding: Spacing.lg,
-  },
-  summaryTitle: {
-    marginBottom: Spacing.lg,
-  },
-  summaryRow: {
+  modalRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: Spacing.md,
   },
-  submitSection: {
-    marginTop: Spacing.lg,
+  modalRowText: {
+    marginLeft: Spacing.md,
+    flex: 1,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    gap: Spacing.md,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

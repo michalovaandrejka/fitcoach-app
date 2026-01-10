@@ -196,10 +196,10 @@ export default function MealPlanScreen() {
                   <Feather name="clipboard" size={32} color={theme.primary} />
                 </View>
                 <ThemedText type="h4" style={styles.emptyTitle}>
-                  Zatim zadny jidelnicek
+                  Zatím žádný jídelníček
                 </ThemedText>
                 <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
-                  Trenerka Andrea pro vas pripravuje osobni jidelnicek. Vyplnte prosim sve preference, abychom vedeli, co mate radi.
+                  Trenérka Andrea pro vás připravuje osobní jídelníček. Vyplňte prosím své preference, abychom věděli, co máte rádi.
                 </ThemedText>
                 <Pressable
                   onPress={() => setViewMode("preferences")}
@@ -306,7 +306,7 @@ export default function MealPlanScreen() {
             </Card>
 
             <Card elevation={1} style={styles.card}>
-              <ThemedText type="h4" style={styles.fieldLabel}>Poznamky pro trenerku</ThemedText>
+              <ThemedText type="h4" style={styles.fieldLabel}>Poznámky pro trenérku</ThemedText>
               <TextInput
                 style={[styles.textArea, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
                 placeholder="Napr. alergie, zdravotni omezeni..."

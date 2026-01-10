@@ -173,16 +173,16 @@ export default function LocationsScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]}>
-            <ThemedText type="h4" style={styles.modalTitle}>Upravit pobocku</ThemedText>
+            <ThemedText type="h4" style={styles.modalTitle}>Upravit pobočku</ThemedText>
             
             <ThemedText type="small" style={[styles.inputLabel, { color: theme.textSecondary }]}>
-              Nazev
+              Název
             </ThemedText>
             <TextInput
               style={[styles.input, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
               value={editName}
               onChangeText={setEditName}
-              placeholder="Nazev pobocky"
+              placeholder="Název pobočky"
               placeholderTextColor={theme.textSecondary}
             />
             
@@ -193,7 +193,7 @@ export default function LocationsScreen() {
               style={[styles.input, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
               value={editAddress}
               onChangeText={setEditAddress}
-              placeholder="Adresa pobocky"
+              placeholder="Adresa pobočky"
               placeholderTextColor={theme.textSecondary}
             />
 
@@ -202,13 +202,13 @@ export default function LocationsScreen() {
                 onPress={() => setEditingLocation(null)}
                 style={[styles.modalButton, { backgroundColor: theme.backgroundSecondary }]}
               >
-                <ThemedText>Zrusit</ThemedText>
+                <ThemedText>Zrušit</ThemedText>
               </Pressable>
               <Pressable
                 onPress={handleSave}
                 style={[styles.modalButton, { backgroundColor: theme.primary }]}
               >
-                <ThemedText style={{ color: "#FFFFFF" }}>Ulozit</ThemedText>
+                <ThemedText style={{ color: "#FFFFFF" }}>Uložit</ThemedText>
               </Pressable>
             </View>
           </View>
@@ -223,16 +223,16 @@ export default function LocationsScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: theme.backgroundDefault }]}>
-            <ThemedText type="h4" style={styles.modalTitle}>Pridat pobocku</ThemedText>
+            <ThemedText type="h4" style={styles.modalTitle}>Přidat pobočku</ThemedText>
             
             <ThemedText type="small" style={[styles.inputLabel, { color: theme.textSecondary }]}>
-              Nazev
+              Název
             </ThemedText>
             <TextInput
               style={[styles.input, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
               value={newName}
               onChangeText={setNewName}
-              placeholder="Nazev pobocky"
+              placeholder="Název pobočky"
               placeholderTextColor={theme.textSecondary}
             />
             
@@ -243,7 +243,7 @@ export default function LocationsScreen() {
               style={[styles.input, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
               value={newAddress}
               onChangeText={setNewAddress}
-              placeholder="Adresa pobocky"
+              placeholder="Adresa pobočky"
               placeholderTextColor={theme.textSecondary}
             />
 
@@ -256,13 +256,13 @@ export default function LocationsScreen() {
                 }}
                 style={[styles.modalButton, { backgroundColor: theme.backgroundSecondary }]}
               >
-                <ThemedText>Zrusit</ThemedText>
+                <ThemedText>Zrušit</ThemedText>
               </Pressable>
               <Pressable
                 onPress={handleAddLocation}
                 style={[styles.modalButton, { backgroundColor: theme.primary }]}
               >
-                <ThemedText style={{ color: "#FFFFFF" }}>Pridat</ThemedText>
+                <ThemedText style={{ color: "#FFFFFF" }}>Přidat</ThemedText>
               </Pressable>
             </View>
           </View>

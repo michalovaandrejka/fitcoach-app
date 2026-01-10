@@ -47,66 +47,66 @@ const ADMIN_STEPS: OnboardingStep[] = [
   {
     icon: "home",
     title: "Dashboard",
-    description: "Vas hlavni prehled s klicovymi statistikami a rychlymi akcemi.",
-    tip: "Sledujte dnesni treninky a volne terminy na jednom miste",
+    description: "Váš hlavní přehled s klíčovými statistikami a rychlými akcemi.",
+    tip: "Sledujte dnešní tréninky a volné termíny na jednom místě",
     mockElements: [
-      { type: "card", label: "12 klientu", icon: "users" },
-      { type: "card", label: "3 dnesni treninky", icon: "calendar" },
-      { type: "badge", label: "5 volnych terminu", color: "success" },
+      { type: "card", label: "12 klientů", icon: "users" },
+      { type: "card", label: "3 dnešní tréninky", icon: "calendar" },
+      { type: "badge", label: "5 volných termínů", color: "success" },
     ],
   },
   {
     icon: "calendar",
-    title: "Kalendar treninku",
-    description: "Vizualni prehled vsech naplanovanych treninku podle dne.",
-    tip: "Kliknete na den pro zobrazeni detailu treninku",
+    title: "Kalendář tréninků",
+    description: "Vizuální přehled všech naplánovaných tréninků podle dne.",
+    tip: "Klikněte na den pro zobrazení detailu tréninku",
     action: "Zkuste kliknout na kartu",
     mockElements: [
-      { type: "card", label: "Pondeli - 3 treninky", icon: "calendar" },
-      { type: "card", label: "Utery - 2 treninky", icon: "calendar" },
+      { type: "card", label: "Pondělí - 3 tréninky", icon: "calendar" },
+      { type: "card", label: "Úterý - 2 tréninky", icon: "calendar" },
     ],
   },
   {
     icon: "clock",
-    title: "Sprava dostupnosti",
-    description: "Pridavejte volne terminy pro jednu nebo obe pobocky. Klienti si pak mohou rezervovat.",
-    tip: "Volne terminy se automaticky skryji po rezervaci",
-    action: "Tlacitko + prida novy termin",
+    title: "Správa dostupnosti",
+    description: "Přidávejte volné termíny pro jednu nebo obě pobočky. Klienti si pak mohou rezervovat.",
+    tip: "Volné termíny se automaticky skryjí po rezervaci",
+    action: "Tlačítko + přidá nový termín",
     mockElements: [
-      { type: "button", label: "+ Pridat termin", color: "primary" },
-      { type: "badge", label: "10:00 - Volny", color: "success" },
+      { type: "button", label: "+ Přidat termín", color: "primary" },
+      { type: "badge", label: "10:00 - Volný", color: "success" },
       { type: "badge", label: "14:00 - Obsazeno", color: "warning" },
     ],
   },
   {
     icon: "users",
-    title: "Sprava klientu",
-    description: "Kompletni prehled vsech klientu s jejich rezervacemi a jidelnicky.",
-    tip: "Kliknete na klienta pro detail a poznamky",
+    title: "Správa klientů",
+    description: "Kompletní přehled všech klientů s jejich rezervacemi a jídelníčky.",
+    tip: "Klikněte na klienta pro detail a poznámky",
     mockElements: [
-      { type: "card", label: "Jana Novakova", icon: "user" },
-      { type: "card", label: "Petra Svobodova", icon: "user" },
+      { type: "card", label: "Jana Nováková", icon: "user" },
+      { type: "card", label: "Petra Svobodová", icon: "user" },
     ],
   },
   {
     icon: "bell",
     title: "Notifikace",
-    description: "Posilejte upozorneni klientum - vsem nebo jen vybranym.",
-    tip: "Skvele pro oznameni zmeny terminu nebo akci",
-    action: "Z dashboardu muzete odeslat notifikaci",
+    description: "Posílejte upozornění klientům - všem nebo jen vybraným.",
+    tip: "Skvěle pro oznámení změny termínu nebo akcí",
+    action: "Z dashboardu můžete odeslat notifikaci",
     mockElements: [
       { type: "button", label: "Odeslat notifikaci", color: "primary" },
     ],
   },
   {
     icon: "edit-3",
-    title: "Manualni rezervace",
+    title: "Manuální rezervace",
     description: "Blokujte terminy pro klienty z WhatsAppu nebo telefonu.",
-    tip: "Kliknete na volny termin a vyberte 'Manualni rezervace'",
+    tip: "Klikněte na volný termín a vyberte 'Manuální rezervace'",
     mockElements: [
-      { type: "badge", label: "Volny termin", color: "success" },
+      { type: "badge", label: "Volný termín", color: "success" },
       { type: "icon", icon: "arrow-right" },
-      { type: "badge", label: "Blokovano - Klient X", color: "warning" },
+      { type: "badge", label: "Blokováno - Klient X", color: "warning" },
     ],
   },
 ];
@@ -114,55 +114,55 @@ const ADMIN_STEPS: OnboardingStep[] = [
 const CLIENT_STEPS: OnboardingStep[] = [
   {
     icon: "calendar",
-    title: "Vase treninky",
-    description: "Prehled vsech vasich nadchazejicich treninku na jednom miste.",
-    tip: "Treninky se radi podle data - nejblizsi nahore",
+    title: "Vaše tréninky",
+    description: "Přehled všech vašich nadcházejících tréninků na jednom místě.",
+    tip: "Tréninky se řadí podle data - nejbližší nahoře",
     mockElements: [
-      { type: "card", label: "Pondeli 10:00", icon: "calendar" },
-      { type: "card", label: "Streda 14:00", icon: "calendar" },
+      { type: "card", label: "Pondělí 10:00", icon: "calendar" },
+      { type: "card", label: "Středa 14:00", icon: "calendar" },
     ],
   },
   {
     icon: "plus-circle",
-    title: "Rezervace treninku",
+    title: "Rezervace tréninku",
     description: "Jednoduše si zarezervujte nový trénink v pár krocích.",
-    tip: "Vyberete datum, cas a pobocku",
-    action: "Kliknete na + ve spodni liste",
+    tip: "Vyberete datum, čas a pobočku",
+    action: "Klikněte na + ve spodní liště",
     mockElements: [
       { type: "button", label: "1. Vyberte datum", color: "primary" },
-      { type: "button", label: "2. Vyberte cas", color: "primary" },
-      { type: "button", label: "3. Vyberte pobocku", color: "primary" },
+      { type: "button", label: "2. Vyberte čas", color: "primary" },
+      { type: "button", label: "3. Vyberte pobočku", color: "primary" },
     ],
   },
   {
     icon: "x-circle",
-    title: "Zruseni treninku",
+    title: "Zrušení tréninku",
     description: "Pokud nemůžete přijít, zrušte trénink včas.",
-    tip: "Rusit lze nejpozdeji 24 hodin predem",
-    action: "Podrzeni prstu na treninku zobrazi moznosti",
+    tip: "Rušit lze nejpozději 24 hodin předem",
+    action: "Podržení prstu na tréninku zobrazí možnosti",
     mockElements: [
-      { type: "card", label: "Pondeli 10:00", icon: "calendar" },
+      { type: "card", label: "Pondělí 10:00", icon: "calendar" },
       { type: "button", label: "Zrušit trénink", color: "warning" },
     ],
   },
   {
     icon: "heart",
-    title: "Vas jidelnicek",
-    description: "Sdilte sve preference - co mate radi, co ne, a vase cile.",
-    tip: "Trenerka vam muze pripravit individualni jidelnicek",
+    title: "Váš jídelníček",
+    description: "Sdílejte své preference - co máte rádi, co ne, a vaše cíle.",
+    tip: "Trenérka vám může připravit individuální jídelníček",
     mockElements: [
-      { type: "badge", label: "Oblibene: Kure, ryze", color: "success" },
-      { type: "badge", label: "Neoblibene: Ryby", color: "warning" },
+      { type: "badge", label: "Oblíbené: Kuře, rýže", color: "success" },
+      { type: "badge", label: "Neoblíbené: Ryby", color: "warning" },
     ],
   },
   {
     icon: "user",
-    title: "Vas profil",
-    description: "Upravte sve udaje, kontakt a nastaveni aplikace.",
-    tip: "Zde se take muzete odhlasit",
+    title: "Váš profil",
+    description: "Upravte své údaje, kontakt a nastavení aplikace.",
+    tip: "Zde se také můžete odhlásit",
     mockElements: [
-      { type: "card", label: "Osobni udaje", icon: "edit" },
-      { type: "card", label: "Nastaveni", icon: "settings" },
+      { type: "card", label: "Osobní údaje", icon: "edit" },
+      { type: "card", label: "Nastavení", icon: "settings" },
     ],
   },
 ];
@@ -392,11 +392,11 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
             Krok {currentStep + 1} z {steps.length}
           </ThemedText>
           <ThemedText type="h3">
-            {user?.role === "ADMIN" ? "Pruvodce pro trenerku" : "Pruvodce aplikaci"}
+            {user?.role === "ADMIN" ? "Průvodce pro trenérku" : "Průvodce aplikací"}
           </ThemedText>
         </View>
         <Pressable onPress={handleSkip} style={styles.skipButton}>
-          <ThemedText type="body" style={{ color: theme.textSecondary }}>Preskocit</ThemedText>
+          <ThemedText type="body" style={{ color: theme.textSecondary }}>Přeskočit</ThemedText>
           <Feather name="x" size={18} color={theme.textSecondary} style={{ marginLeft: Spacing.xs }} />
         </Pressable>
       </View>
@@ -480,7 +480,7 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
           style={[styles.mainButton, { backgroundColor: theme.primary }]}
         >
           <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-            {isLastStep ? "Zacit pouzivat aplikaci" : "Pokracovat"}
+            {isLastStep ? "Začít používat aplikaci" : "Pokračovat"}
           </ThemedText>
           <Feather 
             name={isLastStep ? "check-circle" : "arrow-right"} 

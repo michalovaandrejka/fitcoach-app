@@ -509,6 +509,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/trainer-contact", async (req, res) => {
+    try {
+      const contact = await storage.getTrainerContact();
+      res.json(contact || null);
+    } catch (error) {
+      console.error("Get trainer contact error:", error);
+      res.status(500).json({ error: "Chyba" });
+    }
+  });
+
+  app.put("/api/trainer-contact", authenticateToken, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { phone, email, whatsapp } = req.body;
+      if (!phone) {
+        return res.status(400).json({ error: "Telefon je povinný" });
+      }
+      const contact = await storage.saveTrainerContact({ phone, email, whatsapp });
+      res.json(contact);
+    } catch (error) {
+      console.error("Save trainer contact error:", error);
+      res.status(500).json({ error: "Chyba při ukládání kontaktu" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

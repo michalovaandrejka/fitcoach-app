@@ -113,7 +113,7 @@ function LocationsStack() {
   const screenOptions = useAdminScreenOptions();
   return (
     <Stack.Navigator screenOptions={screenOptions}>
-      <Stack.Screen name="AdminLocations" component={LocationsScreen} options={{ headerTitle: "Pobocky" }} />
+      <Stack.Screen name="AdminLocations" component={LocationsScreen} options={{ headerTitle: "Pobočky" }} />
     </Stack.Navigator>
   );
 }
@@ -131,7 +131,7 @@ function MealPlansStack() {
   const screenOptions = useAdminScreenOptions();
   return (
     <Stack.Navigator screenOptions={screenOptions}>
-      <Stack.Screen name="AdminMealPlans" component={MealPlansScreen} options={{ headerTitle: "Jidelnicky" }} />
+      <Stack.Screen name="AdminMealPlans" component={MealPlansScreen} options={{ headerTitle: "Jídelníčky" }} />
       <Stack.Screen name="AdminClientDetail" component={ClientDetailScreen} options={({ route }) => ({ headerTitle: route.params?.client?.name || "Detail klienta", headerLeft: undefined })} />
     </Stack.Navigator>
   );
@@ -158,8 +158,8 @@ const drawerItems: DrawerItem[] = [
   { name: "CalendarStack", label: "Kalendar", icon: "calendar" },
   { name: "AvailabilityStack", label: "Dostupnost", icon: "clock" },
   { name: "NotificationsStack", label: "Oznameni", icon: "bell" },
-  { name: "MealPlansStack", label: "Jidelnicky", icon: "clipboard" },
-  { name: "LocationsStack", label: "Pobocky", icon: "map-pin" },
+  { name: "MealPlansStack", label: "Jídelníčky", icon: "clipboard" },
+  { name: "LocationsStack", label: "Pobočky", icon: "map-pin" },
   { name: "ProfileStack", label: "Profil", icon: "user" },
 ];
 
@@ -214,7 +214,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
         <Pressable onPress={logout} style={styles.logoutButton}>
           <Feather name="log-out" size={20} color={theme.error} />
           <ThemedText style={[styles.logoutText, { color: theme.error }]}>
-            Odhlasit se
+            Odhlásit se
           </ThemedText>
         </Pressable>
       </View>

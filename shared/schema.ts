@@ -152,6 +152,16 @@ export const notifications = pgTable("notifications", {
   recipientCount: integer("recipient_count").notNull().default(0),
 });
 
+export const trainerContact = pgTable("trainer_contact", {
+  id: varchar("id", { length: 36 })
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  phone: text("phone").notNull(),
+  email: text("email"),
+  whatsapp: text("whatsapp"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -205,6 +215,11 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
   sentAt: true,
 });
 
+export const insertTrainerContactSchema = createInsertSchema(trainerContact).omit({
+  id: true,
+  updatedAt: true,
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Location = typeof locations.$inferSelect;
@@ -221,3 +236,5 @@ export type TrainerMealPlan = typeof trainerMealPlans.$inferSelect;
 export type InsertTrainerMealPlan = z.infer<typeof insertTrainerMealPlanSchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type TrainerContact = typeof trainerContact.$inferSelect;
+export type InsertTrainerContact = z.infer<typeof insertTrainerContactSchema>;

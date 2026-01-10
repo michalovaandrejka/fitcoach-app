@@ -145,5 +145,23 @@ export async function initializeDatabase(): Promise<void> {
     )
   `);
 
+  await database.execute(sql`
+    CREATE TABLE IF NOT EXISTS trainer_contact (
+      id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+      phone TEXT NOT NULL,
+      email TEXT,
+      whatsapp TEXT,
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  const existingContact = await database.execute(sql`SELECT * FROM trainer_contact LIMIT 1`);
+  if (existingContact.rows.length === 0) {
+    await database.execute(sql`
+      INSERT INTO trainer_contact (phone)
+      VALUES ('+420 XXX XXX XXX')
+    `);
+  }
+
   console.log("Database tables initialized");
 }

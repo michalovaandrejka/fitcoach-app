@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { StyleSheet, View, ScrollView, Pressable, Alert } from "react-native";
+import { StyleSheet, View, ScrollView, Pressable, Alert, Linking, ActivityIndicator } from "react-native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { useQuery } from "@tanstack/react-query";
 
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -20,6 +21,14 @@ const AVATARS = [
   { id: 4, icon: "zap" as const, color: "#9C27B0" },
 ];
 
+interface TrainerContact {
+  id: string;
+  phone: string;
+  email: string | null;
+  whatsapp: string | null;
+  updatedAt: string;
+}
+
 export default function ProfileScreen() {
   const { theme } = useTheme();
   const { user, logout } = useAuth();
@@ -27,6 +36,10 @@ export default function ProfileScreen() {
   const headerHeight = useHeaderHeight();
   
   const [selectedAvatar, setSelectedAvatar] = useState(1);
+
+  const { data: trainerContact, isLoading: isLoadingContact } = useQuery<TrainerContact | null>({
+    queryKey: ["/api/trainer-contact"],
+  });
 
   const handleLogout = () => {
     Alert.alert(
@@ -47,8 +60,8 @@ export default function ProfileScreen() {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      "Smazat ucet",
-      "Opravdu chcete smazat svuj ucet? Tato akce je nevratna a vse bude smazano.",
+      "Smazat účet",
+      "Opravdu chcete smazat svůj účet? Tato akce je nevratná a vše bude smazáno.",
       [
         { text: "Ne", style: "cancel" },
         {
@@ -61,13 +74,51 @@ export default function ProfileScreen() {
                 await logout();
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
               } catch (error) {
-                Alert.alert("Chyba", "Nepodarilo se smazat ucet. Zkuste to prosim znovu.");
+                Alert.alert("Chyba", "Nepodařilo se smazat účet. Zkuste to prosím znovu.");
               }
             }
           },
         },
       ]
     );
+  };
+
+  const handlePhonePress = async () => {
+    if (trainerContact?.phone) {
+      const phoneNumber = trainerContact.phone.replace(/\s/g, "");
+      const url = `tel:${phoneNumber}`;
+      try {
+        await Linking.openURL(url);
+        Haptics.selectionAsync();
+      } catch (error) {
+        Alert.alert("Chyba", "Nepodařilo se otevřít aplikaci pro volání.");
+      }
+    }
+  };
+
+  const handleEmailPress = async () => {
+    if (trainerContact?.email) {
+      const url = `mailto:${trainerContact.email}`;
+      try {
+        await Linking.openURL(url);
+        Haptics.selectionAsync();
+      } catch (error) {
+        Alert.alert("Chyba", "Nepodařilo se otevřít emailovou aplikaci.");
+      }
+    }
+  };
+
+  const handleWhatsAppPress = async () => {
+    if (trainerContact?.whatsapp) {
+      const phoneNumber = trainerContact.whatsapp.replace(/[^0-9+]/g, "").replace("+", "");
+      const url = `https://wa.me/${phoneNumber}`;
+      try {
+        await Linking.openURL(url);
+        Haptics.selectionAsync();
+      } catch (error) {
+        Alert.alert("Chyba", "Nepodařilo se otevřít WhatsApp.");
+      }
+    }
   };
 
   return (
@@ -119,6 +170,57 @@ export default function ProfileScreen() {
         </Card>
 
         <Card elevation={1} style={styles.card}>
+          <ThemedText type="h4" style={styles.sectionTitle}>Kontakt na trenérku</ThemedText>
+          
+          {isLoadingContact ? (
+            <ActivityIndicator size="small" color={theme.primary} />
+          ) : trainerContact ? (
+            <>
+              <Pressable onPress={handlePhonePress} style={styles.contactRow}>
+                <View style={[styles.contactIcon, { backgroundColor: theme.primary + "20" }]}>
+                  <Feather name="phone" size={18} color={theme.primary} />
+                </View>
+                <View style={styles.contactContent}>
+                  <ThemedText type="small" style={{ color: theme.textSecondary }}>Telefon</ThemedText>
+                  <ThemedText type="body" style={{ color: theme.primary }}>{trainerContact.phone}</ThemedText>
+                </View>
+                <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+              </Pressable>
+
+              {trainerContact.email ? (
+                <Pressable onPress={handleEmailPress} style={styles.contactRow}>
+                  <View style={[styles.contactIcon, { backgroundColor: theme.primary + "20" }]}>
+                    <Feather name="mail" size={18} color={theme.primary} />
+                  </View>
+                  <View style={styles.contactContent}>
+                    <ThemedText type="small" style={{ color: theme.textSecondary }}>Email</ThemedText>
+                    <ThemedText type="body" style={{ color: theme.primary }}>{trainerContact.email}</ThemedText>
+                  </View>
+                  <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+                </Pressable>
+              ) : null}
+
+              {trainerContact.whatsapp ? (
+                <Pressable onPress={handleWhatsAppPress} style={styles.contactRow}>
+                  <View style={[styles.contactIcon, { backgroundColor: "#25D366" + "20" }]}>
+                    <Feather name="message-circle" size={18} color="#25D366" />
+                  </View>
+                  <View style={styles.contactContent}>
+                    <ThemedText type="small" style={{ color: theme.textSecondary }}>WhatsApp</ThemedText>
+                    <ThemedText type="body" style={{ color: "#25D366" }}>{trainerContact.whatsapp}</ThemedText>
+                  </View>
+                  <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+                </Pressable>
+              ) : null}
+            </>
+          ) : (
+            <ThemedText type="body" style={{ color: theme.textSecondary }}>
+              Kontaktní údaje nejsou k dispozici.
+            </ThemedText>
+          )}
+        </Card>
+
+        <Card elevation={1} style={styles.card}>
           <ThemedText type="h4" style={styles.sectionTitle}>Informace o účtu</ThemedText>
           
           <View style={styles.infoRow}>
@@ -154,7 +256,7 @@ export default function ProfileScreen() {
 
         <View style={styles.dangerZone}>
           <ThemedText type="small" style={{ color: theme.error, marginBottom: Spacing.md, textAlign: "center" }}>
-            Nebezpecna zona
+            Nebezpečná zóna
           </ThemedText>
           <Pressable
             onPress={handleDeleteAccount}
@@ -162,7 +264,7 @@ export default function ProfileScreen() {
           >
             <Feather name="trash-2" size={20} color={theme.error} />
             <ThemedText type="body" style={{ color: theme.error, marginLeft: Spacing.sm }}>
-              Smazat ucet
+              Smazat účet
             </ThemedText>
           </Pressable>
         </View>
@@ -223,6 +325,24 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     alignItems: "center",
     justifyContent: "center",
+  },
+  contactRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0,0,0,0.05)",
+  },
+  contactIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: Spacing.md,
+  },
+  contactContent: {
+    flex: 1,
   },
   infoRow: {
     flexDirection: "row",

@@ -1,11 +1,11 @@
 import {
   users, locations, availabilityBlocks, bookings,
-  mealPreferences, adminNotes, trainerMealPlans, notifications,
+  mealPreferences, adminNotes, trainerMealPlans, notifications, trainerContact,
   type User, type InsertUser, type Location, type InsertLocation,
   type AvailabilityBlock, type InsertAvailabilityBlock,
   type Booking, type InsertBooking, type MealPreference, type InsertMealPreference,
   type AdminNote, type InsertAdminNote, type TrainerMealPlan, type InsertTrainerMealPlan,
-  type Notification, type InsertNotification
+  type Notification, type InsertNotification, type TrainerContact, type InsertTrainerContact
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lte, or, desc, asc } from "drizzle-orm";
@@ -61,6 +61,9 @@ export interface IStorage {
 
   getNotifications(): Promise<Notification[]>;
   createNotification(notification: InsertNotification): Promise<Notification>;
+
+  getTrainerContact(): Promise<TrainerContact | undefined>;
+  saveTrainerContact(data: InsertTrainerContact): Promise<TrainerContact>;
 
   getAvailableStartTimes(date: string, branchId?: string): Promise<{ startTime: string; endTime: string; branchId: string; branchName: string; blockId: string; }[]>;
 }
@@ -279,6 +282,21 @@ export class DatabaseStorage implements IStorage {
 
   async createNotification(notification: InsertNotification): Promise<Notification> {
     const [created] = await db.insert(notifications).values(notification).returning();
+    return created;
+  }
+
+  async getTrainerContact(): Promise<TrainerContact | undefined> {
+    const [contact] = await db.select().from(trainerContact).limit(1);
+    return contact || undefined;
+  }
+
+  async saveTrainerContact(data: InsertTrainerContact): Promise<TrainerContact> {
+    const existing = await this.getTrainerContact();
+    if (existing) {
+      const [updated] = await db.update(trainerContact).set({ ...data, updatedAt: new Date() }).where(eq(trainerContact.id, existing.id)).returning();
+      return updated;
+    }
+    const [created] = await db.insert(trainerContact).values(data).returning();
     return created;
   }
 
