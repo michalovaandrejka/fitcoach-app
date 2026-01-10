@@ -310,7 +310,9 @@ export default function ClientDetailScreen() {
                     <View style={styles.prefContent}>
                       <ThemedText type="small" style={{ color: theme.textSecondary }}>Cíle</ThemedText>
                       <ThemedText type="body">
-                        {mealPref.goals.map(g => GOALS_MAP[g] || g).join(", ") || "Nevyplněno"}
+                        {Array.isArray(mealPref.goals) && mealPref.goals.length > 0
+                          ? mealPref.goals.map(g => GOALS_MAP[g] || g).join(", ")
+                          : "Nevyplněno"}
                       </ThemedText>
                     </View>
                   </View>

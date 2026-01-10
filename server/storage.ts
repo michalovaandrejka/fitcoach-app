@@ -233,17 +233,47 @@ export class DatabaseStorage implements IStorage {
 
   async getMealPreference(userId: string): Promise<MealPreference | undefined> {
     const [pref] = await db.select().from(mealPreferences).where(eq(mealPreferences.userId, userId));
-    return pref || undefined;
+    if (!pref) return undefined;
+    
+    let parsedGoals: string[] = [];
+    try {
+      if (typeof pref.goals === "string") {
+        parsedGoals = JSON.parse(pref.goals);
+      } else if (Array.isArray(pref.goals)) {
+        parsedGoals = pref.goals;
+      }
+    } catch {
+      parsedGoals = [];
+    }
+    
+    return { ...pref, goals: parsedGoals as any };
   }
 
   async upsertMealPreference(pref: InsertMealPreference): Promise<MealPreference> {
-    const existing = await this.getMealPreference(pref.userId);
+    const goalsToStore = Array.isArray(pref.goals) ? JSON.stringify(pref.goals) : pref.goals;
+    const prefToStore = { ...pref, goals: goalsToStore };
+    
+    const [existing] = await db.select().from(mealPreferences).where(eq(mealPreferences.userId, pref.userId));
     if (existing) {
-      const [updated] = await db.update(mealPreferences).set({ ...pref, updatedAt: new Date() }).where(eq(mealPreferences.userId, pref.userId)).returning();
-      return updated;
+      const [updated] = await db.update(mealPreferences).set({ ...prefToStore, updatedAt: new Date() }).where(eq(mealPreferences.userId, pref.userId)).returning();
+      return this.parseMealPreferenceGoals(updated);
     }
-    const [created] = await db.insert(mealPreferences).values(pref).returning();
-    return created;
+    const [created] = await db.insert(mealPreferences).values(prefToStore).returning();
+    return this.parseMealPreferenceGoals(created);
+  }
+
+  private parseMealPreferenceGoals(pref: any): MealPreference {
+    let parsedGoals: string[] = [];
+    try {
+      if (typeof pref.goals === "string") {
+        parsedGoals = JSON.parse(pref.goals);
+      } else if (Array.isArray(pref.goals)) {
+        parsedGoals = pref.goals;
+      }
+    } catch {
+      parsedGoals = [];
+    }
+    return { ...pref, goals: parsedGoals as any };
   }
 
   async getAdminNote(userId: string): Promise<AdminNote | undefined> {
