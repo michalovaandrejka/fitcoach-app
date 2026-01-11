@@ -36,6 +36,16 @@ export default function LoginScreen() {
     queryKey: ["/api/trainer-photo"],
     retry: false,
     staleTime: 1000 * 60 * 5,
+    queryFn: async () => {
+      try {
+        const baseUrl = "https://web-production-bd36.up.railway.app";
+        const res = await fetch(`${baseUrl}/api/trainer-photo`);
+        if (!res.ok) return null;
+        return await res.json();
+      } catch {
+        return null;
+      }
+    },
   });
 
   const handleSubmit = async () => {

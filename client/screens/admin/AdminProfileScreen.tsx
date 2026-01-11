@@ -52,6 +52,16 @@ export default function AdminProfileScreen() {
   const { data: trainerPhoto, isLoading: isLoadingPhoto } = useQuery<TrainerPhoto | null>({
     queryKey: ["/api/trainer-photo"],
     retry: false,
+    queryFn: async () => {
+      try {
+        const baseUrl = getApiUrl();
+        const res = await fetch(`${baseUrl}api/trainer-photo`);
+        if (!res.ok) return null;
+        return await res.json();
+      } catch {
+        return null;
+      }
+    },
   });
 
   useEffect(() => {
@@ -119,7 +129,7 @@ export default function AdminProfileScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
