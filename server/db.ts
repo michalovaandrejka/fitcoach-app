@@ -155,6 +155,15 @@ export async function initializeDatabase(): Promise<void> {
     )
   `);
 
+  await database.execute(sql`
+    CREATE TABLE IF NOT EXISTS trainer_photos (
+      id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+      mime_type TEXT NOT NULL,
+      data TEXT NOT NULL,
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    )
+  `);
+
   const existingContact = await database.execute(sql`SELECT * FROM trainer_contact LIMIT 1`);
   if (existingContact.rows.length === 0) {
     await database.execute(sql`
