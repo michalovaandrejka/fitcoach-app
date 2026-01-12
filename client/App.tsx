@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View, ActivityIndicator } from "react-native";
+import { StyleSheet, View, ActivityIndicator, Platform } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
-import * as Font from "expo-font";
+import { useFonts } from "expo-font";
 import { Feather } from "@expo/vector-icons";
 
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -22,29 +22,25 @@ SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [appReady, setAppReady] = useState(false);
-  const [fontsLoaded, setFontsLoaded] = useState(false);
+  
+  const [fontsLoaded, fontError] = useFonts({
+    ...Feather.font,
+  });
 
   useEffect(() => {
-    const loadFonts = async () => {
-      try {
-        console.log("[App] Loading Feather fonts...");
-        await Font.loadAsync({
-          ...Feather.font,
-        });
-        console.log("[App] Feather fonts loaded successfully");
-        setFontsLoaded(true);
-      } catch (e) {
-        console.error("[App] Error loading fonts:", e);
-        setFontsLoaded(true);
-      }
-    };
-    
-    loadFonts();
-  }, []);
+    if (fontError) {
+      console.error("[App] Font loading error:", fontError);
+    }
+    if (fontsLoaded) {
+      console.log("[App] Feather fonts loaded via useFonts hook");
+    }
+  }, [fontsLoaded, fontError]);
 
   useEffect(() => {
     const prepare = async () => {
-      if (!fontsLoaded) return;
+      if (!fontsLoaded && !fontError) return;
+      
+      console.log("[App] Fonts ready, platform:", Platform.OS);
       
       try {
         console.log("[App] Hiding splash screen...");
@@ -65,7 +61,7 @@ export default function App() {
     };
     
     prepare();
-  }, [fontsLoaded]);
+  }, [fontsLoaded, fontError]);
 
   if (!appReady) {
     return (
