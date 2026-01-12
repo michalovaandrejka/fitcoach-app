@@ -21,29 +21,38 @@ import { Colors } from "@/constants/theme";
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
-  const [isReady, setIsReady] = useState(false);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [splashHidden, setSplashHidden] = useState(false);
 
   useEffect(() => {
-    const init = async () => {
+    const loadFonts = async () => {
       try {
         await Font.loadAsync(Feather.font);
-        await initializeData();
       } catch (e) {
         console.warn("Error loading fonts:", e);
       } finally {
-        setIsReady(true);
+        setFontsLoaded(true);
       }
     };
-    init();
+    loadFonts();
   }, []);
 
-  const onLayoutRootView = useCallback(async () => {
-    if (isReady) {
-      await SplashScreen.hideAsync();
+  useEffect(() => {
+    if (splashHidden) {
+      initializeData().catch((e) => console.warn("Error initializing data:", e));
     }
-  }, [isReady]);
+  }, [splashHidden]);
 
-  if (!isReady) {
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded) {
+      console.log("[Splash] Hiding splash screen...");
+      await SplashScreen.hideAsync();
+      console.log("[Splash] Splash screen hidden");
+      setSplashHidden(true);
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={Colors.light.primary} />
