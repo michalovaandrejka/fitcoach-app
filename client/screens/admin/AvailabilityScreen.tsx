@@ -3,7 +3,7 @@ import { StyleSheet, View, ScrollView, Pressable, RefreshControl, Alert, Modal, 
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedView } from "@/components/ThemedView";
@@ -473,13 +473,13 @@ export default function AvailabilityScreen() {
       >
         <View style={styles.monthHeader}>
           <Pressable onPress={handlePrevMonth} style={[styles.monthNavButton, { backgroundColor: theme.backgroundSecondary }]}>
-            <Feather name="chevron-left" size={24} color={theme.text} />
+            <Ionicons name="chevron-back-outline" size={24} color={theme.text} />
           </Pressable>
           <ThemedText type="h3">
             {MONTH_NAMES[currentMonth.month]} {currentMonth.year}
           </ThemedText>
           <Pressable onPress={handleNextMonth} style={[styles.monthNavButton, { backgroundColor: theme.backgroundSecondary }]}>
-            <Feather name="chevron-right" size={24} color={theme.text} />
+            <Ionicons name="chevron-forward-outline" size={24} color={theme.text} />
           </Pressable>
         </View>
 
@@ -551,7 +551,7 @@ export default function AvailabilityScreen() {
             onPress={handleOpenAddModal}
             style={[styles.addButton, { backgroundColor: theme.primary }]}
           >
-            <Feather name="plus" size={20} color="#FFFFFF" />
+            <Ionicons name="add-outline" size={20} color="#FFFFFF" />
           </Pressable>
         </View>
 
@@ -564,7 +564,7 @@ export default function AvailabilityScreen() {
               <Card key={block.id} elevation={1} style={styles.blockCard}>
                 <View style={styles.blockHeader}>
                   <View style={styles.blockTime}>
-                    <Feather name="clock" size={18} color={theme.primary} />
+                    <Ionicons name="time-outline" size={18} color={theme.primary} />
                     <ThemedText type="h4" style={{ marginLeft: Spacing.sm }}>
                       {block.startTime} - {block.endTime}
                     </ThemedText>
@@ -574,20 +574,20 @@ export default function AvailabilityScreen() {
                       onPress={() => handleOpenManualModal(block)}
                       style={[styles.iconButton, { backgroundColor: theme.primary + "20" }]}
                     >
-                      <Feather name="user-plus" size={16} color={theme.primary} />
+                      <Ionicons name="person-add-outline" size={16} color={theme.primary} />
                     </Pressable>
                     <Pressable
                       onPress={() => handleDeleteBlock(block)}
                       style={[styles.iconButton, { backgroundColor: theme.error + "20" }]}
                     >
-                      <Feather name="trash-2" size={16} color={theme.error} />
+                      <Ionicons name="trash-outline" size={16} color={theme.error} />
                     </Pressable>
                   </View>
                 </View>
                 
                 <View style={styles.blockMeta}>
                   <View style={[styles.branchBadge, { backgroundColor: theme.backgroundSecondary }]}>
-                    <Feather name="map-pin" size={12} color={theme.textSecondary} />
+                    <Ionicons name="location-outline" size={12} color={theme.textSecondary} />
                     <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: 4 }}>
                       {getBranchName(block.branchId)}
                     </ThemedText>
@@ -619,7 +619,7 @@ export default function AvailabilityScreen() {
                             {booking.bookingType === "manual" ? " (manualne)" : ""}
                           </ThemedText>
                         </View>
-                        <Feather name="x" size={16} color={theme.textSecondary} />
+                        <Ionicons name="close-outline" size={16} color={theme.textSecondary} />
                       </Pressable>
                     ))}
                   </View>
@@ -629,7 +629,7 @@ export default function AvailabilityScreen() {
           })
         ) : (
           <Card elevation={1} style={styles.emptyCard}>
-            <Feather name="calendar" size={40} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
+            <Ionicons name="calendar-outline" size={40} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
             <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
               Na tento den nejsou nastaveny žádné pracovní bloky
             </ThemedText>
@@ -646,20 +646,20 @@ export default function AvailabilityScreen() {
             <View style={styles.modalHeader}>
               <ThemedText type="h3">Přidat pracovní blok</ThemedText>
               <Pressable onPress={() => setShowAddModal(false)}>
-                <Feather name="x" size={24} color={theme.text} />
+                <Ionicons name="close-outline" size={24} color={theme.text} />
               </Pressable>
             </View>
 
             <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
               <View style={styles.monthHeader}>
                 <Pressable onPress={handleModalPrevMonth} style={[styles.monthNavButton, { backgroundColor: theme.backgroundSecondary }]}>
-                  <Feather name="chevron-left" size={20} color={theme.text} />
+                  <Ionicons name="chevron-back-outline" size={20} color={theme.text} />
                 </Pressable>
                 <ThemedText type="h4">
                   {MONTH_NAMES[modalMonth.month]} {modalMonth.year}
                 </ThemedText>
                 <Pressable onPress={handleModalNextMonth} style={[styles.monthNavButton, { backgroundColor: theme.backgroundSecondary }]}>
-                  <Feather name="chevron-right" size={20} color={theme.text} />
+                  <Ionicons name="chevron-forward-outline" size={20} color={theme.text} />
                 </Pressable>
               </View>
 
@@ -810,7 +810,7 @@ export default function AvailabilityScreen() {
                     >
                       <View style={[styles.checkbox, { borderColor: isSelected ? theme.primary : theme.border }]}>
                         {isSelected ? (
-                          <Feather name="check" size={14} color={theme.primary} />
+                          <Ionicons name="checkmark-outline" size={14} color={theme.primary} />
                         ) : null}
                       </View>
                       <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
@@ -835,13 +835,13 @@ export default function AvailabilityScreen() {
             <View style={styles.modalHeader}>
               <ThemedText type="h3">Manuální rezervace</ThemedText>
               <Pressable onPress={() => setShowManualModal(false)}>
-                <Feather name="x" size={24} color={theme.text} />
+                <Ionicons name="close-outline" size={24} color={theme.text} />
               </Pressable>
             </View>
 
             {selectedBlockForManual ? (
               <View style={[styles.selectedBlockInfo, { backgroundColor: theme.backgroundSecondary }]}>
-                <Feather name="clock" size={18} color={theme.primary} />
+                <Ionicons name="time-outline" size={18} color={theme.primary} />
                 <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
                   {selectedBlockForManual.startTime} - {selectedBlockForManual.endTime}
                 </ThemedText>

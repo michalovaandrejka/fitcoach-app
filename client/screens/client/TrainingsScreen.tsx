@@ -3,7 +3,7 @@ import { StyleSheet, View, FlatList, RefreshControl, Pressable, Alert } from "re
 import { useFocusEffect } from "@react-navigation/native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedView } from "@/components/ThemedView";
@@ -78,7 +78,7 @@ export default function TrainingsScreen() {
       <View style={styles.bookingHeader}>
         <View style={styles.dateContainer}>
           <View style={[styles.dateBadge, { backgroundColor: theme.primary + "20" }]}>
-            <Feather name="calendar" size={16} color={theme.primary} />
+            <Ionicons name="calendar-outline" size={16} color={theme.primary} />
           </View>
           <View>
             <ThemedText type="h4">{formatDate(item.date)}</ThemedText>
@@ -91,13 +91,13 @@ export default function TrainingsScreen() {
       
       <View style={styles.detailsSection}>
         <View style={styles.detailRow}>
-          <Feather name="clock" size={14} color={theme.textSecondary} />
+          <Ionicons name="time-outline" size={14} color={theme.textSecondary} />
           <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
             Délka: {TRAINING_DURATION} minut
           </ThemedText>
         </View>
         <View style={styles.detailRow}>
-          <Feather name="map-pin" size={14} color={theme.textSecondary} />
+          <Ionicons name="location-outline" size={14} color={theme.textSecondary} />
           <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
             {item.branchName}
           </ThemedText>
@@ -116,7 +116,7 @@ export default function TrainingsScreen() {
   const EmptyState = () => (
     <View style={styles.emptyState}>
       <View style={[styles.emptyIcon, { backgroundColor: theme.backgroundSecondary }]}>
-        <Feather name="calendar" size={48} color={theme.textSecondary} />
+        <Ionicons name="calendar-outline" size={48} color={theme.textSecondary} />
       </View>
       <ThemedText type="h3" style={styles.emptyTitle}>Zatím nemáte žádné rezervace</ThemedText>
       <ThemedText type="body" style={[styles.emptySubtitle, { color: theme.textSecondary }]}>

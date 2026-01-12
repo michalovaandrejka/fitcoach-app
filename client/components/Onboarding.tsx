@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { StyleSheet, View, Pressable, Dimensions, ScrollView, FlatList, ViewToken } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Animated, {
   useSharedValue,
@@ -30,12 +30,12 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 interface MockElementType {
   type: "card" | "button" | "badge" | "icon";
   label?: string;
-  icon?: keyof typeof Feather.glyphMap;
+  icon?: keyof typeof Ionicons.glyphMap;
   color?: "primary" | "success" | "warning";
 }
 
 interface OnboardingStep {
-  icon: keyof typeof Feather.glyphMap;
+  icon: keyof typeof Ionicons.glyphMap;
   title: string;
   description: string;
   tip?: string;
@@ -45,29 +45,29 @@ interface OnboardingStep {
 
 const ADMIN_STEPS: OnboardingStep[] = [
   {
-    icon: "home",
+    icon: "home-outline",
     title: "Dashboard",
     description: "Váš hlavní přehled s klíčovými statistikami a rychlými akcemi.",
     tip: "Sledujte dnešní tréninky a volné termíny na jednom místě",
     mockElements: [
-      { type: "card", label: "12 klientů", icon: "users" },
-      { type: "card", label: "3 dnešní tréninky", icon: "calendar" },
+      { type: "card", label: "12 klientů", icon: "people-outline" },
+      { type: "card", label: "3 dnešní tréninky", icon: "calendar-outline" },
       { type: "badge", label: "5 volných termínů", color: "success" },
     ],
   },
   {
-    icon: "calendar",
+    icon: "calendar-outline",
     title: "Kalendář tréninků",
     description: "Vizuální přehled všech naplánovaných tréninků podle dne.",
     tip: "Klikněte na den pro zobrazení detailu tréninku",
     action: "Zkuste kliknout na kartu",
     mockElements: [
-      { type: "card", label: "Pondělí - 3 tréninky", icon: "calendar" },
-      { type: "card", label: "Úterý - 2 tréninky", icon: "calendar" },
+      { type: "card", label: "Pondělí - 3 tréninky", icon: "calendar-outline" },
+      { type: "card", label: "Úterý - 2 tréninky", icon: "calendar-outline" },
     ],
   },
   {
-    icon: "clock",
+    icon: "time-outline",
     title: "Správa dostupnosti",
     description: "Přidávejte volné termíny pro jednu nebo obě pobočky. Klienti si pak mohou rezervovat.",
     tip: "Volné termíny se automaticky skryjí po rezervaci",
@@ -79,17 +79,17 @@ const ADMIN_STEPS: OnboardingStep[] = [
     ],
   },
   {
-    icon: "users",
+    icon: "people-outline",
     title: "Správa klientů",
     description: "Kompletní přehled všech klientů s jejich rezervacemi a jídelníčky.",
     tip: "Klikněte na klienta pro detail a poznámky",
     mockElements: [
-      { type: "card", label: "Jana Nováková", icon: "user" },
-      { type: "card", label: "Petra Svobodová", icon: "user" },
+      { type: "card", label: "Jana Nováková", icon: "person-outline" },
+      { type: "card", label: "Petra Svobodová", icon: "person-outline" },
     ],
   },
   {
-    icon: "bell",
+    icon: "notifications-outline",
     title: "Notifikace",
     description: "Posílejte upozornění klientům - všem nebo jen vybraným.",
     tip: "Skvěle pro oznámení změny termínu nebo akcí",
@@ -99,13 +99,13 @@ const ADMIN_STEPS: OnboardingStep[] = [
     ],
   },
   {
-    icon: "edit-3",
+    icon: "create-outline",
     title: "Manuální rezervace",
     description: "Blokujte terminy pro klienty z WhatsAppu nebo telefonu.",
     tip: "Klikněte na volný termín a vyberte 'Manuální rezervace'",
     mockElements: [
       { type: "badge", label: "Volný termín", color: "success" },
-      { type: "icon", icon: "arrow-right" },
+      { type: "icon", icon: "arrow-forward-outline" },
       { type: "badge", label: "Blokováno - Klient X", color: "warning" },
     ],
   },
@@ -113,17 +113,17 @@ const ADMIN_STEPS: OnboardingStep[] = [
 
 const CLIENT_STEPS: OnboardingStep[] = [
   {
-    icon: "calendar",
+    icon: "calendar-outline",
     title: "Vaše tréninky",
     description: "Přehled všech vašich nadcházejících tréninků na jednom místě.",
     tip: "Tréninky se řadí podle data - nejbližší nahoře",
     mockElements: [
-      { type: "card", label: "Pondělí 10:00", icon: "calendar" },
-      { type: "card", label: "Středa 14:00", icon: "calendar" },
+      { type: "card", label: "Pondělí 10:00", icon: "calendar-outline" },
+      { type: "card", label: "Středa 14:00", icon: "calendar-outline" },
     ],
   },
   {
-    icon: "plus-circle",
+    icon: "add-circle-outline",
     title: "Rezervace tréninku",
     description: "Jednoduše si zarezervujte nový trénink v pár krocích.",
     tip: "Vyberete datum, čas a pobočku",
@@ -135,18 +135,18 @@ const CLIENT_STEPS: OnboardingStep[] = [
     ],
   },
   {
-    icon: "x-circle",
+    icon: "close-circle-outline",
     title: "Zrušení tréninku",
     description: "Pokud nemůžete přijít, zrušte trénink včas.",
     tip: "Rušit lze nejpozději 24 hodin předem",
     action: "Podržení prstu na tréninku zobrazí možnosti",
     mockElements: [
-      { type: "card", label: "Pondělí 10:00", icon: "calendar" },
+      { type: "card", label: "Pondělí 10:00", icon: "calendar-outline" },
       { type: "button", label: "Zrušit trénink", color: "warning" },
     ],
   },
   {
-    icon: "heart",
+    icon: "heart-outline",
     title: "Váš jídelníček",
     description: "Sdílejte své preference - co máte rádi, co ne, a vaše cíle.",
     tip: "Trenérka vám může připravit individuální jídelníček",
@@ -156,13 +156,13 @@ const CLIENT_STEPS: OnboardingStep[] = [
     ],
   },
   {
-    icon: "user",
+    icon: "person-outline",
     title: "Váš profil",
     description: "Upravte své údaje, kontakt a nastavení aplikace.",
     tip: "Zde se také můžete odhlásit",
     mockElements: [
-      { type: "card", label: "Osobní údaje", icon: "edit" },
-      { type: "card", label: "Nastavení", icon: "settings" },
+      { type: "card", label: "Osobní údaje", icon: "create-outline" },
+      { type: "card", label: "Nastavení", icon: "settings-outline" },
     ],
   },
 ];
@@ -216,11 +216,11 @@ function MockElement({
             <View style={styles.mockCardContent}>
               {element.icon ? (
                 <View style={[styles.mockIconBg, { backgroundColor: theme.primary + "20" }]}>
-                  <Feather name={element.icon} size={18} color={theme.primary} />
+                  <Ionicons name={element.icon} size={18} color={theme.primary} />
                 </View>
               ) : null}
               <ThemedText type="body" style={{ flex: 1 }}>{element.label}</ThemedText>
-              <Feather name="chevron-right" size={18} color={theme.textSecondary} />
+              <Ionicons name="chevron-forward-outline" size={18} color={theme.textSecondary} />
             </View>
           </Card>
         </AnimatedPressable>
@@ -265,7 +265,7 @@ function MockElement({
   if (element.type === "icon") {
     return (
       <Animated.View entering={FadeInDown.delay(300 + index * 150).springify()}>
-        <Feather name={element.icon || "arrow-right"} size={24} color={theme.textSecondary} />
+        <Ionicons name={element.icon || "arrow-forward-outline"} size={24} color={theme.textSecondary} />
       </Animated.View>
     );
   }
@@ -332,7 +332,7 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
             style={[styles.iconContainer, { backgroundColor: theme.primary + "15" }]}
           >
             <View style={[styles.iconInner, { backgroundColor: theme.primary + "25" }]}>
-              <Feather name={item.icon} size={48} color={theme.primary} />
+              <Ionicons name={item.icon} size={48} color={theme.primary} />
             </View>
           </Animated.View>
 
@@ -351,7 +351,7 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
               entering={FadeInUp.delay(400)}
               style={[styles.tipContainer, { backgroundColor: theme.primary + "10", borderColor: theme.primary + "30" }]}
             >
-              <Feather name="zap" size={16} color={theme.primary} />
+              <Ionicons name="flash-outline" size={16} color={theme.primary} />
               <ThemedText type="small" style={{ color: theme.primary, flex: 1, marginLeft: Spacing.sm }}>
                 {item.tip}
               </ThemedText>
@@ -372,7 +372,7 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
               style={styles.actionHint}
             >
               <View style={[styles.actionBadge, { backgroundColor: theme.backgroundSecondary }]}>
-                <Feather name="mouse-pointer" size={14} color={theme.primary} />
+                <Ionicons name="hand-left-outline" size={14} color={theme.primary} />
                 <ThemedText type="small" style={{ color: theme.text, marginLeft: Spacing.xs }}>
                   {item.action}
                 </ThemedText>
@@ -397,7 +397,7 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
         </View>
         <Pressable onPress={handleSkip} style={styles.skipButton}>
           <ThemedText type="body" style={{ color: theme.textSecondary }}>Přeskočit</ThemedText>
-          <Feather name="x" size={18} color={theme.textSecondary} style={{ marginLeft: Spacing.xs }} />
+          <Ionicons name="close-outline" size={18} color={theme.textSecondary} style={{ marginLeft: Spacing.xs }} />
         </Pressable>
       </View>
 
@@ -435,7 +435,7 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
               onPress={handlePrev}
               style={[styles.navButton, { backgroundColor: theme.backgroundSecondary }]}
             >
-              <Feather name="arrow-left" size={20} color={theme.text} />
+              <Ionicons name="arrow-back-outline" size={20} color={theme.text} />
             </Pressable>
           ) : (
             <View style={styles.navButtonPlaceholder} />
@@ -471,7 +471,7 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
             onPress={handleNext}
             style={[styles.navButton, { backgroundColor: theme.primary }]}
           >
-            <Feather name={isLastStep ? "check" : "arrow-right"} size={20} color="#FFFFFF" />
+            <Ionicons name={isLastStep ? "checkmark-outline" : "arrow-forward-outline"} size={20} color="#FFFFFF" />
           </Pressable>
         </View>
 
@@ -482,8 +482,8 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
           <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
             {isLastStep ? "Začít používat aplikaci" : "Pokračovat"}
           </ThemedText>
-          <Feather 
-            name={isLastStep ? "check-circle" : "arrow-right"} 
+          <Ionicons 
+            name={isLastStep ? "checkmark-circle-outline" : "arrow-forward-outline"} 
             size={20} 
             color="#FFFFFF" 
             style={{ marginLeft: Spacing.sm }} 

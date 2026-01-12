@@ -7,7 +7,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/query-client";
@@ -24,7 +24,7 @@ export default function App() {
   const [appReady, setAppReady] = useState(false);
   
   const [fontsLoaded, fontError] = useFonts({
-    ...Feather.font,
+    ...Ionicons.font,
   });
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function App() {
       console.error("[App] Font loading error:", fontError);
     }
     if (fontsLoaded) {
-      console.log("[App] Feather fonts loaded via useFonts hook");
+      console.log("[App] Ionicons fonts loaded via useFonts hook");
     }
   }, [fontsLoaded, fontError]);
 

@@ -3,7 +3,7 @@ import { StyleSheet, View, ScrollView, Pressable, Alert, ActivityIndicator, Moda
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useNavigation } from "@react-navigation/native";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedView } from "@/components/ThemedView";
@@ -177,8 +177,8 @@ export default function BookingScreen() {
                     ]}
                   >
                     <View style={styles.locationIcon}>
-                      <Feather 
-                        name="map-pin" 
+                      <Ionicons 
+                        name="location-outline" 
                         size={24} 
                         color={isSelected ? theme.primary : theme.textSecondary} 
                       />
@@ -197,7 +197,7 @@ export default function BookingScreen() {
                     </ThemedText>
                     {isSelected ? (
                       <View style={[styles.selectedBadge, { backgroundColor: theme.primary }]}>
-                        <Feather name="check" size={12} color="#FFFFFF" />
+                        <Ionicons name="checkmark-outline" size={12} color="#FFFFFF" />
                       </View>
                     ) : null}
                   </Pressable>
@@ -206,7 +206,7 @@ export default function BookingScreen() {
             </View>
           ) : (
             <Card elevation={1} style={styles.emptyCard}>
-              <Feather name="map-pin" size={32} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
+              <Ionicons name="location-outline" size={32} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
               <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
                 Žádná aktivní fitka
               </ThemedText>
@@ -258,7 +258,7 @@ export default function BookingScreen() {
               </ScrollView>
             ) : (
               <Card elevation={1} style={styles.emptyCard}>
-                <Feather name="calendar" size={32} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
+                <Ionicons name="calendar-outline" size={32} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
                 <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
                   Žádné volné termíny v {selectedLocation.name}
                 </ThemedText>
@@ -272,7 +272,7 @@ export default function BookingScreen() {
             <View style={styles.sectionHeader}>
               <ThemedText type="h4">3. Vyberte čas tréninku</ThemedText>
               <View style={[styles.durationBadge, { backgroundColor: theme.primary + "20" }]}>
-                <Feather name="clock" size={12} color={theme.primary} />
+                <Ionicons name="time-outline" size={12} color={theme.primary} />
                 <ThemedText type="small" style={{ color: theme.primary, marginLeft: 4 }}>
                   {TRAINING_DURATION} min
                 </ThemedText>
@@ -319,7 +319,7 @@ export default function BookingScreen() {
               </View>
             ) : (
               <Card elevation={1} style={styles.emptyCard}>
-                <Feather name="clock" size={32} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
+                <Ionicons name="time-outline" size={32} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
                 <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
                   Na tento den nejsou dostupné žádné volné časy
                 </ThemedText>
@@ -343,25 +343,25 @@ export default function BookingScreen() {
             {slotToConfirm && selectedDate && selectedLocation ? (
               <View style={styles.modalDetails}>
                 <View style={styles.modalRow}>
-                  <Feather name="map-pin" size={20} color={theme.primary} />
+                  <Ionicons name="location-outline" size={20} color={theme.primary} />
                   <ThemedText type="body" style={styles.modalRowText}>
                     {selectedLocation.name}
                   </ThemedText>
                 </View>
                 <View style={styles.modalRow}>
-                  <Feather name="calendar" size={20} color={theme.primary} />
+                  <Ionicons name="calendar-outline" size={20} color={theme.primary} />
                   <ThemedText type="body" style={styles.modalRowText}>
                     {formatDateFull(selectedDate)}
                   </ThemedText>
                 </View>
                 <View style={styles.modalRow}>
-                  <Feather name="clock" size={20} color={theme.primary} />
+                  <Ionicons name="time-outline" size={20} color={theme.primary} />
                   <ThemedText type="body" style={styles.modalRowText}>
                     {slotToConfirm.startTime} - {slotToConfirm.endTime}
                   </ThemedText>
                 </View>
                 <View style={[styles.durationBadge, { backgroundColor: theme.primary + "20", alignSelf: "flex-start", marginTop: Spacing.md }]}>
-                  <Feather name="clock" size={14} color={theme.primary} />
+                  <Ionicons name="time-outline" size={14} color={theme.primary} />
                   <ThemedText type="small" style={{ color: theme.primary, marginLeft: 6 }}>
                     {TRAINING_DURATION} minut
                   </ThemedText>

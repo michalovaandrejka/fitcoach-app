@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import { StyleSheet, View, TextInput, Pressable, ActivityIndicator, Alert } from "react-native";
 import { useFocusEffect, useRoute, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedView } from "@/components/ThemedView";
@@ -204,7 +204,7 @@ export default function ClientDetailScreen() {
                   <Card key={booking.id} elevation={1} style={styles.bookingCard}>
                     <View style={styles.bookingRow}>
                       <View style={[styles.bookingIcon, { backgroundColor: theme.primary + "20" }]}>
-                        <Feather name="calendar" size={16} color={theme.primary} />
+                        <Ionicons name="calendar-outline" size={16} color={theme.primary} />
                       </View>
                       <View style={styles.bookingInfo}>
                         <ThemedText type="body" style={{ fontWeight: "600" }}>
@@ -218,7 +218,7 @@ export default function ClientDetailScreen() {
                         onPress={() => handleCancelBooking(booking)}
                         style={[styles.cancelButton, { backgroundColor: theme.error + "20" }]}
                       >
-                        <Feather name="x" size={16} color={theme.error} />
+                        <Ionicons name="close-outline" size={16} color={theme.error} />
                         <ThemedText type="small" style={{ color: theme.error, marginLeft: Spacing.xs }}>
                           Zrušit
                         </ThemedText>
@@ -243,7 +243,7 @@ export default function ClientDetailScreen() {
                   <Card key={booking.id} elevation={1} style={styles.bookingCard}>
                     <View style={styles.bookingRow}>
                       <View style={[styles.bookingIcon, { backgroundColor: theme.textSecondary + "20" }]}>
-                        <Feather name="check" size={16} color={theme.textSecondary} />
+                        <Ionicons name="checkmark-outline" size={16} color={theme.textSecondary} />
                       </View>
                       <View style={styles.bookingInfo}>
                         <ThemedText type="body" style={{ fontWeight: "600", color: theme.textSecondary }}>
@@ -269,7 +269,7 @@ export default function ClientDetailScreen() {
                 <Card elevation={1} style={styles.mealCard}>
                   <View style={styles.prefRow}>
                     <View style={[styles.prefIcon, { backgroundColor: theme.success + "20" }]}>
-                      <Feather name="heart" size={16} color={theme.success} />
+                      <Ionicons name="heart-outline" size={16} color={theme.success} />
                     </View>
                     <View style={styles.prefContent}>
                       <ThemedText type="small" style={{ color: theme.textSecondary }}>Má rád/a</ThemedText>
@@ -281,7 +281,7 @@ export default function ClientDetailScreen() {
                 <Card elevation={1} style={styles.mealCard}>
                   <View style={styles.prefRow}>
                     <View style={[styles.prefIcon, { backgroundColor: theme.error + "20" }]}>
-                      <Feather name="x-circle" size={16} color={theme.error} />
+                      <Ionicons name="close-circle-outline" size={16} color={theme.error} />
                     </View>
                     <View style={styles.prefContent}>
                       <ThemedText type="small" style={{ color: theme.textSecondary }}>Nesnáší</ThemedText>
@@ -293,7 +293,7 @@ export default function ClientDetailScreen() {
                 <Card elevation={1} style={styles.mealCard}>
                   <View style={styles.prefRow}>
                     <View style={[styles.prefIcon, { backgroundColor: theme.primary + "20" }]}>
-                      <Feather name="clock" size={16} color={theme.primary} />
+                      <Ionicons name="time-outline" size={16} color={theme.primary} />
                     </View>
                     <View style={styles.prefContent}>
                       <ThemedText type="small" style={{ color: theme.textSecondary }}>Jídel denně</ThemedText>
@@ -305,7 +305,7 @@ export default function ClientDetailScreen() {
                 <Card elevation={1} style={styles.mealCard}>
                   <View style={styles.prefRow}>
                     <View style={[styles.prefIcon, { backgroundColor: theme.warning + "20" }]}>
-                      <Feather name="target" size={16} color={theme.warning} />
+                      <Ionicons name="locate-outline" size={16} color={theme.warning} />
                     </View>
                     <View style={styles.prefContent}>
                       <ThemedText type="small" style={{ color: theme.textSecondary }}>Cíle</ThemedText>
@@ -322,7 +322,7 @@ export default function ClientDetailScreen() {
                   <Card elevation={1} style={styles.mealCard}>
                     <View style={styles.prefRow}>
                       <View style={[styles.prefIcon, { backgroundColor: theme.secondary + "20" }]}>
-                        <Feather name="message-circle" size={16} color={theme.secondary} />
+                        <Ionicons name="chatbubble-outline" size={16} color={theme.secondary} />
                       </View>
                       <View style={styles.prefContent}>
                         <ThemedText type="small" style={{ color: theme.textSecondary }}>Poznámky klienta</ThemedText>
@@ -363,7 +363,7 @@ export default function ClientDetailScreen() {
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
                   <>
-                    <Feather name="save" size={18} color="#FFFFFF" />
+                    <Ionicons name="save-outline" size={18} color="#FFFFFF" />
                     <ThemedText type="body" style={{ color: "#FFFFFF", marginLeft: Spacing.sm, fontWeight: "600" }}>
                       Uložit jídelníček
                     </ThemedText>
@@ -404,7 +404,7 @@ export default function ClientDetailScreen() {
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
                   <>
-                    <Feather name="save" size={18} color="#FFFFFF" />
+                    <Ionicons name="save-outline" size={18} color="#FFFFFF" />
                     <ThemedText type="body" style={{ color: "#FFFFFF", marginLeft: Spacing.sm, fontWeight: "600" }}>
                       Uložit poznámku
                     </ThemedText>
@@ -421,7 +421,7 @@ export default function ClientDetailScreen() {
             onPress={handleDeleteClient}
             style={[styles.deleteButton, { borderColor: theme.error }]}
           >
-            <Feather name="trash-2" size={18} color={theme.error} />
+            <Ionicons name="trash-outline" size={18} color={theme.error} />
             <ThemedText type="body" style={{ color: theme.error, marginLeft: Spacing.sm }}>
               Smazat klienta
             </ThemedText>

@@ -147,9 +147,9 @@
 - Placeholder: Text Secondary color
 
 **Icons:**
-- Use Feather icons from @expo/vector-icons
+- Use Ionicons from @expo/vector-icons (with "-outline" suffix for consistent style)
 - 24px standard size, 20px for navigation tabs
-- Use system icons for: home, calendar, user, settings, plus, search, menu
+- Use system icons for: home-outline, calendar-outline, person-outline, settings-outline, add-outline, search-outline, menu-outline
 
 ### Assets Required
 1. **4 Fitness-Themed Avatars** (cartoon/illustrated style):

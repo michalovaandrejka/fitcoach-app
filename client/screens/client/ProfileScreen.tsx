@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { StyleSheet, View, ScrollView, Pressable, Alert, Linking, ActivityIndicator } from "react-native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useQuery } from "@tanstack/react-query";
 
@@ -15,10 +15,10 @@ import { Spacing, BorderRadius } from "@/constants/theme";
 import { apiDeleteUser } from "@/lib/api";
 
 const AVATARS = [
-  { id: 1, icon: "user" as const, color: "#FF6B35" },
-  { id: 2, icon: "activity" as const, color: "#4CAF50" },
-  { id: 3, icon: "heart" as const, color: "#E91E63" },
-  { id: 4, icon: "zap" as const, color: "#9C27B0" },
+  { id: 1, icon: "person-outline" as const, color: "#FF6B35" },
+  { id: 2, icon: "pulse-outline" as const, color: "#4CAF50" },
+  { id: 3, icon: "heart-outline" as const, color: "#E91E63" },
+  { id: 4, icon: "flash-outline" as const, color: "#9C27B0" },
 ];
 
 interface TrainerContact {
@@ -132,8 +132,8 @@ export default function ProfileScreen() {
       >
         <View style={styles.header}>
           <View style={[styles.avatarContainer, { backgroundColor: AVATARS.find(a => a.id === selectedAvatar)?.color }]}>
-            <Feather
-              name={AVATARS.find(a => a.id === selectedAvatar)?.icon || "user"}
+            <Ionicons
+              name={AVATARS.find(a => a.id === selectedAvatar)?.icon || "person-outline"}
               size={48}
               color="#FFFFFF"
             />
@@ -158,10 +158,10 @@ export default function ProfileScreen() {
                   selectedAvatar === avatar.id && styles.selectedAvatar,
                 ]}
               >
-                <Feather name={avatar.icon} size={24} color="#FFFFFF" />
+                <Ionicons name={avatar.icon} size={24} color="#FFFFFF" />
                 {selectedAvatar === avatar.id ? (
                   <View style={[styles.checkBadge, { backgroundColor: theme.success }]}>
-                    <Feather name="check" size={10} color="#FFFFFF" />
+                    <Ionicons name="checkmark-outline" size={10} color="#FFFFFF" />
                   </View>
                 ) : null}
               </Pressable>
@@ -178,38 +178,38 @@ export default function ProfileScreen() {
             <>
               <Pressable onPress={handlePhonePress} style={styles.contactRow}>
                 <View style={[styles.contactIcon, { backgroundColor: theme.primary + "20" }]}>
-                  <Feather name="phone" size={18} color={theme.primary} />
+                  <Ionicons name="call-outline" size={18} color={theme.primary} />
                 </View>
                 <View style={styles.contactContent}>
                   <ThemedText type="small" style={{ color: theme.textSecondary }}>Telefon</ThemedText>
                   <ThemedText type="body" style={{ color: theme.primary }}>{trainerContact.phone}</ThemedText>
                 </View>
-                <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+                <Ionicons name="chevron-forward-outline" size={20} color={theme.textSecondary} />
               </Pressable>
 
               {trainerContact.email ? (
                 <Pressable onPress={handleEmailPress} style={styles.contactRow}>
                   <View style={[styles.contactIcon, { backgroundColor: theme.primary + "20" }]}>
-                    <Feather name="mail" size={18} color={theme.primary} />
+                    <Ionicons name="mail-outline" size={18} color={theme.primary} />
                   </View>
                   <View style={styles.contactContent}>
                     <ThemedText type="small" style={{ color: theme.textSecondary }}>Email</ThemedText>
                     <ThemedText type="body" style={{ color: theme.primary }}>{trainerContact.email}</ThemedText>
                   </View>
-                  <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+                  <Ionicons name="chevron-forward-outline" size={20} color={theme.textSecondary} />
                 </Pressable>
               ) : null}
 
               {trainerContact.whatsapp ? (
                 <Pressable onPress={handleWhatsAppPress} style={styles.contactRow}>
                   <View style={[styles.contactIcon, { backgroundColor: "#25D366" + "20" }]}>
-                    <Feather name="message-circle" size={18} color="#25D366" />
+                    <Ionicons name="chatbubble-outline" size={18} color="#25D366" />
                   </View>
                   <View style={styles.contactContent}>
                     <ThemedText type="small" style={{ color: theme.textSecondary }}>WhatsApp</ThemedText>
                     <ThemedText type="body" style={{ color: "#25D366" }}>{trainerContact.whatsapp}</ThemedText>
                   </View>
-                  <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+                  <Ionicons name="chevron-forward-outline" size={20} color={theme.textSecondary} />
                 </Pressable>
               ) : null}
             </>
@@ -225,7 +225,7 @@ export default function ProfileScreen() {
           
           <View style={styles.infoRow}>
             <View style={[styles.infoIcon, { backgroundColor: theme.backgroundSecondary }]}>
-              <Feather name="mail" size={18} color={theme.textSecondary} />
+              <Ionicons name="mail-outline" size={18} color={theme.textSecondary} />
             </View>
             <View style={styles.infoContent}>
               <ThemedText type="small" style={{ color: theme.textSecondary }}>Email</ThemedText>
@@ -235,7 +235,7 @@ export default function ProfileScreen() {
 
           <View style={styles.infoRow}>
             <View style={[styles.infoIcon, { backgroundColor: theme.backgroundSecondary }]}>
-              <Feather name="user" size={18} color={theme.textSecondary} />
+              <Ionicons name="person-outline" size={18} color={theme.textSecondary} />
             </View>
             <View style={styles.infoContent}>
               <ThemedText type="small" style={{ color: theme.textSecondary }}>Role</ThemedText>
@@ -248,7 +248,7 @@ export default function ProfileScreen() {
           onPress={handleLogout}
           style={[styles.logoutButton, { borderColor: theme.textSecondary }]}
         >
-          <Feather name="log-out" size={20} color={theme.textSecondary} />
+          <Ionicons name="log-out-outline" size={20} color={theme.textSecondary} />
           <ThemedText type="body" style={{ color: theme.textSecondary, marginLeft: Spacing.sm }}>
             Odhlásit se
           </ThemedText>
@@ -262,7 +262,7 @@ export default function ProfileScreen() {
             onPress={handleDeleteAccount}
             style={[styles.deleteButton, { borderColor: theme.error }]}
           >
-            <Feather name="trash-2" size={20} color={theme.error} />
+            <Ionicons name="trash-outline" size={20} color={theme.error} />
             <ThemedText type="body" style={{ color: theme.error, marginLeft: Spacing.sm }}>
               Smazat účet
             </ThemedText>

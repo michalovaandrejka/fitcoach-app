@@ -1,6 +1,6 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Platform, StyleSheet, Pressable } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -67,7 +67,7 @@ export default function ClientTabNavigator() {
           title: "Tréninky",
           headerTitle: "Tréninky",
           tabBarIcon: ({ color, size }) => (
-            <Feather name="calendar" size={size} color={color} />
+            <Ionicons name="calendar-outline" size={size} color={color} />
           ),
         }}
       />
@@ -86,7 +86,7 @@ export default function ClientTabNavigator() {
               }}
               style={[styles.fabButton, { backgroundColor: theme.primary }]}
             >
-              <Feather name="plus" size={24} color="#FFFFFF" />
+              <Ionicons name="add-outline" size={24} color="#FFFFFF" />
             </Pressable>
           ),
         }}
@@ -98,7 +98,7 @@ export default function ClientTabNavigator() {
           title: "Jídelníček",
           headerTitle: "Můj jídelníček",
           tabBarIcon: ({ color, size }) => (
-            <Feather name="heart" size={size} color={color} />
+            <Ionicons name="heart-outline" size={size} color={color} />
           ),
         }}
       />
@@ -109,7 +109,7 @@ export default function ClientTabNavigator() {
           title: "Profil",
           headerTitle: "Profil",
           tabBarIcon: ({ color, size }) => (
-            <Feather name="user" size={size} color={color} />
+            <Ionicons name="person-outline" size={size} color={color} />
           ),
         }}
       />

@@ -3,7 +3,7 @@ import { StyleSheet, View, FlatList, RefreshControl, Alert } from "react-native"
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedView } from "@/components/ThemedView";
@@ -99,20 +99,20 @@ export default function MealPlansScreen() {
   const getStatusInfo = (info: ClientMealInfo) => {
     if (info.mealPlan) {
       return {
-        icon: "check-circle" as const,
+        icon: "checkmark-circle-outline" as const,
         color: theme.success,
         text: `Aktualizováno ${formatDate(info.mealPlan.updatedAt)}`,
       };
     }
     if (info.preferences) {
       return {
-        icon: "alert-circle" as const,
+        icon: "alert-circle-outline" as const,
         color: theme.warning,
         text: "Preference vyplněny, čeká na jídelníček",
       };
     }
     return {
-      icon: "x-circle" as const,
+      icon: "close-circle-outline" as const,
       color: theme.textSecondary,
       text: "Bez preferencí a jídelníčku",
     };
@@ -136,13 +136,13 @@ export default function MealPlansScreen() {
           <View style={styles.info}>
             <ThemedText type="h4">{item.client.name}</ThemedText>
             <View style={styles.statusRow}>
-              <Feather name={status.icon} size={14} color={status.color} />
+              <Ionicons name={status.icon} size={14} color={status.color} />
               <ThemedText type="small" style={{ color: status.color, marginLeft: Spacing.xs }}>
                 {status.text}
               </ThemedText>
             </View>
           </View>
-          <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+          <Ionicons name="chevron-forward-outline" size={20} color={theme.textSecondary} />
         </View>
       </Card>
     );
@@ -197,7 +197,7 @@ export default function MealPlansScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Feather name="clipboard" size={48} color={theme.textSecondary} />
+            <Ionicons name="clipboard-outline" size={48} color={theme.textSecondary} />
             <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.lg }}>
               Zatím žádní klienti
             </ThemedText>

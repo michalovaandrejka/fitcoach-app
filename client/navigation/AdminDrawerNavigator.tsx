@@ -3,7 +3,7 @@ import { StyleSheet, View, Pressable } from "react-native";
 import { createDrawerNavigator, DrawerContentScrollView, DrawerContentComponentProps, useDrawerStatus } from "@react-navigation/drawer";
 import { createNativeStackNavigator, NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { HeaderButton } from "@react-navigation/elements";
-import { Feather } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, DrawerActions } from "@react-navigation/native";
 
@@ -58,7 +58,7 @@ function DrawerMenuButton() {
     <HeaderButton
       onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
     >
-      <Feather name="menu" size={24} color={theme.text} />
+      <Ionicons name="menu-outline" size={24} color={theme.text} />
     </HeaderButton>
   );
 }
@@ -149,18 +149,18 @@ function ProfileStack() {
 type DrawerItem = {
   name: keyof AdminDrawerParamList;
   label: string;
-  icon: keyof typeof Feather.glyphMap;
+  icon: keyof typeof Ionicons.glyphMap;
 };
 
 const drawerItems: DrawerItem[] = [
-  { name: "DashboardStack", label: "Dashboard", icon: "home" },
-  { name: "ClientsStack", label: "Klienti", icon: "users" },
-  { name: "CalendarStack", label: "Kalendar", icon: "calendar" },
-  { name: "AvailabilityStack", label: "Dostupnost", icon: "clock" },
-  { name: "NotificationsStack", label: "Oznameni", icon: "bell" },
-  { name: "MealPlansStack", label: "Jídelníčky", icon: "clipboard" },
-  { name: "LocationsStack", label: "Pobočky", icon: "map-pin" },
-  { name: "ProfileStack", label: "Profil", icon: "user" },
+  { name: "DashboardStack", label: "Dashboard", icon: "home-outline" },
+  { name: "ClientsStack", label: "Klienti", icon: "people-outline" },
+  { name: "CalendarStack", label: "Kalendar", icon: "calendar-outline" },
+  { name: "AvailabilityStack", label: "Dostupnost", icon: "time-outline" },
+  { name: "NotificationsStack", label: "Oznameni", icon: "notifications-outline" },
+  { name: "MealPlansStack", label: "Jídelníčky", icon: "clipboard-outline" },
+  { name: "LocationsStack", label: "Pobočky", icon: "location-outline" },
+  { name: "ProfileStack", label: "Profil", icon: "person-outline" },
 ];
 
 function CustomDrawerContent(props: DrawerContentComponentProps) {
@@ -191,7 +191,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
                   { backgroundColor: isActive ? theme.primary + "20" : "transparent" },
                 ]}
               >
-                <Feather
+                <Ionicons
                   name={item.icon}
                   size={22}
                   color={isActive ? theme.primary : theme.text}
@@ -212,7 +212,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + Spacing.md, borderTopColor: theme.border }]}>
         <Pressable onPress={logout} style={styles.logoutButton}>
-          <Feather name="log-out" size={20} color={theme.error} />
+          <Ionicons name="log-out-outline" size={20} color={theme.error} />
           <ThemedText style={[styles.logoutText, { color: theme.error }]}>
             Odhlásit se
           </ThemedText>
