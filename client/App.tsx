@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, View, ActivityIndicator } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -21,38 +21,40 @@ import { Colors } from "@/constants/theme";
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
-  const [splashHidden, setSplashHidden] = useState(false);
+  const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
-    const loadFonts = async () => {
+    const prepare = async () => {
       try {
+        console.log("[App] Loading fonts...");
         await Font.loadAsync(Feather.font);
+        console.log("[App] Fonts loaded");
       } catch (e) {
-        console.warn("Error loading fonts:", e);
-      } finally {
-        setFontsLoaded(true);
+        console.warn("[App] Error loading fonts:", e);
+      }
+      
+      try {
+        console.log("[App] Hiding splash screen...");
+        await SplashScreen.hideAsync();
+        console.log("[App] Splash screen hidden");
+      } catch (e) {
+        console.warn("[App] Error hiding splash:", e);
+      }
+      
+      setAppReady(true);
+      
+      try {
+        await initializeData();
+        console.log("[App] Data initialized");
+      } catch (e) {
+        console.warn("[App] Error initializing data:", e);
       }
     };
-    loadFonts();
+    
+    prepare();
   }, []);
 
-  useEffect(() => {
-    if (splashHidden) {
-      initializeData().catch((e) => console.warn("Error initializing data:", e));
-    }
-  }, [splashHidden]);
-
-  const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded) {
-      console.log("[Splash] Hiding splash screen...");
-      await SplashScreen.hideAsync();
-      console.log("[Splash] Splash screen hidden");
-      setSplashHidden(true);
-    }
-  }, [fontsLoaded]);
-
-  if (!fontsLoaded) {
+  if (!appReady) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={Colors.light.primary} />
@@ -65,7 +67,7 @@ export default function App() {
       <AuthProvider>
         <QueryClientProvider client={queryClient}>
           <SafeAreaProvider>
-            <GestureHandlerRootView style={styles.root} onLayout={onLayoutRootView}>
+            <GestureHandlerRootView style={styles.root}>
               <KeyboardProvider>
                 <NavigationContainer>
                   <RootStackNavigator />
