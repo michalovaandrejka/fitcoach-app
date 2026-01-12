@@ -22,16 +22,29 @@ SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [appReady, setAppReady] = useState(false);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  useEffect(() => {
+    const loadFonts = async () => {
+      try {
+        console.log("[App] Loading Feather fonts...");
+        await Font.loadAsync({
+          ...Feather.font,
+        });
+        console.log("[App] Feather fonts loaded successfully");
+        setFontsLoaded(true);
+      } catch (e) {
+        console.error("[App] Error loading fonts:", e);
+        setFontsLoaded(true);
+      }
+    };
+    
+    loadFonts();
+  }, []);
 
   useEffect(() => {
     const prepare = async () => {
-      try {
-        console.log("[App] Loading fonts...");
-        await Font.loadAsync(Feather.font);
-        console.log("[App] Fonts loaded");
-      } catch (e) {
-        console.warn("[App] Error loading fonts:", e);
-      }
+      if (!fontsLoaded) return;
       
       try {
         console.log("[App] Hiding splash screen...");
@@ -52,7 +65,7 @@ export default function App() {
     };
     
     prepare();
-  }, []);
+  }, [fontsLoaded]);
 
   if (!appReady) {
     return (
