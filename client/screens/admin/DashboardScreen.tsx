@@ -3,7 +3,7 @@ import { StyleSheet, View, ScrollView, RefreshControl, Pressable, Modal } from "
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import * as Haptics from "expo-haptics";
 
 import { ThemedView } from "@/components/ThemedView";
@@ -54,7 +54,7 @@ export default function DashboardScreen() {
   const StatCard = ({ icon, label, value, color }: { icon: any; label: string; value: number; color: string }) => (
     <Card elevation={1} style={styles.statCard}>
       <View style={[styles.statIcon, { backgroundColor: color + "20" }]}>
-        <Ionicons name={icon} size={24} color={color} />
+        <Icon name={icon} size={24} color={color} />
       </View>
       <ThemedText type="h2" style={styles.statValue}>{value}</ThemedText>
       <ThemedText type="small" style={{ color: theme.textSecondary }}>{label}</ThemedText>
@@ -69,7 +69,7 @@ export default function DashboardScreen() {
       }}
       style={[styles.quickAction, { backgroundColor: theme.primary }]}
     >
-      <Ionicons name={icon} size={20} color="#FFFFFF" />
+      <Icon name={icon} size={20} color="#FFFFFF" />
       <ThemedText type="body" style={{ color: "#FFFFFF", marginLeft: Spacing.sm, fontWeight: "600" }}>
         {label}
       </ThemedText>
@@ -103,7 +103,7 @@ export default function DashboardScreen() {
         <Card elevation={1} style={styles.fullWidthStat}>
           <View style={styles.fullWidthStatContent}>
             <View style={[styles.statIcon, { backgroundColor: theme.success + "20" }]}>
-              <Ionicons name="time-outline" size={24} color={theme.success} />
+              <Icon name="time-outline" size={24} color={theme.success} />
             </View>
             <View style={styles.fullWidthStatText}>
               <ThemedText type="h3">{stats.availableSlots}</ThemedText>
@@ -137,7 +137,7 @@ export default function DashboardScreen() {
           >
             <View style={styles.clientsCardContent}>
               <View style={[styles.clientsIcon, { backgroundColor: theme.primary + "20" }]}>
-                <Ionicons name="people-outline" size={24} color={theme.primary} />
+                <Icon name="people-outline" size={24} color={theme.primary} />
               </View>
               <View style={styles.clientsText}>
                 <ThemedText type="h4">Zobrazit všechny klienty</ThemedText>
@@ -145,7 +145,7 @@ export default function DashboardScreen() {
                   Správa klientů a jejich rezervací
                 </ThemedText>
               </View>
-              <Ionicons name="chevron-forward-outline" size={24} color={theme.textSecondary} />
+              <Icon name="chevron-forward-outline" size={24} color={theme.textSecondary} />
             </View>
           </Card>
         </View>
@@ -160,7 +160,7 @@ export default function DashboardScreen() {
           >
             <View style={styles.tutorialCardContent}>
               <View style={[styles.tutorialIcon, { backgroundColor: theme.secondary + "20" }]}>
-                <Ionicons name="help-circle-outline" size={24} color={theme.secondary} />
+                <Icon name="help-circle-outline" size={24} color={theme.secondary} />
               </View>
               <View style={styles.tutorialText}>
                 <ThemedText type="h4">Spustit tutoriál</ThemedText>
@@ -168,7 +168,7 @@ export default function DashboardScreen() {
                   Zobrazit průvodce aplikací
                 </ThemedText>
               </View>
-              <Ionicons name="play-outline" size={24} color={theme.secondary} />
+              <Icon name="play-outline" size={24} color={theme.secondary} />
             </View>
           </Card>
         </View>

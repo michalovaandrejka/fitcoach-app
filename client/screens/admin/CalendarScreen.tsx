@@ -3,12 +3,12 @@ import { StyleSheet, View, ScrollView, Pressable, RefreshControl, Alert } from "
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Card } from "@/components/Card";
+import { Icon } from "@/components/Icon";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { apiGetBookings, apiGetUsers, apiDeleteBooking } from "@/lib/api";
@@ -211,13 +211,13 @@ export default function CalendarScreen() {
                     ) : null}
                   </View>
                   <View style={styles.detailsRow}>
-                    <Ionicons name="time-outline" size={12} color={theme.textSecondary} />
+                    <Icon name="time-outline" size={12} color={theme.textSecondary} />
                     <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: 4 }}>
                       {booking.startTime} - {booking.endTime} ({TRAINING_DURATION} min)
                     </ThemedText>
                   </View>
                   <View style={styles.detailsRow}>
-                    <Ionicons name="location-outline" size={12} color={theme.textSecondary} />
+                    <Icon name="location-outline" size={12} color={theme.textSecondary} />
                     <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: 4 }}>
                       {booking.branchName}
                     </ThemedText>
@@ -229,7 +229,7 @@ export default function CalendarScreen() {
         ) : (
           <Card elevation={1} style={styles.emptyCard}>
             <View style={styles.emptyContent}>
-              <Ionicons name="calendar-outline" size={48} color={theme.textSecondary} />
+              <Icon name="calendar-outline" size={48} color={theme.textSecondary} />
               <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.lg, textAlign: "center" }}>
                 Na tento den nemáte žádné rezervované tréninky
               </ThemedText>

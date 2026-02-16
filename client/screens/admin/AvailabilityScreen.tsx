@@ -3,13 +3,13 @@ import { StyleSheet, View, ScrollView, Pressable, RefreshControl, Alert, Modal, 
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { Icon } from "@/components/Icon";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { 
@@ -473,13 +473,13 @@ export default function AvailabilityScreen() {
       >
         <View style={styles.monthHeader}>
           <Pressable onPress={handlePrevMonth} style={[styles.monthNavButton, { backgroundColor: theme.backgroundSecondary }]}>
-            <Ionicons name="chevron-back-outline" size={24} color={theme.text} />
+            <Icon name="chevron-back-outline" size={24} color={theme.text} />
           </Pressable>
           <ThemedText type="h3">
             {MONTH_NAMES[currentMonth.month]} {currentMonth.year}
           </ThemedText>
           <Pressable onPress={handleNextMonth} style={[styles.monthNavButton, { backgroundColor: theme.backgroundSecondary }]}>
-            <Ionicons name="chevron-forward-outline" size={24} color={theme.text} />
+            <Icon name="chevron-forward-outline" size={24} color={theme.text} />
           </Pressable>
         </View>
 
@@ -551,7 +551,7 @@ export default function AvailabilityScreen() {
             onPress={handleOpenAddModal}
             style={[styles.addButton, { backgroundColor: theme.primary }]}
           >
-            <Ionicons name="add-outline" size={20} color="#FFFFFF" />
+            <Icon name="add-outline" size={20} color="#FFFFFF" />
           </Pressable>
         </View>
 
@@ -564,7 +564,7 @@ export default function AvailabilityScreen() {
               <Card key={block.id} elevation={1} style={styles.blockCard}>
                 <View style={styles.blockHeader}>
                   <View style={styles.blockTime}>
-                    <Ionicons name="time-outline" size={18} color={theme.primary} />
+                    <Icon name="time-outline" size={18} color={theme.primary} />
                     <ThemedText type="h4" style={{ marginLeft: Spacing.sm }}>
                       {block.startTime} - {block.endTime}
                     </ThemedText>
@@ -574,20 +574,20 @@ export default function AvailabilityScreen() {
                       onPress={() => handleOpenManualModal(block)}
                       style={[styles.iconButton, { backgroundColor: theme.primary + "20" }]}
                     >
-                      <Ionicons name="person-add-outline" size={16} color={theme.primary} />
+                      <Icon name="person-add-outline" size={16} color={theme.primary} />
                     </Pressable>
                     <Pressable
                       onPress={() => handleDeleteBlock(block)}
                       style={[styles.iconButton, { backgroundColor: theme.error + "20" }]}
                     >
-                      <Ionicons name="trash-outline" size={16} color={theme.error} />
+                      <Icon name="trash-outline" size={16} color={theme.error} />
                     </Pressable>
                   </View>
                 </View>
                 
                 <View style={styles.blockMeta}>
                   <View style={[styles.branchBadge, { backgroundColor: theme.backgroundSecondary }]}>
-                    <Ionicons name="location-outline" size={12} color={theme.textSecondary} />
+                    <Icon name="location-outline" size={12} color={theme.textSecondary} />
                     <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: 4 }}>
                       {getBranchName(block.branchId)}
                     </ThemedText>
@@ -619,7 +619,7 @@ export default function AvailabilityScreen() {
                             {booking.bookingType === "manual" ? " (manualne)" : ""}
                           </ThemedText>
                         </View>
-                        <Ionicons name="close-outline" size={16} color={theme.textSecondary} />
+                        <Icon name="close-outline" size={16} color={theme.textSecondary} />
                       </Pressable>
                     ))}
                   </View>
@@ -629,7 +629,7 @@ export default function AvailabilityScreen() {
           })
         ) : (
           <Card elevation={1} style={styles.emptyCard}>
-            <Ionicons name="calendar-outline" size={40} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
+            <Icon name="calendar-outline" size={40} color={theme.textSecondary} style={{ marginBottom: Spacing.md }} />
             <ThemedText type="body" style={{ color: theme.textSecondary, textAlign: "center" }}>
               Na tento den nejsou nastaveny žádné pracovní bloky
             </ThemedText>
@@ -646,20 +646,20 @@ export default function AvailabilityScreen() {
             <View style={styles.modalHeader}>
               <ThemedText type="h3">Přidat pracovní blok</ThemedText>
               <Pressable onPress={() => setShowAddModal(false)}>
-                <Ionicons name="close-outline" size={24} color={theme.text} />
+                <Icon name="close-outline" size={24} color={theme.text} />
               </Pressable>
             </View>
 
             <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
               <View style={styles.monthHeader}>
                 <Pressable onPress={handleModalPrevMonth} style={[styles.monthNavButton, { backgroundColor: theme.backgroundSecondary }]}>
-                  <Ionicons name="chevron-back-outline" size={20} color={theme.text} />
+                  <Icon name="chevron-back-outline" size={20} color={theme.text} />
                 </Pressable>
                 <ThemedText type="h4">
                   {MONTH_NAMES[modalMonth.month]} {modalMonth.year}
                 </ThemedText>
                 <Pressable onPress={handleModalNextMonth} style={[styles.monthNavButton, { backgroundColor: theme.backgroundSecondary }]}>
-                  <Ionicons name="chevron-forward-outline" size={20} color={theme.text} />
+                  <Icon name="chevron-forward-outline" size={20} color={theme.text} />
                 </Pressable>
               </View>
 
@@ -810,7 +810,7 @@ export default function AvailabilityScreen() {
                     >
                       <View style={[styles.checkbox, { borderColor: isSelected ? theme.primary : theme.border }]}>
                         {isSelected ? (
-                          <Ionicons name="checkmark-outline" size={14} color={theme.primary} />
+                          <Icon name="checkmark-outline" size={14} color={theme.primary} />
                         ) : null}
                       </View>
                       <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
@@ -835,13 +835,13 @@ export default function AvailabilityScreen() {
             <View style={styles.modalHeader}>
               <ThemedText type="h3">Manuální rezervace</ThemedText>
               <Pressable onPress={() => setShowManualModal(false)}>
-                <Ionicons name="close-outline" size={24} color={theme.text} />
+                <Icon name="close-outline" size={24} color={theme.text} />
               </Pressable>
             </View>
 
             {selectedBlockForManual ? (
               <View style={[styles.selectedBlockInfo, { backgroundColor: theme.backgroundSecondary }]}>
-                <Ionicons name="time-outline" size={18} color={theme.primary} />
+                <Icon name="time-outline" size={18} color={theme.primary} />
                 <ThemedText type="body" style={{ marginLeft: Spacing.md }}>
                   {selectedBlockForManual.startTime} - {selectedBlockForManual.endTime}
                 </ThemedText>

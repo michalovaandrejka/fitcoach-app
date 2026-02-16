@@ -3,7 +3,7 @@ import { StyleSheet, View, FlatList, RefreshControl, Pressable, TextInput } from
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import * as Haptics from "expo-haptics";
 
 import { ThemedView } from "@/components/ThemedView";
@@ -91,14 +91,14 @@ export default function ClientsScreen() {
           <ThemedText type="h4">{item.name}</ThemedText>
           {item.phone ? (
             <View style={styles.clientMeta}>
-              <Ionicons name="call-outline" size={12} color={theme.textSecondary} />
+              <Icon name="call-outline" size={12} color={theme.textSecondary} />
               <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
                 {item.phone}
               </ThemedText>
             </View>
           ) : null}
           <View style={styles.clientMeta}>
-            <Ionicons name="calendar-outline" size={12} color={theme.textSecondary} />
+            <Icon name="calendar-outline" size={12} color={theme.textSecondary} />
             <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
               Poslední: {formatDate(item.lastTrainingDate)}
             </ThemedText>
@@ -108,7 +108,7 @@ export default function ClientsScreen() {
           <ThemedText type="h4" style={{ color: theme.primary }}>{item.bookingsCount}</ThemedText>
           <ThemedText type="small" style={{ color: theme.textSecondary }}>tréninků</ThemedText>
         </View>
-        <Ionicons name="chevron-forward-outline" size={20} color={theme.textSecondary} />
+        <Icon name="chevron-forward-outline" size={20} color={theme.textSecondary} />
       </View>
     </Card>
   );
@@ -117,7 +117,7 @@ export default function ClientsScreen() {
     <ThemedView style={styles.container}>
       {showSearch ? (
         <View style={[styles.searchContainer, { backgroundColor: theme.backgroundDefault, borderColor: theme.border }]}>
-          <Ionicons name="search-outline" size={20} color={theme.textSecondary} />
+          <Icon name="search-outline" size={20} color={theme.textSecondary} />
           <TextInput
             style={[styles.searchInput, { color: theme.text }]}
             placeholder="Hledat klienty..."
@@ -127,7 +127,7 @@ export default function ClientsScreen() {
             autoFocus
           />
           <Pressable onPress={() => { setShowSearch(false); setSearchQuery(""); }}>
-            <Ionicons name="close-outline" size={20} color={theme.textSecondary} />
+            <Icon name="close-outline" size={20} color={theme.textSecondary} />
           </Pressable>
         </View>
       ) : null}
@@ -151,14 +151,14 @@ export default function ClientsScreen() {
                 onPress={() => setShowSearch(true)}
                 style={[styles.searchButton, { backgroundColor: theme.backgroundSecondary }]}
               >
-                <Ionicons name="search-outline" size={20} color={theme.textSecondary} />
+                <Icon name="search-outline" size={20} color={theme.textSecondary} />
               </Pressable>
             </View>
           ) : null
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="people-outline" size={48} color={theme.textSecondary} />
+            <Icon name="people-outline" size={48} color={theme.textSecondary} />
             <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.lg }}>
               {searchQuery ? "Žádní klienti nenalezeni" : "Zatím nemáte žádné klienty"}
             </ThemedText>

@@ -3,12 +3,12 @@ import { StyleSheet, View, Pressable } from "react-native";
 import { createDrawerNavigator, DrawerContentScrollView, DrawerContentComponentProps, useDrawerStatus } from "@react-navigation/drawer";
 import { createNativeStackNavigator, NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { HeaderButton } from "@react-navigation/elements";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, DrawerActions } from "@react-navigation/native";
 
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
+import { Icon, IconName } from "@/components/Icon";
 import { useTheme } from "@/hooks/useTheme";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { useAuth } from "@/contexts/AuthContext";
@@ -58,7 +58,7 @@ function DrawerMenuButton() {
     <HeaderButton
       onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
     >
-      <Ionicons name="menu-outline" size={24} color={theme.text} />
+      <Icon name="menu-outline" size={24} color={theme.text} />
     </HeaderButton>
   );
 }
@@ -149,7 +149,7 @@ function ProfileStack() {
 type DrawerItem = {
   name: keyof AdminDrawerParamList;
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
 };
 
 const drawerItems: DrawerItem[] = [
@@ -191,7 +191,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
                   { backgroundColor: isActive ? theme.primary + "20" : "transparent" },
                 ]}
               >
-                <Ionicons
+                <Icon
                   name={item.icon}
                   size={22}
                   color={isActive ? theme.primary : theme.text}
@@ -212,7 +212,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + Spacing.md, borderTopColor: theme.border }]}>
         <Pressable onPress={logout} style={styles.logoutButton}>
-          <Ionicons name="log-out-outline" size={20} color={theme.error} />
+          <Icon name="log-out-outline" size={20} color={theme.error} />
           <ThemedText style={[styles.logoutText, { color: theme.error }]}>
             Odhlásit se
           </ThemedText>

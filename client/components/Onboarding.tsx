@@ -1,7 +1,6 @@
 import React, { useState, useRef } from "react";
 import { StyleSheet, View, Pressable, Dimensions, ScrollView, FlatList, ViewToken } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Animated, {
   useSharedValue,
@@ -21,6 +20,7 @@ import Animated, {
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Card } from "@/components/Card";
+import { Icon, IconName } from "@/components/Icon";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
@@ -30,12 +30,12 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 interface MockElementType {
   type: "card" | "button" | "badge" | "icon";
   label?: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
   color?: "primary" | "success" | "warning";
 }
 
 interface OnboardingStep {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   title: string;
   description: string;
   tip?: string;
@@ -216,11 +216,11 @@ function MockElement({
             <View style={styles.mockCardContent}>
               {element.icon ? (
                 <View style={[styles.mockIconBg, { backgroundColor: theme.primary + "20" }]}>
-                  <Ionicons name={element.icon} size={18} color={theme.primary} />
+                  <Icon name={element.icon} size={18} color={theme.primary} />
                 </View>
               ) : null}
               <ThemedText type="body" style={{ flex: 1 }}>{element.label}</ThemedText>
-              <Ionicons name="chevron-forward-outline" size={18} color={theme.textSecondary} />
+              <Icon name="chevron-forward-outline" size={18} color={theme.textSecondary} />
             </View>
           </Card>
         </AnimatedPressable>
@@ -265,7 +265,7 @@ function MockElement({
   if (element.type === "icon") {
     return (
       <Animated.View entering={FadeInDown.delay(300 + index * 150).springify()}>
-        <Ionicons name={element.icon || "arrow-forward-outline"} size={24} color={theme.textSecondary} />
+        <Icon name={element.icon || "arrow-forward-outline"} size={24} color={theme.textSecondary} />
       </Animated.View>
     );
   }
@@ -332,7 +332,7 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
             style={[styles.iconContainer, { backgroundColor: theme.primary + "15" }]}
           >
             <View style={[styles.iconInner, { backgroundColor: theme.primary + "25" }]}>
-              <Ionicons name={item.icon} size={48} color={theme.primary} />
+              <Icon name={item.icon} size={48} color={theme.primary} />
             </View>
           </Animated.View>
 
@@ -351,7 +351,7 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
               entering={FadeInUp.delay(400)}
               style={[styles.tipContainer, { backgroundColor: theme.primary + "10", borderColor: theme.primary + "30" }]}
             >
-              <Ionicons name="flash-outline" size={16} color={theme.primary} />
+              <Icon name="flash-outline" size={16} color={theme.primary} />
               <ThemedText type="small" style={{ color: theme.primary, flex: 1, marginLeft: Spacing.sm }}>
                 {item.tip}
               </ThemedText>
@@ -372,7 +372,7 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
               style={styles.actionHint}
             >
               <View style={[styles.actionBadge, { backgroundColor: theme.backgroundSecondary }]}>
-                <Ionicons name="hand-left-outline" size={14} color={theme.primary} />
+                <Icon name="hand-left-outline" size={14} color={theme.primary} />
                 <ThemedText type="small" style={{ color: theme.text, marginLeft: Spacing.xs }}>
                   {item.action}
                 </ThemedText>
@@ -397,7 +397,7 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
         </View>
         <Pressable onPress={handleSkip} style={styles.skipButton}>
           <ThemedText type="body" style={{ color: theme.textSecondary }}>Přeskočit</ThemedText>
-          <Ionicons name="close-outline" size={18} color={theme.textSecondary} style={{ marginLeft: Spacing.xs }} />
+          <Icon name="close-outline" size={18} color={theme.textSecondary} style={{ marginLeft: Spacing.xs }} />
         </Pressable>
       </View>
 
@@ -435,7 +435,7 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
               onPress={handlePrev}
               style={[styles.navButton, { backgroundColor: theme.backgroundSecondary }]}
             >
-              <Ionicons name="arrow-back-outline" size={20} color={theme.text} />
+              <Icon name="arrow-back-outline" size={20} color={theme.text} />
             </Pressable>
           ) : (
             <View style={styles.navButtonPlaceholder} />
@@ -471,7 +471,7 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
             onPress={handleNext}
             style={[styles.navButton, { backgroundColor: theme.primary }]}
           >
-            <Ionicons name={isLastStep ? "checkmark-outline" : "arrow-forward-outline"} size={20} color="#FFFFFF" />
+            <Icon name={isLastStep ? "checkmark-outline" : "arrow-forward-outline"} size={20} color="#FFFFFF" />
           </Pressable>
         </View>
 
@@ -482,7 +482,7 @@ export function Onboarding({ isManual = false, onComplete }: OnboardingProps) {
           <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
             {isLastStep ? "Začít používat aplikaci" : "Pokračovat"}
           </ThemedText>
-          <Ionicons 
+          <Icon 
             name={isLastStep ? "checkmark-circle-outline" : "arrow-forward-outline"} 
             size={20} 
             color="#FFFFFF" 

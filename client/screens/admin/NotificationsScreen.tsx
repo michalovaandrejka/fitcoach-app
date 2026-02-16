@@ -3,7 +3,7 @@ import { StyleSheet, View, ScrollView, TextInput, Pressable, Alert, Platform, Mo
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Haptics from "expo-haptics";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -318,7 +318,7 @@ export default function NotificationsScreen() {
                   onPress={() => setShowDatePicker(true)}
                   style={[styles.dateButton, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}
                 >
-                  <Ionicons name="calendar-outline" size={20} color={theme.primary} />
+                  <Icon name="calendar-outline" size={20} color={theme.primary} />
                   <ThemedText type="body" style={{ marginLeft: Spacing.sm }}>
                     {formatDate(customDate)}
                   </ThemedText>
@@ -350,7 +350,7 @@ export default function NotificationsScreen() {
 
         <Card elevation={1} style={styles.previewSection}>
           <View style={styles.previewHeader}>
-            <Ionicons name="people-outline" size={20} color={theme.primary} />
+            <Icon name="people-outline" size={20} color={theme.primary} />
             <ThemedText type="body" style={{ marginLeft: Spacing.sm }}>
               Příjemci: <ThemedText type="body" style={{ fontWeight: "700", color: theme.primary }}>
                 {filteredClients.length}
@@ -365,7 +365,7 @@ export default function NotificationsScreen() {
           style={{ backgroundColor: theme.primary }}
         >
           <View style={styles.buttonContent}>
-            <Ionicons name="send-outline" size={18} color="#FFFFFF" />
+            <Icon name="send-outline" size={18} color="#FFFFFF" />
             <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600", marginLeft: Spacing.sm }}>
               Odeslat oznámení
             </ThemedText>

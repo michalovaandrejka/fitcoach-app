@@ -1,11 +1,11 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Platform, StyleSheet, Pressable } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
 
+import { Icon } from "@/components/Icon";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
 
@@ -67,7 +67,7 @@ export default function ClientTabNavigator() {
           title: "Tréninky",
           headerTitle: "Tréninky",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar-outline" size={size} color={color} />
+            <Icon name="calendar-outline" size={size} color={color} />
           ),
         }}
       />
@@ -86,7 +86,7 @@ export default function ClientTabNavigator() {
               }}
               style={[styles.fabButton, { backgroundColor: theme.primary }]}
             >
-              <Ionicons name="add-outline" size={24} color="#FFFFFF" />
+              <Icon name="add-outline" size={24} color="#FFFFFF" />
             </Pressable>
           ),
         }}
@@ -98,7 +98,7 @@ export default function ClientTabNavigator() {
           title: "Jídelníček",
           headerTitle: "Můj jídelníček",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart-outline" size={size} color={color} />
+            <Icon name="heart-outline" size={size} color={color} />
           ),
         }}
       />
@@ -109,7 +109,7 @@ export default function ClientTabNavigator() {
           title: "Profil",
           headerTitle: "Profil",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+            <Icon name="person-outline" size={size} color={color} />
           ),
         }}
       />

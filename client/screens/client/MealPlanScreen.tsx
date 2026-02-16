@@ -3,7 +3,7 @@ import { StyleSheet, View, TextInput, Pressable, ActivityIndicator } from "react
 import { useFocusEffect } from "@react-navigation/native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import * as Haptics from "expo-haptics";
 
 import { ThemedView } from "@/components/ThemedView";
@@ -122,7 +122,7 @@ export default function MealPlanScreen() {
               },
             ]}
           >
-            <Ionicons 
+            <Icon 
               name="document-text-outline" 
               size={16} 
               color={viewMode === "mealplan" ? "#FFFFFF" : theme.text} 
@@ -145,7 +145,7 @@ export default function MealPlanScreen() {
               },
             ]}
           >
-            <Ionicons 
+            <Icon 
               name="settings-outline" 
               size={16} 
               color={viewMode === "preferences" ? "#FFFFFF" : theme.text} 
@@ -167,7 +167,7 @@ export default function MealPlanScreen() {
                 <Card elevation={1} style={styles.card}>
                   <View style={styles.mealPlanHeader}>
                     <View style={[styles.iconContainer, { backgroundColor: theme.primary + "20" }]}>
-                      <Ionicons name="clipboard-outline" size={24} color={theme.primary} />
+                      <Icon name="clipboard-outline" size={24} color={theme.primary} />
                     </View>
                     <View style={styles.mealPlanHeaderText}>
                       <ThemedText type="h4">Váš jídelníček</ThemedText>
@@ -183,7 +183,7 @@ export default function MealPlanScreen() {
                     {trainerMealPlan.content}
                   </ThemedText>
                   <View style={[styles.updateInfo, { borderTopColor: theme.border }]}>
-                    <Ionicons name="time-outline" size={14} color={theme.textSecondary} />
+                    <Icon name="time-outline" size={14} color={theme.textSecondary} />
                     <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
                       Aktualizovano: {formatDate(trainerMealPlan.updatedAt)}
                     </ThemedText>
@@ -193,7 +193,7 @@ export default function MealPlanScreen() {
             ) : (
               <Card elevation={1} style={styles.emptyCard}>
                 <View style={[styles.emptyIcon, { backgroundColor: theme.primary + "15" }]}>
-                  <Ionicons name="clipboard-outline" size={32} color={theme.primary} />
+                  <Icon name="clipboard-outline" size={32} color={theme.primary} />
                 </View>
                 <ThemedText type="h4" style={styles.emptyTitle}>
                   Zatím žádný jídelníček
@@ -296,7 +296,7 @@ export default function MealPlanScreen() {
                       },
                     ]}>
                       {selectedGoals.includes(goal.id) ? (
-                        <Ionicons name="checkmark-outline" size={12} color="#FFFFFF" />
+                        <Icon name="checkmark-outline" size={12} color="#FFFFFF" />
                       ) : null}
                     </View>
                     <ThemedText type="body">{goal.label}</ThemedText>
@@ -322,7 +322,7 @@ export default function MealPlanScreen() {
 
             {showSaved ? (
               <View style={[styles.savedIndicator, { backgroundColor: theme.success }]}>
-                <Ionicons name="checkmark-outline" size={16} color="#FFFFFF" />
+                <Icon name="checkmark-outline" size={16} color="#FFFFFF" />
                 <ThemedText type="small" style={{ color: "#FFFFFF", marginLeft: Spacing.xs }}>
                   Ulozeno
                 </ThemedText>

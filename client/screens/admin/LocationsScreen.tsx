@@ -3,7 +3,7 @@ import { StyleSheet, View, ScrollView, RefreshControl, Pressable, TextInput, Mod
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import * as Haptics from "expo-haptics";
 
 import { ThemedView } from "@/components/ThemedView";
@@ -119,13 +119,13 @@ export default function LocationsScreen() {
           onPress={() => handleEdit(location)}
           style={[styles.actionButton, { backgroundColor: theme.primary + "20" }]}
         >
-          <Ionicons name="create-outline" size={18} color={theme.primary} />
+          <Icon name="create-outline" size={18} color={theme.primary} />
         </Pressable>
         <Pressable
           onPress={() => handleToggleActive(location)}
           style={[styles.actionButton, { backgroundColor: location.isActive ? theme.error + "20" : theme.success + "20" }]}
         >
-          <Ionicons 
+          <Icon 
             name={location.isActive ? "eye-off-outline" : "eye-outline"} 
             size={18} 
             color={location.isActive ? theme.error : theme.success} 
@@ -156,7 +156,7 @@ export default function LocationsScreen() {
             }}
             style={[styles.addButton, { backgroundColor: theme.primary }]}
           >
-            <Ionicons name="add-outline" size={20} color="#FFFFFF" />
+            <Icon name="add-outline" size={20} color="#FFFFFF" />
           </Pressable>
         </View>
 

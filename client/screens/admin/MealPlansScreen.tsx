@@ -3,7 +3,7 @@ import { StyleSheet, View, FlatList, RefreshControl, Alert } from "react-native"
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "@/components/Icon";
 import * as Haptics from "expo-haptics";
 
 import { ThemedView } from "@/components/ThemedView";
@@ -136,13 +136,13 @@ export default function MealPlansScreen() {
           <View style={styles.info}>
             <ThemedText type="h4">{item.client.name}</ThemedText>
             <View style={styles.statusRow}>
-              <Ionicons name={status.icon} size={14} color={status.color} />
+              <Icon name={status.icon} size={14} color={status.color} />
               <ThemedText type="small" style={{ color: status.color, marginLeft: Spacing.xs }}>
                 {status.text}
               </ThemedText>
             </View>
           </View>
-          <Ionicons name="chevron-forward-outline" size={20} color={theme.textSecondary} />
+          <Icon name="chevron-forward-outline" size={20} color={theme.textSecondary} />
         </View>
       </Card>
     );
@@ -197,7 +197,7 @@ export default function MealPlansScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="clipboard-outline" size={48} color={theme.textSecondary} />
+            <Icon name="clipboard-outline" size={48} color={theme.textSecondary} />
             <ThemedText type="body" style={{ color: theme.textSecondary, marginTop: Spacing.lg }}>
               Zatím žádní klienti
             </ThemedText>

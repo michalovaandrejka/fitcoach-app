@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { StyleSheet, View, ScrollView, Pressable, Alert, TextInput, ActivityIndicator, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
@@ -11,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Card } from "@/components/Card";
+import { Icon } from "@/components/Icon";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/contexts/AuthContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
@@ -203,12 +203,12 @@ export default function AdminProfileScreen() {
                 />
               ) : (
                 <View style={[styles.avatarPlaceholder, { backgroundColor: theme.secondary }]}>
-                  <Ionicons name="ribbon-outline" size={48} color="#FFFFFF" />
+                  <Icon name="ribbon-outline" size={48} color="#FFFFFF" />
                 </View>
               )}
             </View>
             <View style={[styles.editBadge, { backgroundColor: theme.primary }]}>
-              <Ionicons name="camera-outline" size={14} color="#FFFFFF" />
+              <Icon name="camera-outline" size={14} color="#FFFFFF" />
             </View>
           </Pressable>
           <ThemedText type="h2" style={styles.name}>{user?.name}</ThemedText>
@@ -231,7 +231,7 @@ export default function AdminProfileScreen() {
             <>
               <View style={styles.inputGroup}>
                 <View style={styles.inputLabel}>
-                  <Ionicons name="call-outline" size={16} color={theme.textSecondary} />
+                  <Icon name="call-outline" size={16} color={theme.textSecondary} />
                   <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
                     Telefon *
                   </ThemedText>
@@ -248,7 +248,7 @@ export default function AdminProfileScreen() {
 
               <View style={styles.inputGroup}>
                 <View style={styles.inputLabel}>
-                  <Ionicons name="mail-outline" size={16} color={theme.textSecondary} />
+                  <Icon name="mail-outline" size={16} color={theme.textSecondary} />
                   <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
                     Email (nepovinné)
                   </ThemedText>
@@ -266,7 +266,7 @@ export default function AdminProfileScreen() {
 
               <View style={styles.inputGroup}>
                 <View style={styles.inputLabel}>
-                  <Ionicons name="chatbubble-outline" size={16} color={theme.textSecondary} />
+                  <Icon name="chatbubble-outline" size={16} color={theme.textSecondary} />
                   <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
                     WhatsApp (nepovinné)
                   </ThemedText>
@@ -290,7 +290,7 @@ export default function AdminProfileScreen() {
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
                   <>
-                    <Ionicons name="save-outline" size={18} color="#FFFFFF" />
+                    <Icon name="save-outline" size={18} color="#FFFFFF" />
                     <ThemedText type="body" style={{ color: "#FFFFFF", marginLeft: Spacing.sm, fontWeight: "600" }}>
                       Uložit kontakt
                     </ThemedText>
@@ -306,7 +306,7 @@ export default function AdminProfileScreen() {
           
           <View style={styles.infoRow}>
             <View style={[styles.infoIcon, { backgroundColor: theme.backgroundSecondary }]}>
-              <Ionicons name="mail-outline" size={18} color={theme.textSecondary} />
+              <Icon name="mail-outline" size={18} color={theme.textSecondary} />
             </View>
             <View style={styles.infoContent}>
               <ThemedText type="small" style={{ color: theme.textSecondary }}>Email</ThemedText>
@@ -316,7 +316,7 @@ export default function AdminProfileScreen() {
 
           <View style={styles.infoRow}>
             <View style={[styles.infoIcon, { backgroundColor: theme.backgroundSecondary }]}>
-              <Ionicons name="shield-outline" size={18} color={theme.textSecondary} />
+              <Icon name="shield-outline" size={18} color={theme.textSecondary} />
             </View>
             <View style={styles.infoContent}>
               <ThemedText type="small" style={{ color: theme.textSecondary }}>Role</ThemedText>
@@ -330,7 +330,7 @@ export default function AdminProfileScreen() {
           
           <View style={styles.infoRow}>
             <View style={[styles.infoIcon, { backgroundColor: theme.backgroundSecondary }]}>
-              <Ionicons name="information-circle-outline" size={18} color={theme.textSecondary} />
+              <Icon name="information-circle-outline" size={18} color={theme.textSecondary} />
             </View>
             <View style={styles.infoContent}>
               <ThemedText type="small" style={{ color: theme.textSecondary }}>Verze</ThemedText>
@@ -343,7 +343,7 @@ export default function AdminProfileScreen() {
           onPress={handleLogout}
           style={[styles.logoutButton, { borderColor: theme.error }]}
         >
-          <Ionicons name="log-out-outline" size={20} color={theme.error} />
+          <Icon name="log-out-outline" size={20} color={theme.error} />
           <ThemedText type="body" style={{ color: theme.error, marginLeft: Spacing.sm }}>
             Odhlásit se
           </ThemedText>
