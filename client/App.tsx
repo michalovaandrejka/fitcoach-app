@@ -6,7 +6,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
-import { useFonts } from "expo-font";
+import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -22,46 +22,32 @@ SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [appReady, setAppReady] = useState(false);
-  
-  const [fontsLoaded, fontError] = useFonts({
-    ...Ionicons.font,
-  });
-
-  useEffect(() => {
-    if (fontError) {
-      console.error("[App] Font loading error:", fontError);
-    }
-    if (fontsLoaded) {
-      console.log("[App] Ionicons fonts loaded via useFonts hook");
-    }
-  }, [fontsLoaded, fontError]);
 
   useEffect(() => {
     const prepare = async () => {
-      if (!fontsLoaded && !fontError) return;
-      
-      console.log("[App] Fonts ready, platform:", Platform.OS);
-      
       try {
-        console.log("[App] Hiding splash screen...");
-        await SplashScreen.hideAsync();
-        console.log("[App] Splash screen hidden");
+        await Font.loadAsync(Ionicons.font);
       } catch (e) {
-        console.warn("[App] Error hiding splash:", e);
+        console.warn("[App] Font loading error:", e);
       }
-      
-      setAppReady(true);
-      
+
       try {
         await initializeData();
-        console.log("[App] Data initialized");
       } catch (e) {
         console.warn("[App] Error initializing data:", e);
       }
+
+      try {
+        await SplashScreen.hideAsync();
+      } catch (e) {
+        console.warn("[App] Error hiding splash:", e);
+      }
+
+      setAppReady(true);
     };
-    
+
     prepare();
-  }, [fontsLoaded, fontError]);
+  }, []);
 
   if (!appReady) {
     return (
