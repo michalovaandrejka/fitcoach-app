@@ -5,8 +5,11 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
  * @returns {string} The API base URL
  */
 export function getApiUrl(): string {
-  let host = process.env.EXPO_PUBLIC_DOMAIN;
-  console.log("[API] Original EXPO_PUBLIC_DOMAIN:", host);
+  let host = process.env.EXPO_PUBLIC_API_DOMAIN || process.env.EXPO_PUBLIC_DOMAIN;
+
+  if (host && host.includes(".replit.dev")) {
+    host = "web-production-bd36.up.railway.app";
+  }
 
   if (host && host.includes(":5000")) {
     host = host.replace(":5000", "");
@@ -17,8 +20,6 @@ export function getApiUrl(): string {
   }
 
   let url = new URL(`https://${host}`);
-  console.log("[API] Final API URL:", url.href);
-
   return url.href;
 }
 
