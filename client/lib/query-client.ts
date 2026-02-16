@@ -8,19 +8,11 @@ export function getApiUrl(): string {
   let host = process.env.EXPO_PUBLIC_DOMAIN;
   console.log("[API] Original EXPO_PUBLIC_DOMAIN:", host);
 
-  // Remove port suffix if present (Replit doesn't expose raw ports)
   if (host && host.includes(":5000")) {
     host = host.replace(":5000", "");
   }
 
-  // For Replit dev domain, use Railway backend directly
-  // Replit dev domain serves Metro bundler, not Express API
-  if (host && host.includes(".worf.replit.dev")) {
-    host = "web-production-bd36.up.railway.app";
-  }
-
   if (!host) {
-    // Fallback to Railway
     host = "web-production-bd36.up.railway.app";
   }
 

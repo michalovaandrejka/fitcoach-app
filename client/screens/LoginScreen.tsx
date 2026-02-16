@@ -39,7 +39,8 @@ export default function LoginScreen() {
     staleTime: 1000 * 60 * 5,
     queryFn: async () => {
       try {
-        const baseUrl = "https://web-production-bd36.up.railway.app";
+        const { getApiUrl } = require("@/lib/query-client");
+        const baseUrl = getApiUrl().replace(/\/$/, "");
         const res = await fetch(`${baseUrl}/api/trainer-photo`);
         if (!res.ok) return null;
         return await res.json();
