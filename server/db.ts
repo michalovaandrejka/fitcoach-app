@@ -53,10 +53,20 @@ export async function initializeDatabase(): Promise<void> {
       email TEXT NOT NULL UNIQUE,
       name TEXT NOT NULL,
       password_hash TEXT NOT NULL,
+      phone TEXT,
       role TEXT NOT NULL DEFAULT 'CLIENT',
       onboarding_completed BOOLEAN NOT NULL DEFAULT false,
       created_at TIMESTAMP NOT NULL DEFAULT NOW()
     )
+  `);
+
+  await database.execute(sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'phone') THEN
+        ALTER TABLE users ADD COLUMN phone TEXT;
+      END IF;
+    END $$;
   `);
 
   await database.execute(sql`
