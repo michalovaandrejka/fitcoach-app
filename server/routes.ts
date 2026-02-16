@@ -72,6 +72,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser({
         email: data.email,
         name: data.name,
+        phone: data.phone,
         password: data.password,
         role: data.role || "CLIENT",
         onboardingCompleted: false,
@@ -85,7 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         token,
-        user: { id: user.id, email: user.email, name: user.name, role: user.role, onboardingCompleted: user.onboardingCompleted }
+        user: { id: user.id, email: user.email, name: user.name, phone: user.phone, role: user.role, onboardingCompleted: user.onboardingCompleted }
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -117,7 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         token,
-        user: { id: user.id, email: user.email, name: user.name, role: user.role, onboardingCompleted: user.onboardingCompleted }
+        user: { id: user.id, email: user.email, name: user.name, phone: user.phone, role: user.role, onboardingCompleted: user.onboardingCompleted }
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -134,7 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: "Uživatel nenalezen" });
       }
-      res.json({ id: user.id, email: user.email, name: user.name, role: user.role, onboardingCompleted: user.onboardingCompleted });
+      res.json({ id: user.id, email: user.email, name: user.name, phone: user.phone, role: user.role, onboardingCompleted: user.onboardingCompleted });
     } catch (error) {
       console.error("Get me error:", error);
       res.status(500).json({ error: "Chyba" });
@@ -144,7 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users", authenticateToken, requireAdmin, async (req, res) => {
     try {
       const users = await storage.getUsers();
-      res.json(users.map(u => ({ id: u.id, email: u.email, name: u.name, role: u.role, onboardingCompleted: u.onboardingCompleted, createdAt: u.createdAt })));
+      res.json(users.map(u => ({ id: u.id, email: u.email, name: u.name, phone: u.phone, role: u.role, onboardingCompleted: u.onboardingCompleted, createdAt: u.createdAt })));
     } catch (error) {
       console.error("Get users error:", error);
       res.status(500).json({ error: "Chyba" });
@@ -160,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: "Uživatel nenalezen" });
       }
-      res.json({ id: user.id, email: user.email, name: user.name, role: user.role, onboardingCompleted: user.onboardingCompleted });
+      res.json({ id: user.id, email: user.email, name: user.name, phone: user.phone, role: user.role, onboardingCompleted: user.onboardingCompleted });
     } catch (error) {
       res.status(500).json({ error: "Chyba" });
     }
@@ -175,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: "Uživatel nenalezen" });
       }
-      res.json({ id: user.id, email: user.email, name: user.name, role: user.role, onboardingCompleted: user.onboardingCompleted });
+      res.json({ id: user.id, email: user.email, name: user.name, phone: user.phone, role: user.role, onboardingCompleted: user.onboardingCompleted });
     } catch (error) {
       res.status(500).json({ error: "Chyba" });
     }

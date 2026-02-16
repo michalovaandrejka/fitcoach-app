@@ -25,7 +25,7 @@ export function verifyPassword(password: string, hash: string): boolean {
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: { email: string; name: string; password: string; role?: "CLIENT" | "ADMIN"; onboardingCompleted?: boolean }): Promise<User>;
+  createUser(user: { email: string; name: string; password: string; phone?: string; role?: "CLIENT" | "ADMIN"; onboardingCompleted?: boolean }): Promise<User>;
   getUsers(): Promise<User[]>;
   updateUser(id: string, data: Partial<User>): Promise<User | undefined>;
   deleteUser(id: string): Promise<void>;
@@ -83,7 +83,7 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async createUser(input: { email: string; name: string; password: string; role?: "CLIENT" | "ADMIN"; onboardingCompleted?: boolean }): Promise<User> {
+  async createUser(input: { email: string; name: string; password: string; phone?: string; role?: "CLIENT" | "ADMIN"; onboardingCompleted?: boolean }): Promise<User> {
     const { password, ...userData } = input;
     const [user] = await db
       .insert(users)

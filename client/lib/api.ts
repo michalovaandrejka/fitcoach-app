@@ -8,6 +8,7 @@ export interface AuthUser {
   id: string;
   email: string;
   name: string;
+  phone?: string;
   role: "CLIENT" | "ADMIN";
   onboardingCompleted: boolean;
 }
@@ -100,11 +101,11 @@ export async function apiLogin(email: string, password: string): Promise<{ token
   return result;
 }
 
-export async function apiRegister(email: string, password: string, name: string): Promise<{ token: string; user: AuthUser }> {
+export async function apiRegister(email: string, password: string, name: string, phone: string): Promise<{ token: string; user: AuthUser }> {
   const result = await apiRequest<{ token: string; user: AuthUser }>(
     "POST",
     "/api/auth/register",
-    { email, password, name, role: "CLIENT" },
+    { email, password, name, phone, role: "CLIENT" },
     false
   );
   await setToken(result.token);
@@ -175,7 +176,7 @@ export async function apiDeleteBooking(bookingId: string) {
 }
 
 export async function apiGetUsers() {
-  return apiRequest<Array<{ id: string; email: string; name: string; role: string; onboardingCompleted: boolean; createdAt: string }>>("GET", "/api/users");
+  return apiRequest<Array<{ id: string; email: string; name: string; phone?: string; role: string; onboardingCompleted: boolean; createdAt: string }>>("GET", "/api/users");
 }
 
 export async function apiGetUser(userId: string) {

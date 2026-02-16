@@ -29,6 +29,7 @@ export default function LoginScreen() {
   const [loginOrEmail, setLoginOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -61,12 +62,17 @@ export default function LoginScreen() {
       return;
     }
 
+    if (!isLogin && !phone) {
+      setErrorMessage("Vyplňte telefonní číslo");
+      return;
+    }
+
     setIsLoading(true);
     try {
       if (isLogin) {
         await login(loginOrEmail, password);
       } else {
-        await register(loginOrEmail, password, name);
+        await register(loginOrEmail, password, name, phone);
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error: any) {
@@ -123,6 +129,17 @@ export default function LoginScreen() {
               value={name}
               onChangeText={setName}
               autoCapitalize="words"
+            />
+          ) : null}
+
+          {!isLogin ? (
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.backgroundSecondary, color: theme.text, borderColor: theme.border }]}
+              placeholder="Telefonní číslo"
+              placeholderTextColor={theme.textSecondary}
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
             />
           ) : null}
           

@@ -8,6 +8,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  phone?: string;
   role: UserRole;
   onboardingCompleted: boolean;
 }
@@ -16,7 +17,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (loginOrEmail: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  register: (email: string, password: string, name: string, phone: string) => Promise<void>;
   logout: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
   isAuthenticated: boolean;
@@ -30,6 +31,7 @@ function authUserToUser(authUser: AuthUser): User {
     id: authUser.id,
     email: authUser.email,
     name: authUser.name,
+    phone: authUser.phone,
     role: authUser.role,
     onboardingCompleted: authUser.onboardingCompleted,
   };
@@ -73,8 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(authUserToUser(result.user));
   };
 
-  const register = async (email: string, password: string, name: string) => {
-    const result = await apiRegister(email, password, name);
+  const register = async (email: string, password: string, name: string, phone: string) => {
+    const result = await apiRegister(email, password, name, phone);
     setUser(authUserToUser(result.user));
   };
 

@@ -45,6 +45,7 @@ export interface Client {
   id: string;
   email: string;
   name: string;
+  phone?: string;
   lastTrainingDate?: string;
   bookingsCount: number;
 }
@@ -83,6 +84,7 @@ export interface StoredUser {
   id: string;
   email: string;
   name: string;
+  phone?: string;
   role: UserRole;
   passwordHash: string;
   onboardingCompleted: boolean;

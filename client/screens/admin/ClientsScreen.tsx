@@ -35,6 +35,7 @@ export default function ClientsScreen() {
         id: user.id,
         name: user.name,
         email: user.email,
+        phone: user.phone || undefined,
         bookingsCount: userBookings.length,
         lastTrainingDate: sortedBookings[0]?.date || undefined,
       };
@@ -88,6 +89,14 @@ export default function ClientsScreen() {
         </View>
         <View style={styles.clientInfo}>
           <ThemedText type="h4">{item.name}</ThemedText>
+          {item.phone ? (
+            <View style={styles.clientMeta}>
+              <Ionicons name="call-outline" size={12} color={theme.textSecondary} />
+              <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>
+                {item.phone}
+              </ThemedText>
+            </View>
+          ) : null}
           <View style={styles.clientMeta}>
             <Ionicons name="calendar-outline" size={12} color={theme.textSecondary} />
             <ThemedText type="small" style={{ color: theme.textSecondary, marginLeft: Spacing.xs }}>

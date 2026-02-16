@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { StyleSheet, View, TextInput, Pressable, ActivityIndicator, Alert } from "react-native";
+import { StyleSheet, View, TextInput, Pressable, ActivityIndicator, Alert, Linking } from "react-native";
 import { useFocusEffect, useRoute, useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -187,6 +187,17 @@ export default function ClientDetailScreen() {
           </View>
           <ThemedText type="h3" style={styles.clientName}>{client.name}</ThemedText>
           <ThemedText type="body" style={{ color: theme.textSecondary }}>{client.email}</ThemedText>
+          {client.phone ? (
+            <Pressable
+              onPress={() => Linking.openURL(`tel:${client.phone}`)}
+              style={styles.phoneRow}
+            >
+              <Ionicons name="call-outline" size={16} color={theme.primary} />
+              <ThemedText type="body" style={{ color: theme.primary, marginLeft: Spacing.xs }}>
+                {client.phone}
+              </ThemedText>
+            </Pressable>
+          ) : null}
         </View>
 
         <View style={styles.tabs}>
@@ -457,6 +468,11 @@ const styles = StyleSheet.create({
   },
   clientName: {
     marginBottom: Spacing.xs,
+  },
+  phoneRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: Spacing.sm,
   },
   tabs: {
     flexDirection: "row",

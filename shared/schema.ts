@@ -9,6 +9,7 @@ export const users = pgTable("users", {
     .default(sql`gen_random_uuid()`),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
+  phone: text("phone"),
   passwordHash: text("password_hash").notNull(),
   role: text("role", { enum: ["CLIENT", "ADMIN"] }).notNull().default("CLIENT"),
   onboardingCompleted: boolean("onboarding_completed").notNull().default(false),
@@ -184,6 +185,7 @@ export const loginSchema = z.object({
 export const registerSchema = z.object({
   email: z.string().email(),
   name: z.string().min(1),
+  phone: z.string().min(1),
   password: z.string().min(4),
   role: z.enum(["CLIENT", "ADMIN"]).optional(),
 });
