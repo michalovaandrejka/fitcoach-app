@@ -1,0 +1,101 @@
+Chci kompletní systémový test celé aplikace před vydáním na Google Play.
+
+====================================
+1) FUNKČNÍ TEST CELÉHO SYSTÉMU
+====================================
+
+Proveď end-to-end test všech hlavních funkcí:
+
+REGISTRACE
+- Registrace klienta
+- Povinné pole telefon
+- Uložení do PostgreSQL
+- Přihlášení po registraci
+
+LOGIN
+- Login klient
+- Login admin
+- Správné role přesměrování
+
+REZERVACE
+- Vytvoření dostupnosti (admin)
+- Rezervace slotu klientem
+- Slot zmizí pro ostatní
+- Zrušení rezervace klientem
+- Zrušení rezervace adminem
+- Manuální rezervace adminem
+
+POBOČKY
+- Výběr fitka
+- Oblíbené fitko
+- Filtrace podle fitka
+
+JÍDELNÍČKY
+- Odeslání preferencí klientem
+- Zobrazení adminovi
+- Odeslání jídelníčku adminem
+- Zobrazení klientovi
+
+NOTIFIKACE
+- Odeslání push všem
+- Odeslání podle dne
+- Odeslání podle týdne
+- Odeslání podle pobočky
+- Ověřit, že tokeny fungují
+
+DASHBOARD
+- Počty klientů
+- Počty rezervací
+- Počty volných slotů
+
+====================================
+2) OVĚŘIT, ŽE:
+====================================
+
+- Vše běží proti Railway backendu
+- Nic se neukládá lokálně
+- Není nikde localhost
+- Není žádný fallback in-memory storage
+- Vše zapisuje do PostgreSQL
+
+====================================
+3) OPRAVIT NALEZENÉ CHYBY
+====================================
+
+Pokud něco nefunguje:
+- oprav to
+- nepřidávej nové funkce
+- jen oprav chyby
+
+====================================
+4) VYTVORIT PRODUKČNÍ KONFIGURACI
+====================================
+
+Vytvoř nebo aktualizuj:
+
+- app.json (nebo app.config.js)
+  - name
+  - slug
+  - version
+  - android.package
+  - android.versionCode
+  - icon
+  - splash
+  - extra.apiUrl (Railway URL)
+
+- eas.json
+  - production profil
+  - android build type aab
+
+====================================
+5) POTVRĎ:
+====================================
+
+- Aplikace je production-ready
+- Je připravena na EAS build
+- Nebude fungovat jen lokálně
+- Railway je jediný backend
+- Android build projde bez ERR_MODULE_NOT_FOUND
+
+Na konci mi napiš jasné potvrzení:
+"Systém je připraven pro Google Play build."
