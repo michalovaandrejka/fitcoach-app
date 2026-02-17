@@ -173,7 +173,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
     <ThemedView style={[styles.drawerContainer, { paddingTop: insets.top }]}>
       <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerScroll}>
         <View style={[styles.header, { borderBottomColor: theme.border }]}>
-          <ThemedText type="h2">FitCoach</ThemedText>
+          <ThemedText type="h2">Andrejka Fitness</ThemedText>
           <ThemedText type="small" style={{ color: theme.textSecondary }}>
             {user?.name || user?.email}
           </ThemedText>
