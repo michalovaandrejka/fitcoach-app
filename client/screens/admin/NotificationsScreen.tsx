@@ -6,18 +6,14 @@ import { useHeaderHeight } from "@react-navigation/elements";
 import { Icon } from "@/components/Icon";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Haptics from "expo-haptics";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { apiGetUsers, apiGetLocations, apiGetBookings } from "@/lib/api";
+import { apiGetUsers, apiGetLocations, apiGetBookings, apiCreateNotification } from "@/lib/api";
 import { Location, Client, Notification } from "@/types";
-
-const NOTIFICATIONS_KEY = "@fitcoach_notifications";
 
 type TargetType = "all" | "booked";
 type TimeFilter = "today" | "week" | "custom";
@@ -144,17 +140,6 @@ export default function NotificationsScreen() {
     return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`;
   };
 
-  const saveNotificationLocally = async (notification: Notification): Promise<void> => {
-    try {
-      const data = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
-      const notifications: Notification[] = data ? JSON.parse(data) : [];
-      notifications.unshift(notification);
-      await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifications));
-    } catch (error) {
-      throw new Error("Nepodařilo se uložit oznámení");
-    }
-  };
-
   const handleSend = async () => {
     if (!message.trim()) {
       Alert.alert("Chyba", "Zadejte text zprávy");
@@ -170,8 +155,7 @@ export default function NotificationsScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     try {
-      const notification: Notification = {
-        id: `notif_${Date.now()}`,
+      await apiCreateNotification({
         title: title.trim() || undefined,
         body: message.trim(),
         targetType,
@@ -182,11 +166,8 @@ export default function NotificationsScreen() {
             : undefined,
         weekFilter: timeFilter === "week" || undefined,
         locationId: selectedLocationId || undefined,
-        sentAt: new Date().toISOString(),
         recipientCount: filteredClients.length,
-      };
-
-      await saveNotificationLocally(notification);
+      });
 
       Alert.alert(
         "Odesláno",

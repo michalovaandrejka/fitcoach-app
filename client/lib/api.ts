@@ -234,3 +234,19 @@ export async function apiCreateLocation(data: { name: string; address: string })
 export async function apiUpdateLocation(locationId: string, data: { name?: string; address?: string; isActive?: boolean }) {
   return apiRequest<any>("PUT", `/api/locations/${locationId}`, data);
 }
+
+export async function apiGetNotifications() {
+  return apiRequest<Array<any>>("GET", "/api/notifications");
+}
+
+export async function apiCreateNotification(data: { title?: string; body: string; targetType: string; dateFilter?: string; weekFilter?: boolean; locationId?: string; recipientCount: number }) {
+  return apiRequest<any>("POST", "/api/notifications", data);
+}
+
+export async function apiGetTrainerContact() {
+  return apiRequest<any>("GET", "/api/trainer-contact", undefined, false);
+}
+
+export async function apiUpdateTrainerContact(data: { phone: string; email?: string; whatsapp?: string }) {
+  return apiRequest<any>("PUT", "/api/trainer-contact", data);
+}

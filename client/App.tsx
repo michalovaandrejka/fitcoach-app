@@ -13,7 +13,6 @@ import { queryClient } from "@/lib/query-client";
 import RootStackNavigator from "@/navigation/RootStackNavigator";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { initializeData } from "@/lib/storage";
 import { Colors } from "@/constants/theme";
 
 SplashScreen.preventAutoHideAsync();
@@ -23,12 +22,6 @@ export default function App() {
 
   useEffect(() => {
     const prepare = async () => {
-      try {
-        await initializeData();
-      } catch (e) {
-        console.warn("[App] Error initializing data:", e);
-      }
-
       try {
         await SplashScreen.hideAsync();
       } catch (e) {
